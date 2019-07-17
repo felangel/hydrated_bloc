@@ -35,7 +35,13 @@ class HydratedBlocStorage implements HydratedStorage {
     Map<String, dynamic> storage = Map<String, dynamic>();
 
     if (await file.exists()) {
-      storage = json.decode(await file.readAsString()) as Map<String, dynamic>;
+      try {
+        storage =
+            json.decode(await file.readAsString()) as Map<String, dynamic>;
+      } catch (error) {
+        await file.delete();
+        storage = Map<String, dynamic>();
+      }
     }
 
     _instance = HydratedBlocStorage._(storage, file);
