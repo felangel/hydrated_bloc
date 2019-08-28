@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
 
 /// Interface which `HydratedBlocDelegate` uses to persist and retrieve
@@ -36,8 +37,12 @@ class HydratedBlocStorage implements HydratedStorage {
 
     if (await file.exists()) {
       try {
-        storage =
-            json.decode(await file.readAsString()) as Map<String, dynamic>;
+        String source = await file.readAsString();
+        if (source.isEmpty) {
+          await file.delete();
+        } else {
+          storage = json.decode(source) as Map<String, dynamic>;
+        }
       } catch (_) {
         await file.delete();
       }

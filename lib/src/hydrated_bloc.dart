@@ -1,7 +1,8 @@
 import 'dart:convert';
+
+import 'package:bloc/bloc.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:bloc/bloc.dart';
 
 /// Specialized `Bloc` which handles initializing the `Bloc` state
 /// based on the persisted state. This allows state to be persisted
@@ -13,10 +14,15 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   @mustCallSuper
   @override
   State get initialState {
+    final String jsonString =
+        storage?.read(this.runtimeType.toString()) as String;
+    if (jsonString == null) {
+      return null;
+    }
     try {
       return fromJson(
         json.decode(
-          storage?.read(this.runtimeType.toString()) as String,
+          jsonString,
         ) as Map<String, dynamic>,
       );
     } catch (_) {
