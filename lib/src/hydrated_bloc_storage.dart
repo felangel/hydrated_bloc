@@ -25,12 +25,12 @@ class HydratedBlocStorage implements HydratedStorage {
   File _file;
 
   /// Returns an instance of `HydratedBlocStorage`.
-  static Future<HydratedBlocStorage> getInstance({bool testing = false}) async {
+  static Future<HydratedBlocStorage> getInstance() async {
     if (_instance != null) {
       return _instance;
     }
 
-    final Directory directory = await getDocumentDir(testing: testing);
+    final Directory directory = await getDocumentDir();
     final File file = getFilePath(directory);
     Map<String, dynamic> storage = Map<String, dynamic>();
 
@@ -68,13 +68,11 @@ class HydratedBlocStorage implements HydratedStorage {
     return await _file.exists() ? await _file.delete() : null;
   }
 
-  static Future<Directory> getDocumentDir({bool testing = false}) async {
-    if (!testing) {
-      if (Platform.isMacOS || Platform.isLinux) {
-        return Directory('${Platform.environment['HOME']}/.config');
-      } else if (Platform.isWindows) {
-        return Directory('${Platform.environment['UserProfile']}\\.config');
-      }
+  static Future<Directory> getDocumentDir() async {
+    if (Platform.isMacOS || Platform.isLinux) {
+      return Directory('${Platform.environment['HOME']}/.config');
+    } else if (Platform.isWindows) {
+      return Directory('${Platform.environment['UserProfile']}\\.config');
     }
     return await getTemporaryDirectory();
   }

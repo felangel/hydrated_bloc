@@ -32,7 +32,7 @@ void main() {
   });
 
   tearDown(() async {
-    final directory = await HydratedBlocStorage.getDocumentDir(testing: true);
+    final directory = await HydratedBlocStorage.getDocumentDir();
     final File file = HydratedBlocStorage.getFilePath(directory);
     if (file.existsSync()) {
       file.deleteSync();
@@ -44,7 +44,7 @@ void main() {
     test(
         'should call storage.write when onTransition is called using the static build',
         () async {
-      delegate = await HydratedBlocDelegate.build(testing: true);
+      delegate = await HydratedBlocDelegate.build();
       final transition = Transition(
         currentState: 'currentState',
         event: 'event',
@@ -60,7 +60,7 @@ void main() {
     test(
         'should call storage.write when onTransition is called using the static build with bloc id',
         () async {
-      delegate = await HydratedBlocDelegate.build(testing: true);
+      delegate = await HydratedBlocDelegate.build();
       final transition = Transition(
         currentState: 'currentState',
         event: 'event',
