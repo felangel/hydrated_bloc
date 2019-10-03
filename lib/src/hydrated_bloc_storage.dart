@@ -75,13 +75,12 @@ class HydratedBlocStorage implements HydratedStorage {
       } else if (Platform.isWindows) {
         return Directory('${Platform.environment['UserProfile']}\\.config');
       }
-    } else {
-      return Directory('.');
     }
     return await getTemporaryDirectory();
   }
 
-  static File getFilePath(Directory directory) {
+  static File getFilePath(Directory directory, {bool testing = false}) {
+    if (testing) return File('./$_hydratedBlocStorageName');
     return File('${directory.path}/$_hydratedBlocStorageName');
   }
 }

@@ -32,9 +32,8 @@ void main() {
   });
 
   tearDown(() async {
-    final Directory directory =
-        await HydratedBlocStorage.getDocumentDir(testing: true);
-    final File file = HydratedBlocStorage.getFilePath(directory);
+    final directory = await HydratedBlocStorage.getDocumentDir(testing: true);
+    final File file = HydratedBlocStorage.getFilePath(directory, testing: true);
     if (file.existsSync()) {
       file.deleteSync();
     }

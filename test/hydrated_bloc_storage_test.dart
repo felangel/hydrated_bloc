@@ -31,10 +31,11 @@ void main() {
       });
 
       test('returns correct value when file exists', () async {
-        final Directory directory =
+        final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        HydratedBlocStorage.getFilePath(directory)
-            .writeAsStringSync(json.encode({
+        final File file =
+            HydratedBlocStorage.getFilePath(directory, testing: true);
+        file.writeAsStringSync(json.encode({
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance();
@@ -44,9 +45,10 @@ void main() {
       test(
           'returns null value when file exists but contains corrupt json and deletes the file',
           () async {
-        final Directory directory =
+        final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        final File file = HydratedBlocStorage.getFilePath(directory);
+        final File file =
+            HydratedBlocStorage.getFilePath(directory, testing: true);
         file.writeAsStringSync("invalid-json");
         hydratedStorage = await HydratedBlocStorage.getInstance();
         expect(hydratedStorage.read('CounterBloc'), isNull);
@@ -75,9 +77,11 @@ void main() {
         expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
         await hydratedStorage.clear();
         expect(hydratedStorage.read('CounterBloc'), isNull);
-        final Directory directory =
+        final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        expect(HydratedBlocStorage.getFilePath(directory).existsSync(), false);
+        final File file =
+            HydratedBlocStorage.getFilePath(directory, testing: true);
+        expect(file.existsSync(), false);
       });
     });
   });
