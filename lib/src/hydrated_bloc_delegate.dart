@@ -16,8 +16,7 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// If you want to customize `HydratedBlocDelegate` you can extend `HydratedBlocDelegate`
   /// and perform the necessary overrides.
   static Future<HydratedBlocDelegate> build() async {
-    return HydratedBlocDelegate(
-        await HydratedBlocStorage.getInstance());
+    return HydratedBlocDelegate(await HydratedBlocStorage.getInstance());
   }
 
   HydratedBlocDelegate(this.storage);
