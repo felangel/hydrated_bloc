@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
   group('HydratedBlocStorage', () {
     const MethodChannel channel =
         MethodChannel('plugins.flutter.io/path_provider');
@@ -29,7 +31,9 @@ void main() {
       });
 
       test('returns correct value when file exists', () async {
-        File('./.hydrated_bloc.json').writeAsStringSync(json.encode({
+        final Directory directory = await HydratedBlocStorage.getDocumentDir();
+        HydratedBlocStorage.getFilePath(directory)
+            .writeAsStringSync(json.encode({
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance();
@@ -39,7 +43,8 @@ void main() {
       test(
           'returns null value when file exists but contains corrupt json and deletes the file',
           () async {
-        final file = File('./.hydrated_bloc.json');
+        final Directory directory = await HydratedBlocStorage.getDocumentDir();
+        final File file = HydratedBlocStorage.getFilePath(directory);
         file.writeAsStringSync("invalid-json");
         hydratedStorage = await HydratedBlocStorage.getInstance();
         expect(hydratedStorage.read('CounterBloc'), isNull);
@@ -68,7 +73,8 @@ void main() {
         expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
         await hydratedStorage.clear();
         expect(hydratedStorage.read('CounterBloc'), isNull);
-        expect(File('./.hydrated_bloc.json').existsSync(), false);
+        final Directory directory = await HydratedBlocStorage.getDocumentDir();
+        expect(HydratedBlocStorage.getFilePath(directory).existsSync(), false);
       });
     });
   });

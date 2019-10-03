@@ -65,6 +65,8 @@ class MyMultiHydratedBloc extends HydratedBloc<int, int> {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   MockHydratedBlocDelegate delegate;
   MockStorage storage;
 

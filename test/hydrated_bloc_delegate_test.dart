@@ -11,6 +11,8 @@ class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 class MockStorage extends Mock implements HydratedBlocStorage {}
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  
   MockStorage storage;
   HydratedBlocDelegate delegate;
   MockBloc bloc;
@@ -29,10 +31,13 @@ void main() {
     bloc = MockBloc();
   });
 
-  tearDown(() {
-    if (File('./.hydrated_bloc.json').existsSync()) {
-      File('./.hydrated_bloc.json').deleteSync();
+  tearDown(() async {
+    final Directory directory = await HydratedBlocStorage.getDocumentDir();
+    final File file = HydratedBlocStorage.getFilePath(directory);
+    if (file.existsSync()) {
+      file.deleteSync();
     }
+    return;
   });
 
   group('HydratedBlocDelegate', () {
