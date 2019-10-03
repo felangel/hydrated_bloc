@@ -33,8 +33,7 @@ void main() {
       test('returns correct value when file exists', () async {
         final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        final File file =
-            HydratedBlocStorage.getFilePath(directory, testing: true);
+        final File file = HydratedBlocStorage.getFilePath(directory);
         file.writeAsStringSync(json.encode({
           "CounterBloc": {"value": 4}
         }));
@@ -47,8 +46,7 @@ void main() {
           () async {
         final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        final File file =
-            HydratedBlocStorage.getFilePath(directory, testing: true);
+        final File file = HydratedBlocStorage.getFilePath(directory);
         file.writeAsStringSync("invalid-json");
         hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         expect(hydratedStorage.read('CounterBloc'), isNull);
@@ -79,8 +77,7 @@ void main() {
         expect(hydratedStorage.read('CounterBloc'), isNull);
         final directory =
             await HydratedBlocStorage.getDocumentDir(testing: true);
-        final File file =
-            HydratedBlocStorage.getFilePath(directory, testing: true);
+        final File file = HydratedBlocStorage.getFilePath(directory);
         expect(file.existsSync(), false);
       });
     });

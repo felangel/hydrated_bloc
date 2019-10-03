@@ -31,7 +31,7 @@ class HydratedBlocStorage implements HydratedStorage {
     }
 
     final Directory directory = await getDocumentDir(testing: testing);
-    final File file = getFilePath(directory, testing: testing);
+    final File file = getFilePath(directory);
     Map<String, dynamic> storage = Map<String, dynamic>();
 
     if (await file.exists()) {
@@ -79,8 +79,7 @@ class HydratedBlocStorage implements HydratedStorage {
     return await getTemporaryDirectory();
   }
 
-  static File getFilePath(Directory directory, {bool testing = false}) {
-    if (testing) return File('./$_hydratedBlocStorageName');
+  static File getFilePath(Directory directory) {
     return File('${directory.path}/$_hydratedBlocStorageName');
   }
 }
