@@ -74,6 +74,6 @@ class HydratedBlocStorage implements HydratedStorage {
     } else if (Platform.isWindows) {
       return Directory('${Platform.environment['UserProfile']}\\.config');
     }
-    return await getApplicationDocumentsDirectory();
+    return await getTemporaryDirectory();
   }
 }
