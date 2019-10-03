@@ -23,7 +23,7 @@ void main() {
 
     group('read', () {
       test('returns null when file does not exist', () async {
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         expect(
           hydratedStorage.read('CounterBloc'),
           isNull,
@@ -38,7 +38,7 @@ void main() {
         file.writeAsStringSync(json.encode({
           "CounterBloc": {"value": 4}
         }));
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
       });
 
@@ -50,7 +50,7 @@ void main() {
         final File file =
             HydratedBlocStorage.getFilePath(directory, testing: true);
         file.writeAsStringSync("invalid-json");
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         expect(hydratedStorage.read('CounterBloc'), isNull);
         expect(file.existsSync(), false);
       });
@@ -58,7 +58,7 @@ void main() {
 
     group('write', () {
       test('writes to file', () async {
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         await Future.wait(<Future<void>>[
           hydratedStorage.write('CounterBloc', json.encode({"value": 4})),
         ]);
@@ -69,7 +69,7 @@ void main() {
 
     group('clear', () {
       test('calls deletes file, clears storage, and resets instance', () async {
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(testing: true);
         await Future.wait(<Future<void>>[
           hydratedStorage.write('CounterBloc', json.encode({"value": 4})),
         ]);

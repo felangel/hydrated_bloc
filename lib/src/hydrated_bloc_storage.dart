@@ -25,13 +25,13 @@ class HydratedBlocStorage implements HydratedStorage {
   File _file;
 
   /// Returns an instance of `HydratedBlocStorage`.
-  static Future<HydratedBlocStorage> getInstance() async {
+  static Future<HydratedBlocStorage> getInstance({bool testing = false}) async {
     if (_instance != null) {
       return _instance;
     }
 
-    final Directory directory = await getDocumentDir();
-    final File file = getFilePath(directory);
+    final Directory directory = await getDocumentDir(testing: testing);
+    final File file = getFilePath(directory, testing: testing);
     Map<String, dynamic> storage = Map<String, dynamic>();
 
     if (await file.exists()) {
