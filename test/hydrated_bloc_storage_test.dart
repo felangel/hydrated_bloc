@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  
+  // TestWidgetsFlutterBinding.ensureInitialized();
+
   group('HydratedBlocStorage', () {
     const MethodChannel channel =
         MethodChannel('plugins.flutter.io/path_provider');

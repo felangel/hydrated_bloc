@@ -14,7 +14,7 @@ void main() async {
   // before using any plugins if the code is executed before runApp.
   // As a result, you may have to uncomment the following line if you're using Flutter >=1.9.4.
   //
-  WidgetsFlutterBinding.ensureInitialized();
+  // WidgetsFlutterBinding.ensureInitialized();
   setTargetPlatformForDesktop();
   BlocSupervisor.delegate = await HydratedBlocDelegate.build();
   runApp(App());

@@ -11,8 +11,8 @@ class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 class MockStorage extends Mock implements HydratedBlocStorage {}
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-  
+  // TestWidgetsFlutterBinding.ensureInitialized();
+
   MockStorage storage;
   HydratedBlocDelegate delegate;
   MockBloc bloc;
