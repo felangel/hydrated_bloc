@@ -64,7 +64,6 @@ void main() {
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
       });
-
       test('returns correct value when file exists on Windows', () async {
         final file = File('.\\.config/.hydrated_bloc.json')
           ..createSync(recursive: true);

@@ -6,6 +6,7 @@ import 'package:hydrated_bloc/src/platform/platform.dart';
 import 'package:mockito/mockito.dart';
 import 'package:bloc/bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+
 class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 
 class MockStorage extends Mock implements HydratedBlocStorage {}

@@ -66,4 +66,17 @@ class HydratedBlocStorage implements HydratedStorage {
     _instance = null;
     return await _dir.fileExists() ? await _dir.clear() : null;
   }
+
+  static Future<Directory> _getDocumentDir(Platform platform) async {
+    if (platform.isMacOS || platform.isLinux) {
+      return Directory('${platform.environment['HOME']}/.config');
+    } else if (platform.isWindows) {
+      return Directory('${platform.environment['UserProfile']}\\.config');
+    }
+    return await getTemporaryDirectory();
+  }
+
+  static File _getFilePath(Directory directory) {
+    return File('${directory.path}/$_hydratedBlocStorageName');
+  }
 }
