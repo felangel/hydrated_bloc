@@ -13,6 +13,7 @@ dependencies:
   bloc: ^0.15.0
   path_provider: ^1.1.0
   intl: ^0.16.0
+  universal_html: ^1.1.6
 
 dev_dependencies:
   flutter_test:
