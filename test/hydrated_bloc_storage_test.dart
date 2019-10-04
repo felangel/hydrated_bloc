@@ -1,9 +1,12 @@
 import 'dart:io' hide Platform;
 import 'dart:convert';
-import 'package:platform/platform.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:hydrated_bloc/src/platform/platform.dart';
+
+//ignore_for_file: implicit_dynamic_map_literal
 
 void main() {
   group('HydratedBlocStorage', () {
@@ -35,7 +38,7 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'ios'),
+          MockedPlatform(operatingSystem: 'ios'),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
       });
@@ -46,7 +49,7 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'android'),
+          MockedPlatform(operatingSystem: 'android'),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
       });
@@ -57,7 +60,7 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'fuchsia'),
+          MockedPlatform(operatingSystem: 'fuchsia'),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
       });
@@ -69,9 +72,9 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(
+          MockedPlatform(
             operatingSystem: 'windows',
-            environment: {'UserProfile': '.'},
+            environment: 'UserProfile',
           ),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
@@ -85,9 +88,9 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(
+          MockedPlatform(
             operatingSystem: 'macos',
-            environment: {'HOME': '.'},
+            environment: 'HOME',
           ),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
@@ -101,9 +104,9 @@ void main() {
           "CounterBloc": {"value": 4}
         }));
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(
+          MockedPlatform(
             operatingSystem: 'linux',
-            environment: {'HOME': '.'},
+            environment: 'HOME',
           ),
         );
         expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
@@ -116,7 +119,7 @@ void main() {
         final file = File('./.hydrated_bloc.json');
         file.writeAsStringSync("invalid-json");
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'ios'),
+          MockedPlatform(operatingSystem: 'ios'),
         );
         expect(hydratedStorage.read('CounterBloc'), isNull);
         expect(file.existsSync(), false);
@@ -126,7 +129,7 @@ void main() {
     group('write', () {
       test('writes to file', () async {
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'ios'),
+          MockedPlatform(operatingSystem: 'ios'),
         );
         await Future.wait(<Future<void>>[
           hydratedStorage.write('CounterBloc', json.encode({"value": 4})),
@@ -139,7 +142,7 @@ void main() {
     group('clear', () {
       test('calls deletes file, clears storage, and resets instance', () async {
         hydratedStorage = await HydratedBlocStorage.getInstance(
-          FakePlatform(operatingSystem: 'ios'),
+          MockedPlatform(operatingSystem: 'ios'),
         );
         await Future.wait(<Future<void>>[
           hydratedStorage.write('CounterBloc', json.encode({"value": 4})),

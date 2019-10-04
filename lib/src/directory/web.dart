@@ -1,26 +1,42 @@
 import 'dart:async';
-import '../cooky.dart' as cookie;
+import 'dart:html' as html;
+
+import '../platform/platform.dart';
 
 class DirUtils {
   final String path, fileName;
+  final MockedPlatform platform;
 
-  DirUtils(this.fileName, [this.path]);
+  DirUtils(this.fileName, this.platform, [this.path]);
+
+  html.Storage get _localStorage => html.window.localStorage;
 
   Future writeFile(String data) async {
-    cookie.set(fileName, data, path: path);
+    _localStorage.update(
+      fileName,
+      (val) => data,
+      ifAbsent: () => data,
+    );
     return;
   }
 
   Future<String> readFile() async {
-    return cookie.get(fileName);
+    final data = _localStorage.entries.firstWhere(
+      (i) => i.key == fileName,
+      orElse: () => null,
+    );
+    return data?.value;
   }
 
   Future<bool> fileExists() async {
-    final data = cookie.get(fileName);
-    return data != null;
+    return _localStorage != null && _localStorage.containsKey(fileName);
   }
 
   Future clear() async {
-    return cookie.remove(fileName, path: path);
+    _localStorage.clear();
+  }
+
+  Future<bool> exists() async {
+    return _localStorage != null && _localStorage.containsKey(fileName);
   }
 }

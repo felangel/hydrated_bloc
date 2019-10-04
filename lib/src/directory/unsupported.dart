@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import '../platform/platform.dart';
+
 class DirUtils {
   final String path, fileName;
+  final MockedPlatform platform;
 
-  DirUtils(this.fileName, [this.path]);
+  DirUtils(this.fileName, this.platform, [this.path]);
 
   Future writeFile(String data) {
     throw 'Platform Not Supported';

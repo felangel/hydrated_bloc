@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:platform/platform.dart';
-
 import 'directory/directory.dart';
+import 'platform/platform.dart';
 
 /// Interface which `HydratedBlocDelegate` uses to persist and retrieve
 /// state changes from the local device.
@@ -27,13 +26,11 @@ class HydratedBlocStorage implements HydratedStorage {
   DirUtils _dir;
 
   /// Returns an instance of `HydratedBlocStorage`.
-  static Future<HydratedBlocStorage> getInstance([
-    Platform platform = const LocalPlatform(),
-  ]) async {
+  static Future<HydratedBlocStorage> getInstance([MockedPlatform platform]) async {
     if (_instance != null) {
       return _instance;
     }
-    final dirUtils = DirUtils(_hydratedBlocStorageName);
+    final dirUtils = DirUtils(_hydratedBlocStorageName, platform);
     Map<String, dynamic> storage = Map<String, dynamic>();
 
     if (await dirUtils.fileExists()) {

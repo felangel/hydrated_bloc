@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 
+import '../platform/platform.dart';
+
 class DirUtils {
   final String path, fileName;
+  final MockedPlatform platform;
 
-  DirUtils(this.fileName, [this.path]);
+  DirUtils(this.fileName, this.platform, [this.path]);
 
   Future writeFile(Map<String, dynamic> data) async {
     try {
@@ -54,11 +56,16 @@ class DirUtils {
   }
 
   Future<Directory> _getDocumentDir() async {
-    if (Platform.isMacOS || Platform.isLinux) {
-      return Directory('${Platform.environment['HOME']}/.config');
-    } else if (Platform.isWindows) {
-      return Directory('${Platform.environment['UserProfile']}\\.config');
+    if (platform.operatingSystem == 'ios' ||
+        platform.operatingSystem == 'android') {
+      return await getApplicationDocumentsDirectory();
     }
-    return await getApplicationDocumentsDirectory();
+    if (platform?.environment != null) {
+      if (platform.operatingSystem == 'windows') {
+        return Directory('${platform.environment}\\.config');
+      }
+      return Directory('${platform.environment}/.config');
+    }
+    return null;
   }
 }
