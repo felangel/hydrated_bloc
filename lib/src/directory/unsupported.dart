@@ -16,4 +16,8 @@ class DirUtils {
   Future<bool> fileExists() {
     throw 'Platform Not Supported';
   }
+
+  Future clear() {
+    throw 'Platform Not Supported';
+  }
 }

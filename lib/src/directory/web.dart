@@ -19,4 +19,8 @@ class DirUtils {
     final data = cookie.get(fileName);
     return data != null;
   }
+
+  Future clear() async {
+    return cookie.remove(fileName, path: path);
+  }
 }

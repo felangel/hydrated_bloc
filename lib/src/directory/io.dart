@@ -41,10 +41,15 @@ class DirUtils {
     return _file.existsSync();
   }
 
+  Future clear() async {
+    File _file = await _getFile();
+    return _file.deleteSync();
+  }
+
   Future<File> _getFile() async {
     final dir = await _getDocumentDir();
     final _path = path ?? dir.path;
-    final _file = File('$_path/$fileName.json');
+    final _file = File('$_path/$fileName');
     return _file;
   }
 

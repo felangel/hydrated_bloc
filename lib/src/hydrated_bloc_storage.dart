@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' hide Platform;
+
 import 'package:platform/platform.dart';
-import 'package:path_provider/path_provider.dart';
+
+import 'directory/directory.dart';
 
 /// Interface which `HydratedBlocDelegate` uses to persist and retrieve
 /// state changes from the local device.
@@ -23,7 +24,7 @@ class HydratedBlocStorage implements HydratedStorage {
   static const String _hydratedBlocStorageName = '.hydrated_bloc.json';
   static HydratedBlocStorage _instance;
   Map<String, dynamic> _storage;
-  File _file;
+  DirUtils _dir;
 
   /// Returns an instance of `HydratedBlocStorage`.
   static Future<HydratedBlocStorage> getInstance([
@@ -32,25 +33,23 @@ class HydratedBlocStorage implements HydratedStorage {
     if (_instance != null) {
       return _instance;
     }
-
-    final Directory directory = await _getDocumentDir(platform);
-    final File file = _getFilePath(directory);
+    final dirUtils = DirUtils(_hydratedBlocStorageName);
     Map<String, dynamic> storage = Map<String, dynamic>();
 
-    if (await file.exists()) {
+    if (await dirUtils.fileExists()) {
       try {
         storage =
-            json.decode(await file.readAsString()) as Map<String, dynamic>;
+            json.decode(await dirUtils.readFile()) as Map<String, dynamic>;
       } catch (_) {
-        await file.delete();
+        await dirUtils.clear();
       }
     }
 
-    _instance = HydratedBlocStorage._(storage, file);
+    _instance = HydratedBlocStorage._(storage, dirUtils);
     return _instance;
   }
 
-  HydratedBlocStorage._(this._storage, this._file);
+  HydratedBlocStorage._(this._storage, this._dir);
 
   @override
   dynamic read(String key) {
@@ -60,7 +59,7 @@ class HydratedBlocStorage implements HydratedStorage {
   @override
   Future<void> write(String key, dynamic value) async {
     _storage[key] = value;
-    await _file.writeAsString(json.encode(_storage));
+    await _dir.writeFile(json.encode(_storage));
     return _storage[key] = value;
   }
 
@@ -68,19 +67,6 @@ class HydratedBlocStorage implements HydratedStorage {
   Future<void> clear() async {
     _storage = Map<String, dynamic>();
     _instance = null;
-    return await _file.exists() ? await _file.delete() : null;
-  }
-
-  static Future<Directory> _getDocumentDir(Platform platform) async {
-    if (platform.isMacOS || platform.isLinux) {
-      return Directory('${platform.environment['HOME']}/.config');
-    } else if (platform.isWindows) {
-      return Directory('${platform.environment['UserProfile']}\\.config');
-    }
-    return await getTemporaryDirectory();
-  }
-
-  static File _getFilePath(Directory directory) {
-    return File('${directory.path}/$_hydratedBlocStorageName');
+    return await _dir.fileExists() ? await _dir.clear() : null;
   }
 }
