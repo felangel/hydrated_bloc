@@ -1,11 +1,10 @@
 import 'dart:convert';
-import 'dart:io' hide Platform;
+import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:bloc/bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:platform/platform.dart';
 
 class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 
@@ -15,7 +14,6 @@ void main() {
   MockStorage storage;
   HydratedBlocDelegate delegate;
   MockBloc bloc;
-  Platform platform;
 
   setUp(() async {
     const MethodChannel channel =
@@ -29,7 +27,6 @@ void main() {
     storage = MockStorage();
     delegate = HydratedBlocDelegate(storage);
     bloc = MockBloc();
-    platform = FakePlatform(operatingSystem: 'ios');
   });
 
   tearDown(() async {
