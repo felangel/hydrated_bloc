@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:bloc/bloc.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:platform/platform.dart';
 
 class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 
@@ -40,7 +41,9 @@ void main() {
     test(
         'should call storage.write when onTransition is called using the static build',
         () async {
-      delegate = await HydratedBlocDelegate.build();
+      delegate = await HydratedBlocDelegate.build(
+        FakePlatform(operatingSystem: 'ios'),
+      );
       final transition = Transition(
         currentState: 'currentState',
         event: 'event',
@@ -56,7 +59,9 @@ void main() {
     test(
         'should call storage.write when onTransition is called using the static build with bloc id',
         () async {
-      delegate = await HydratedBlocDelegate.build();
+      delegate = await HydratedBlocDelegate.build(
+        FakePlatform(operatingSystem: 'ios'),
+      );
       final transition = Transition(
         currentState: 'currentState',
         event: 'event',
