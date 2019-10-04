@@ -125,7 +125,9 @@ void main() {
 
     group('write', () {
       test('writes to file', () async {
-        hydratedStorage = await HydratedBlocStorage.getInstance();
+        hydratedStorage = await HydratedBlocStorage.getInstance(
+          FakePlatform(operatingSystem: 'ios'),
+        );
         await Future.wait(<Future<void>>[
           hydratedStorage.write('CounterBloc', json.encode({"value": 4})),
         ]);
