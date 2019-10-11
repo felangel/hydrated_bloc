@@ -52,7 +52,7 @@ packages:
     dependency: "direct main"
     description:
       path: "plugins/flutter_plugins/path_provider_fde"
-      ref: HEAD
+      ref: "4340dec47dd88206ed421d8c1c9ecdff2ba02fff"
       resolved-ref: "4340dec47dd88206ed421d8c1c9ecdff2ba02fff"
       url: "https://github.com/google/flutter-desktop-embedding"
     source: git
