@@ -14,7 +14,7 @@ import '../hydrated_bloc.dart';
 abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   /// {@macro hydrated_bloc}
   HydratedBloc() {
-    final stateJson = toJson(initialState);
+    final stateJson = toJson(state);
     if (stateJson != null) {
       _storage.write(
         '${runtimeType.toString()}$id',
