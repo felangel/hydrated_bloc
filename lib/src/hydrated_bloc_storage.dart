@@ -78,7 +78,7 @@ class HydratedBlocStorage extends HydratedStorage {
     }
     storageDirectory ??= await getTemporaryDirectory();
     final storage = HydratedFutureStorage(storageDirectory);
-    _instance = await instanceWith(storage: storage);
+    _instance = await getInstanceWith(storage: storage);
     return _instance;
   }
 
@@ -88,7 +88,7 @@ class HydratedBlocStorage extends HydratedStorage {
   /// Default [InstantStorage] is just in-memory `Map`
   /// Default [FutureStorage] uses `getTemporaryDirectory`
   /// for storing file per `HydratedBloc`'s `storageToken`
-  static Future<HydratedBlocStorage> instanceWith({
+  static Future<HydratedBlocStorage> getInstanceWith({
     InstantStorage<dynamic> cache,
     FutureStorage<String> storage,
   }) async {

@@ -43,7 +43,7 @@ class HydratedBlocDelegate extends BlocDelegate {
     FutureStorage<String> storage,
   }) async {
     return HydratedBlocDelegate(
-      await HydratedBlocStorage.instanceWith(cache: cache, storage: storage),
+      await HydratedBlocStorage.getInstanceWith(cache: cache, storage: storage),
     );
   }
 
