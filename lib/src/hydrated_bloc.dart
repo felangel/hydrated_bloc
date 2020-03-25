@@ -16,10 +16,7 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   HydratedBloc() {
     final stateJson = toJson(state);
     if (stateJson != null) {
-      _storage.write(
-        '${runtimeType.toString()}$id',
-        json.encode(stateJson),
-      );
+      _storage.write(storageToken, json.encode(stateJson));
     }
   }
 
