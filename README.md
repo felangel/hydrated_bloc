@@ -156,3 +156,28 @@ class MyHydratedBlocDelegate extends HydratedBlocDelegate {
 
 BlocSupervisor.delegate = MyHydratedBlocDelegate();
 ```
+
+## Runtime Hydrated Bloc
+In order to persist the state only during the application is running then extend `RuntimeHydratedBloc`. For example: 
+
+```dart
+class CounterBloc extends RuntimeHydratedBloc<CounterEvent, CounterState> {
+  @override
+  CounterState get initialState => super.initialState ?? CounterState(0);
+
+  @override
+  Stream<CounterState> mapEventToState(CounterEvent event) async* {
+    switch (event) {
+      case CounterEvent.decrement:
+        yield CounterState(state.value - 1);
+        break;
+      case CounterEvent.increment:
+        yield CounterState(state.value + 1);
+        break;
+      case CounterEvent.reset:
+        yield CounterState(0);
+        break;
+    }
+  }
+}
+```

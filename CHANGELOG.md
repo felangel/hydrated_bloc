@@ -1,3 +1,7 @@
+# 3.1.0
+
+- Implement `RuntimeHydratedBloc` that persists the state only during runtime.
+
 # 3.0.0
 
 - Updated to `bloc: ^3.0.0`
