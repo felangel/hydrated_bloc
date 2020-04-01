@@ -158,7 +158,7 @@ BlocSupervisor.delegate = MyHydratedBlocDelegate();
 ```
 
 ## Runtime Hydrated Bloc
-In order to persist the state only during the application is running then extend `RuntimeHydratedBloc`. For example: 
+If you want to persist the state only when the application is running, then you should extend `RuntimeHydratedBloc`.
 
 ```dart
 class CounterBloc extends RuntimeHydratedBloc<CounterEvent, CounterState> {
