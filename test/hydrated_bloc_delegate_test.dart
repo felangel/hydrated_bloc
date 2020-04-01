@@ -9,6 +9,9 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {}
 
+class MockRuntimeHydratedBloc extends Mock
+    implements RuntimeHydratedBloc<dynamic, dynamic> {}
+
 class MockStorage extends Mock implements HydratedBlocStorage {}
 
 void main() {
@@ -18,11 +21,13 @@ void main() {
     MockStorage storage;
     HydratedBlocDelegate delegate;
     MockBloc bloc;
+    MockRuntimeHydratedBloc runtimeHydratedBloc;
 
     setUp(() {
       storage = MockStorage();
       delegate = HydratedBlocDelegate(storage);
       bloc = MockBloc();
+      runtimeHydratedBloc = MockRuntimeHydratedBloc();
     });
 
     tearDown(() async {
@@ -57,6 +62,25 @@ void main() {
       when(bloc.toJson('nextState')).thenReturn(expected);
       delegate.onTransition(bloc, transition);
       verify(storage.write('MockBlocA', json.encode(expected))).called(1);
+    });
+
+    test(
+        'should store in the runtime storage when onTransition is called with runtime bloc',
+        () {
+      final expectedToken = 'dummyToken';
+      final expectedState = 'nextState';
+      final transition = Transition(
+        currentState: 'currentState',
+        event: 'event',
+        nextState: expectedState,
+      );
+      when(runtimeHydratedBloc.storageToken).thenReturn(expectedToken);
+
+      expect(delegate.runtimeStorage, isEmpty);
+
+      delegate.onTransition(runtimeHydratedBloc, transition);
+      expect(delegate.runtimeStorage[expectedToken], expectedState);
+      expect(delegate.runtimeStorage.length, 1);
     });
 
     group('Default Storage Directory', () {
