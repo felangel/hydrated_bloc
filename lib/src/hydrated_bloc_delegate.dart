@@ -12,6 +12,9 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// Instance of `HydratedStorage` used to manage persisted states.
   final HydratedStorage storage;
 
+  /// Instance of a cache map to manage `RuntimeHydratedBloc` persistence.
+  final Map<String, dynamic> runtimeStorage = {};
+
   /// Builds a new instance of `HydratedBlocDelegate` with the
   /// default `HydratedBlocStorage`.
   /// A custom `storageDirectory` can optionally be provided.
@@ -42,6 +45,8 @@ class HydratedBlocDelegate extends BlocDelegate {
           json.encode(stateJson),
         );
       }
+    } else if (bloc is RuntimeHydratedBloc) {
+      runtimeStorage[bloc.storageToken] = state;
     }
   }
 }
