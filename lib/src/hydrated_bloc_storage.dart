@@ -34,15 +34,15 @@ class HydratedBlocStorage implements HydratedStorage {
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
   }) async {
-    if (_instance != null) {
-      return _instance;
-    }
+    return await _lock.synchronized(() async {
+      if (_instance != null) {
+        return _instance;
+      }
 
-    final directory = storageDirectory ?? await getTemporaryDirectory();
-    final file = File('${directory.path}/.hydrated_bloc.json');
-    var storage = <String, dynamic>{};
+      final directory = storageDirectory ?? await getTemporaryDirectory();
+      final file = File('${directory.path}/.hydrated_bloc.json');
+      var storage = <String, dynamic>{};
 
-    await _lock.synchronized(() async {
       if (await file.exists()) {
         try {
           storage =
@@ -51,10 +51,10 @@ class HydratedBlocStorage implements HydratedStorage {
           await file.delete();
         }
       }
-    });
 
-    _instance = HydratedBlocStorage._(storage, file);
-    return _instance;
+      _instance = HydratedBlocStorage._(storage, file);
+      return _instance;
+    });
   }
 
   HydratedBlocStorage._(this._storage, this._file);
@@ -65,28 +65,32 @@ class HydratedBlocStorage implements HydratedStorage {
   }
 
   @override
-  Future<void> write(String key, dynamic value) {
-    _storage[key] = value;
-    return _lock.synchronized(() async {
+  Future<void> write(String key, dynamic value) async {
+    return await _lock.synchronized(() async {
+      _storage[key] = value;
       await _file.writeAsString(json.encode(_storage));
       return _storage[key] = value;
     });
-  }
+  } // or can it introduce even more errors?
 
   @override
-  Future<void> delete(String key) {
-    _storage[key] = null;
-    return _lock.synchronized(
-      () async => await _file.writeAsString(json.encode(_storage)),
+  Future<void> delete(String key) async {
+    return await _lock.synchronized(
+      () async {
+        _storage[key] = null;
+        return await _file.writeAsString(json.encode(_storage));
+      },
     );
   }
 
   @override
-  Future<void> clear() {
-    _storage.clear();
-    _instance = null;
-    return _lock.synchronized(
-      () async => await _file.exists() ? await _file.delete() : null,
+  Future<void> clear() async {
+    return await _lock.synchronized(
+      () async {
+        _storage.clear();
+        _instance = null;
+        return await _file.exists() ? await _file.delete() : null;
+      },
     );
   }
 }
