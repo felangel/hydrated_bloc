@@ -100,8 +100,8 @@ void main() {
     group('Custom Storage Directory', () {
       HydratedBlocStorage hydratedStorage;
 
-      tearDown(() {
-        hydratedStorage.clear();
+      tearDown(() async {
+        await hydratedStorage.clear();
       });
 
       group('read', () {
