@@ -19,8 +19,8 @@ void main() {
         return response;
       });
 
-      tearDown(() {
-        hydratedStorage.clear();
+      tearDown(() async {
+        await hydratedStorage.clear();
       });
 
       group('read', () {

@@ -27,8 +27,8 @@ void main() {
       bloc = MockBloc();
     });
 
-    tearDown(() {
-      delegate.storage.clear();
+    tearDown(() async {
+      await delegate.storage.clear();
     });
 
     test('should call storage.write when onTransition is called', () {
