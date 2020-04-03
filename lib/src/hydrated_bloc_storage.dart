@@ -33,8 +33,8 @@ class HydratedBlocStorage implements HydratedStorage {
   /// By default, `getTemporaryDirectory` is used.
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
-  }) async {
-    return await _lock.synchronized(() async {
+  }) {
+    return _lock.synchronized(() async {
       if (_instance != null) {
         return _instance;
       }
@@ -65,31 +65,32 @@ class HydratedBlocStorage implements HydratedStorage {
   }
 
   @override
-  Future<void> write(String key, dynamic value) async {
-    return await _lock.synchronized(() async {
+  Future<void> write(String key, dynamic value) {
+    return _lock.synchronized(() async {
       _storage[key] = value;
       await _file.writeAsString(json.encode(_storage));
-      return _storage[key] = value;
     });
   } // or can it introduce even more errors?
 
   @override
-  Future<void> delete(String key) async {
-    return await _lock.synchronized(
+  Future<void> delete(String key) {
+    return _lock.synchronized(
       () async {
         _storage[key] = null;
-        return await _file.writeAsString(json.encode(_storage));
+        await _file.writeAsString(json.encode(_storage));
       },
     );
   }
 
   @override
-  Future<void> clear() async {
-    return await _lock.synchronized(
+  Future<void> clear() {
+    return _lock.synchronized(
       () async {
         _storage.clear();
         _instance = null;
-        return await _file.exists() ? await _file.delete() : null;
+        if (await _file.exists()) {
+          await _file.delete();
+        }
       },
     );
   }
