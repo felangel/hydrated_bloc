@@ -24,9 +24,11 @@ abstract class HydratedStorage {
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage implements HydratedStorage {
   static HydratedBlocStorage _instance;
-  static final _lock = Lock();
   final Map<String, dynamic> _storage;
   final File _file;
+
+  /// `Lock` is used to synchronize access to IO
+  static final Lock lock = Lock();
 
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
@@ -34,7 +36,7 @@ class HydratedBlocStorage implements HydratedStorage {
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
   }) {
-    return _lock.synchronized(() async {
+    return lock.synchronized(() async {
       if (_instance != null) {
         return _instance;
       }
@@ -66,25 +68,23 @@ class HydratedBlocStorage implements HydratedStorage {
 
   @override
   Future<void> write(String key, dynamic value) {
-    return _lock.synchronized(() async {
+    return lock.synchronized(() {
       _storage[key] = value;
-      await _file.writeAsString(json.encode(_storage));
+      return _file.writeAsString(json.encode(_storage));
     });
-  } // or can it introduce even more errors?
+  }
 
   @override
   Future<void> delete(String key) {
-    return _lock.synchronized(
-      () async {
-        _storage[key] = null;
-        await _file.writeAsString(json.encode(_storage));
-      },
-    );
+    return lock.synchronized(() {
+      _storage[key] = null;
+      return _file.writeAsString(json.encode(_storage));
+    });
   }
 
   @override
   Future<void> clear() {
-    return _lock.synchronized(
+    return lock.synchronized(
       () async {
         _storage.clear();
         _instance = null;

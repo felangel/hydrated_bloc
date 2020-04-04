@@ -370,6 +370,42 @@ void storageGroup() {
         });
       });
 
+      group('heavy write', () {
+        test('writes heavily to file', () async {
+          final token = 'CounterBloc';
+          final directory = Directory.current;
+          final file = File('${directory.path}/.hydrated_bloc.json');
+          hydratedStorage = await HydratedBlocStorage.getInstance(
+            storageDirectory: directory,
+          );
+          final tasks = Iterable.generate(150, (i) => i).map((i) async {
+            final record = Iterable.generate(
+              i,
+              (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
+            ).toList();
+            final jsoned = json.encode(record);
+            hydratedStorage.write(token, jsoned); // no await here
+
+            dynamic written;
+            String string;
+            try {
+              string = await HydratedBlocStorage.lock.synchronized(() async {
+                return await file.readAsString();
+              });
+              final object = json.decode(string);
+              written = object;
+            } on dynamic catch (_) {
+              written = null;
+              print(string);
+            } // At least json is not corrupted
+            expect(written, isNotNull);
+            // expect(string, jsoned); // will definitely crash
+          });
+
+          await Future.wait(tasks);
+        });
+      });
+
       group('clear', () {
         test('calls deletes file, clears storage, and resets instance',
             () async {
