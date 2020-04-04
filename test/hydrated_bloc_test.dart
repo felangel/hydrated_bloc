@@ -378,7 +378,7 @@ void storageGroup() {
           hydratedStorage = await HydratedBlocStorage.getInstance(
             storageDirectory: directory,
           );
-          final tasks = Iterable.generate(150, (i) => i).map((i) async {
+          final tasks = Iterable.generate(120, (i) => i).map((i) async {
             final record = Iterable.generate(
               i,
               (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
@@ -389,9 +389,9 @@ void storageGroup() {
             dynamic written;
             String string;
             try {
-              string = await HydratedBlocStorage.lock.synchronized(() async {
-                return await file.readAsString();
-              });
+              string = await HydratedBlocStorage.lock.synchronized(
+                file.readAsString,
+              );
               final object = json.decode(string);
               written = object;
             } on dynamic catch (_) {
