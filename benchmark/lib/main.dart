@@ -45,28 +45,36 @@ class _AppState extends State<App> {
   var _running = false;
   final _results = <Result>[];
   Widget _benchmark(BuildContext context) {
-    return OutlineButton(
-      padding: EdgeInsets.symmetric(
-        horizontal: 12.0,
-        vertical: 4.0,
+    return Padding(
+      padding: const EdgeInsets.all(12.0),
+      child: OutlineButton(
+        padding: EdgeInsets.symmetric(
+          horizontal: 12.0,
+          vertical: 4.0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              "BENCHMARK",
+            ),
+          ],
+        ),
+        onPressed: _running
+            ? null
+            : () async {
+                _results.clear();
+                setState(() => _running = true);
+                print('RUNNING');
+                await benchmarkWrite(100)
+                    .doo((r) => setState(() => _results.add(r)))
+                    .map((r) => '${r.runner.name}: ${r.stringTime}ms')
+                    .doo(print)
+                    .drain();
+                setState(() => _running = false);
+                print('DONE');
+              },
       ),
-      child: Text(
-        "BENCHMARK",
-      ),
-      onPressed: _running
-          ? null
-          : () async {
-              _results.clear();
-              setState(() => _running = true);
-              print('RUNNING');
-              await benchmarkWrite(100)
-                  .doo((r) => setState(() => _results.add(r)))
-                  .map((r) => '${r.runner.name}: ${r.stringTime}ms')
-                  .doo(print)
-                  .drain();
-              setState(() => _running = false);
-              print('DONE');
-            },
     );
   }
 
@@ -77,7 +85,7 @@ class _AppState extends State<App> {
             elevation: 0,
             shape: RoundedRectangleBorder(
               side: BorderSide(
-                color: Colors.grey.withOpacity(0.8),
+                color: Colors.grey.withOpacity(0.3),
                 width: 1.0,
               ),
               borderRadius: BorderRadius.circular(4.0),
@@ -106,14 +114,27 @@ class _AppState extends State<App> {
   Widget _view(BuildContext context) {
     //NestedScrollView
     return CustomScrollView(
-      physics: BouncingScrollPhysics(),
+      reverse: true,
+      anchor: 0.25,
+      // shrinkWrap: true,
+      // physics: BouncingScrollPhysics(),
+      // physics: const AlwaysScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      primary: true,
       slivers: [
         SliverAppBar(
           backgroundColor: Colors.transparent,
           expandedHeight: 200,
           elevation: 0,
           // centerTitle: true,
-          leading: Icon(Icons.developer_board, color: Colors.black),
+          // title: Slider(
+          //   value: 0.2,
+          //   onChanged: (v) {},
+          // ),
+          // title: Text('build: 3.1.0', style: Theme.of(context).textTheme.title),
+          // leading: Icon(Icons.developer_board, color: Colors.black),
           // title: Row(children: [
           //   Icon(
           //     Icons.verified_user, // (developer_board|verified_user)
@@ -128,10 +149,14 @@ class _AppState extends State<App> {
           // stretch: true, // ?
           // bottom: ,
           // title: _benchmark(context),
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            title: _benchmark(context),
-            collapseMode: CollapseMode.none,
+          // flexibleSpace: FlexibleSpaceBar(
+          //   centerTitle: true,
+          //   title: _benchmark(context),
+          //   collapseMode: CollapseMode.none,
+          // ),
+          bottom: PreferredSize(
+            preferredSize: Size.fromHeight(135.0),
+            child: _benchmark(context),
           ),
         ),
         SliverList(delegate: SliverChildListDelegate(_list(context))),
