@@ -16,12 +16,7 @@ class _AppState extends State<App> {
       home: Builder(
         builder: (context) => Scaffold(
           body: SafeArea(
-            child: Column(
-              children: <Widget>[
-                _benchmark(context),
-                Expanded(child: _log(context)),
-              ],
-            ),
+            child: _view(context),
           ),
         ),
       ),
@@ -48,41 +43,34 @@ class _AppState extends State<App> {
   }
 
   var _running = false;
-  var _results = <Result>[];
+  final _results = <Result>[];
   Widget _benchmark(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(top: 24),
-      alignment: Alignment.topCenter,
-      child: OutlineButton(
-        // borderSide: BorderSide(width: 1, color: Colors.transparent),
-        padding: EdgeInsets.symmetric(
-          horizontal: 12.0,
-          vertical: 4.0,
-        ),
-        child: Text(
-          "BENCHMARK",
-        ),
-        onPressed: _running
-            ? null
-            : () async {
-                setState(() => _running = true);
-                final rr = await benchmarkWrite(100);
-                setState(() {
-                  _results = rr;
-                  _running = false;
-                });
-                rr
-                    .map((r) => '${r.runner.name}: ${r.stringTime}ms')
-                    .forEach(print);
-              },
+    return OutlineButton(
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.0,
+        vertical: 4.0,
       ),
+      child: Text(
+        "BENCHMARK",
+      ),
+      onPressed: _running
+          ? null
+          : () async {
+              _results.clear();
+              setState(() => _running = true);
+              print('RUNNING');
+              await benchmarkWrite(100)
+                  .doo((r) => setState(() => _results.add(r)))
+                  .map((r) => '${r.runner.name}: ${r.stringTime}ms')
+                  .doo(print)
+                  .drain();
+              setState(() => _running = false);
+              print('DONE');
+            },
     );
   }
 
-  Widget _log(BuildContext context) {
-    return ListView(
-      physics: BouncingScrollPhysics(),
-      children: <Widget>[
+  List<Widget> _list(BuildContext context) => [
         ..._results.map(
           (r) => Card(
             color: Colors.transparent,
@@ -98,7 +86,7 @@ class _AppState extends State<App> {
             child: ListTile(
               dense: true,
               selected: true,
-              subtitle: Text('time ${r.stringTime}ms'),
+              subtitle: Text('${r.stringTime}ms'),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 12.0,
                 vertical: 4.0,
@@ -113,7 +101,50 @@ class _AppState extends State<App> {
             ),
           ),
         )
+      ];
+
+  Widget _view(BuildContext context) {
+    //NestedScrollView
+    return CustomScrollView(
+      physics: BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          backgroundColor: Colors.transparent,
+          expandedHeight: 200,
+          elevation: 0,
+          // centerTitle: true,
+          leading: Icon(Icons.developer_board, color: Colors.black),
+          // title: Row(children: [
+          //   Icon(
+          //     Icons.verified_user, // (developer_board|verified_user)
+          //     color: Colors.black,
+          //   ),
+          //   Text(
+          //     "v1.0.0",
+          //     style: Theme.of(context).textTheme.title,
+          //   ),
+          // ]),
+          // actions: <Widget>[Icon(Icons.ac_unit, color: Colors.black)],
+          // stretch: true, // ?
+          // bottom: ,
+          // title: _benchmark(context),
+          flexibleSpace: FlexibleSpaceBar(
+            centerTitle: true,
+            title: _benchmark(context),
+            collapseMode: CollapseMode.none,
+          ),
+        ),
+        SliverList(delegate: SliverChildListDelegate(_list(context))),
       ],
     );
+  }
+}
+
+extension Stream$<T> on Stream<T> {
+  Stream<T> doo(void action(T)) {
+    return this.map((item) {
+      action(item);
+      return item;
+    });
   }
 }

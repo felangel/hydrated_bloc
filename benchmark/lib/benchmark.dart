@@ -51,47 +51,43 @@ Map<String, String> generateStringEntries(int count) {
   return map;
 }
 
-Future<List<Result>> benchmarkRead(int count) async {
+Stream<Result> benchmarkRead(int count) async* {
   final results = _createResults();
 
   final intEntries = generateIntEntries(count);
   final intKeys = intEntries.keys.toList()..shuffle();
 
-  for (var result in results) {
-    await result.runner.setUp();
-    await result.runner.batchWriteInt(intEntries);
-    result.intTime = await result.runner.batchReadInt(intKeys);
-  }
-
   final stringEntries = generateStringEntries(count);
   final stringKeys = stringEntries.keys.toList()..shuffle();
 
   for (var result in results) {
+    await result.runner.setUp();
+
+    await result.runner.batchWriteInt(intEntries);
+    result.intTime = await result.runner.batchReadInt(intKeys);
+
     await result.runner.batchWriteString(stringEntries);
     result.stringTime = await result.runner.batchReadString(stringKeys);
-  }
 
-  for (var result in results) {
     await result.runner.tearDown();
+    yield result;
   }
-
-  return results;
 }
 
-Future<List<Result>> benchmarkWrite(int count) async {
+Stream<Result> benchmarkWrite(int count) async* {
   final results = _createResults();
   final intEntries = generateIntEntries(count);
   final stringEntries = generateStringEntries(count);
 
   for (var result in results) {
     await result.runner.setUp();
+
     result.intTime = await result.runner.batchWriteInt(intEntries);
     result.stringTime = await result.runner.batchWriteString(stringEntries);
 
     await result.runner.tearDown();
+    yield result;
   }
-
-  return results;
 }
 
 Future<List<Result>> benchmarkDelete(int count) async {
