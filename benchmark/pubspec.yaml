@@ -1,0 +1,25 @@
+name: benchmark
+description: Hydrated Bloc Benchmark
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.6.0 <3.0.0"
+
+dependencies:
+  path: ^1.6.4
+  random_string: ^2.0.1
+  path_provider: ^1.6.5
+  hydrated_bloc:
+    path: ../
+
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

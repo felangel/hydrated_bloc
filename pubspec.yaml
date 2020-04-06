@@ -13,9 +13,6 @@ dependencies:
   path_provider: ^1.1.0
   synchronized: ^2.2.0
 
-  path: ^1.6.4
-  random_string: ^2.0.1
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

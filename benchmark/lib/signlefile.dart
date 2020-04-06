@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+
 import 'runner.dart';
 
 class SingleFileRunner implements BenchmarkRunner {
@@ -10,7 +11,7 @@ class SingleFileRunner implements BenchmarkRunner {
 
   @override
   Future<void> setUp() async {
-    final dir = Directory.current;
+    final dir = await getTemporaryDirectory();
     storage = await HydratedBlocStorage.getInstance(storageDirectory: dir);
   }
 

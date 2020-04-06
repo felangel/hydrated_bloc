@@ -48,20 +48,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.0.4"
-  path:
-    dependency: transitive
-    description:
-      name: path
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.6.4"
   path_provider:
     dependency: transitive
     description:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.6.5"
   path_provider_fde:
     dependency: "direct main"
     description:
@@ -71,6 +64,34 @@ packages:
       url: "https://github.com/google/flutter-desktop-embedding"
     source: git
     version: "0.0.1"
+  path_provider_macos:
+    dependency: transitive
+    description:
+      name: path_provider_macos
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.4"
+  path_provider_platform_interface:
+    dependency: transitive
+    description:
+      name: path_provider_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
+  platform:
+    dependency: transitive
+    description:
+      name: platform
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.1"
+  plugin_platform_interface:
+    dependency: transitive
+    description:
+      name: plugin_platform_interface
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2"
   provider:
     dependency: transitive
     description:
@@ -78,13 +99,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "4.0.0"
-  random_string:
-    dependency: transitive
-    description:
-      name: random_string
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.1"
   rxdart:
     dependency: transitive
     description:
