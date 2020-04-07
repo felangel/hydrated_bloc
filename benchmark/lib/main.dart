@@ -45,36 +45,28 @@ class _AppState extends State<App> {
   var _running = false;
   final _results = <Result>[];
   Widget _benchmark(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(12.0),
-      child: OutlineButton(
-        padding: EdgeInsets.symmetric(
-          horizontal: 12.0,
-          vertical: 4.0,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              "BENCHMARK",
-            ),
-          ],
-        ),
-        onPressed: _running
-            ? null
-            : () async {
-                _results.clear();
-                setState(() => _running = true);
-                print('RUNNING');
-                await benchmarkWrite(100)
-                    .doo((r) => setState(() => _results.add(r)))
-                    .map((r) => '${r.runner.name}: ${r.stringTime}ms')
-                    .doo(print)
-                    .drain();
-                setState(() => _running = false);
-                print('DONE');
-              },
+    return OutlineButton(
+      padding: EdgeInsets.symmetric(
+        horizontal: 12.0,
+        vertical: 4.0,
       ),
+      child: Text(
+        "BENCHMARK",
+      ),
+      onPressed: _running
+          ? null
+          : () async {
+              _results.clear();
+              setState(() => _running = true);
+              print('RUNNING');
+              await benchmarkWrite(100)
+                  .doo((r) => setState(() => _results.add(r)))
+                  .map((r) => '${r.runner.name}: ${r.stringTime}ms')
+                  .doo(print)
+                  .drain();
+              setState(() => _running = false);
+              print('DONE');
+            },
     );
   }
 
@@ -112,21 +104,23 @@ class _AppState extends State<App> {
       ];
 
   Widget _view(BuildContext context) {
+    // final controller = ScrollController(initialScrollOffset: 600);
     //NestedScrollView
     return CustomScrollView(
+      // controller: controller,
+      primary: true,
       reverse: true,
-      anchor: 0.25,
+      // anchor: 0.25,
       // shrinkWrap: true,
       // physics: BouncingScrollPhysics(),
       // physics: const AlwaysScrollableScrollPhysics(),
       physics: const BouncingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
-      primary: true,
       slivers: [
+        // BOTTOM
         SliverAppBar(
-          backgroundColor: Colors.transparent,
-          expandedHeight: 200,
+          // expandedHeight: 0,
           elevation: 0,
           // centerTitle: true,
           // title: Slider(
@@ -149,15 +143,104 @@ class _AppState extends State<App> {
           // stretch: true, // ?
           // bottom: ,
           // title: _benchmark(context),
-          // flexibleSpace: FlexibleSpaceBar(
-          //   centerTitle: true,
-          //   title: _benchmark(context),
-          //   collapseMode: CollapseMode.none,
-          // ),
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(135.0),
-            child: _benchmark(context),
+          // pinned: true,
+          flexibleSpace: FlexibleSpaceBar(
+            centerTitle: true,
+            // title: _benchmark(context),
+            background: Container(
+              // color: Colors.blue.withOpacity(0.2),
+              // color: Color(0xffecf0f1),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0x00ffffff), Colors.blue.withOpacity(0.2)],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              // child: Column(
+              //   mainAxisSize: MainAxisSize.max,
+              //   crossAxisAlignment: CrossAxisAlignment.center,
+              //   children: <Widget>[
+              //     _benchmark(context),
+              //     _benchmark(context),
+              //     _benchmark(context),
+              //     _benchmark(context),
+              //     _benchmark(context),
+              //   ],
+              // ),
+              child: ListView(
+                reverse: true,
+                physics: const BouncingScrollPhysics(
+                    // parent: AlwaysScrollableScrollPhysics(),
+                    ),
+                children: <Widget>[
+                  _benchmark(context),
+                  _benchmark(context),
+                  _benchmark(context),
+                  // Slider(
+                  //   value: 0.2,
+                  //   onChanged: print,
+                  // ),
+                ],
+              ),
+            ),
+            collapseMode: CollapseMode.parallax,
           ),
+          centerTitle: true,
+          backgroundColor: Colors.transparent,
+          // floating: true,
+          // pinned: true,
+          // forceElevated: true,
+          // floating: true,
+          leading: Icon(Icons.developer_board, color: Colors.black),
+          // title: _benchmark(context),
+          title: Text('Logic tuning', style: Theme.of(context).textTheme.title),
+          // title: Divider(
+          //   thickness: 1,
+          //   color: Colors.grey.withOpacity(0.3),
+          // ),
+          expandedHeight: 200,
+          // bottom: PreferredSize(
+          //   preferredSize: Size.fromHeight(50.0),
+          //   // child: _benchmark(context),
+          //   // child: Row(children: <Widget>[
+          //   //   Icon(Icons.developer_board, color: Colors.black)
+          //   // ]),
+          // ),
+          // pinned: true,
+        ),
+        // MIDDLE
+        SliverAppBar(
+          // pinned: true,
+          backgroundColor: Colors.transparent,
+          expandedHeight: 120,
+          elevation: 0,
+          // title: Text('fire'),
+          // leading: Icon(Icons.developer_board, color: Colors.black),
+          // bubble_chart
+          // verified_user
+          // bug_report
+          // build
+          // developer_board
+          // device_hub
+          // fingerprint
+          // linear_scale
+          // polymer
+          // select_all
+          // leading: Icon(Icons.bubble_chart, color: Colors.black),
+          // leading: Text('🤯'),
+          // floating: true,
+          flexibleSpace: FlexibleSpaceBar(
+            centerTitle: true,
+            // background: _benchmark(context),
+            title: _benchmark(context),
+            // title: Placeholder(),
+            collapseMode: CollapseMode.none,
+          ),
+          // bottom: PreferredSize(
+          //   preferredSize: Size.fromHeight(100.0),
+          //   child: _benchmark(context),
+          // ),
         ),
         SliverList(delegate: SliverChildListDelegate(_list(context))),
       ],

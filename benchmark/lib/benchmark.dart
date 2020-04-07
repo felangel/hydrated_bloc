@@ -21,9 +21,9 @@ final _runners = [
   SingleFileRunner(),
   SingleFileRunner(),
   SingleFileRunner(),
-  SingleFileRunner(),
-  SingleFileRunner(),
-  SingleFileRunner(),
+  // SingleFileRunner(),
+  // SingleFileRunner(),
+  // SingleFileRunner(),
 ];
 
 List<Result> _createResults() {
