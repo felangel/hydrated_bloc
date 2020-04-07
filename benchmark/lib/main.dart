@@ -61,11 +61,24 @@ class _AppState extends State<App> {
               print('RUNNING');
               await benchmarkWrite(100)
                   .doo((r) => setState(() => _results.add(r)))
+                  // .asyncMap(
+                  //   (_) async {
+                  //     await controller.animateTo(
+                  //       controller.position.maxScrollExtent +
+                  //           controller.position.extentBefore,
+                  //       duration: const Duration(milliseconds: 500),
+                  //       curve: Curves.linear,
+                  //     );
+                  //     return _;
+                  //   },
+                  // )
                   .map((r) => '${r.runner.name}: ${r.stringTime}ms')
                   .doo(print)
                   .drain();
               setState(() => _running = false);
               print('DONE');
+              Future.delayed(const Duration(milliseconds: 200)).then(
+                  (_) => setState(() {})); //controller.position.extentAfter
             },
     );
   }
@@ -103,12 +116,14 @@ class _AppState extends State<App> {
         )
       ];
 
+  // var controller = ScrollController(initialScrollOffset: 350);
+  var controller = ScrollController(initialScrollOffset: 400);
   Widget _view(BuildContext context) {
     // final controller = ScrollController(initialScrollOffset: 600);
     //NestedScrollView
     return CustomScrollView(
-      // controller: controller,
-      primary: true,
+      controller: controller,
+      // primary: true,
       reverse: true,
       // anchor: 0.25,
       // shrinkWrap: true,
@@ -148,6 +163,7 @@ class _AppState extends State<App> {
             centerTitle: true,
             // title: _benchmark(context),
             background: Container(
+              padding: EdgeInsets.only(top: 24),
               // color: Colors.blue.withOpacity(0.2),
               // color: Color(0xffecf0f1),
               decoration: BoxDecoration(
@@ -169,14 +185,92 @@ class _AppState extends State<App> {
               //   ],
               // ),
               child: ListView(
+                // itemExtent: 140,
                 reverse: true,
                 physics: const BouncingScrollPhysics(
                     // parent: AlwaysScrollableScrollPhysics(),
                     ),
                 children: <Widget>[
-                  _benchmark(context),
-                  _benchmark(context),
-                  _benchmark(context),
+                  // FlatButton(
+                  //   child: Text("PRESS"),
+                  //   onPressed: () {
+                  //     // controller.positions.forEach(print);
+                  //     controller.animateTo(
+                  //       controller.position.maxScrollExtent,
+                  //       duration: const Duration(seconds: 1),
+                  //       curve: Curves.linear,
+                  //     );
+                  //   },
+                  // ),
+                  IconButton(
+                    icon: Icon(Icons.keyboard_arrow_up),
+                    // splashColor: Colors.blue.withOpacity(0.4),
+                    // highlightColor: Colors.blue.withOpacity(0.2),
+                    // onPressed: _results.isEmpty || _running
+                    onPressed: _results.isEmpty ||
+                            controller.position.maxScrollExtent <= 0
+                        ? null
+                        : () => controller.animateTo(
+                              controller.position.maxScrollExtent -
+                                  controller.position.viewportDimension,
+                              duration: Duration(
+                                  milliseconds: 200 + 50 * _results.length),
+                              curve: Curves.easeInOut,
+                            ),
+                  ),
+                  // _benchmark(context),
+                  // _benchmark(context),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ChoiceChip(
+                          onSelected: (v) {},
+                          selected: false,
+                          label: Text('wake')),
+                      ChoiceChip(
+                          onSelected: (v) {},
+                          selected: true,
+                          label: Text('read')),
+                      ChoiceChip(
+                          onSelected: (v) {},
+                          selected: false,
+                          label: Text('write')),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FilterChip(
+                          onSelected: (v) {},
+                          selected: false,
+                          label: Text('single')),
+                      FilterChip(
+                          avatar: CircleAvatar(
+                            backgroundColor: Colors.grey.shade800,
+                            child: Icon(Icons.polymer),
+                          ),
+                          onSelected: (v) {},
+                          selected: true,
+                          label: Text('multi')),
+                      FilterChip(
+                          onSelected: (v) {},
+                          selected: false,
+                          label: Text('temp')),
+                    ],
+                  ),
+                  Switch(value: true, onChanged: (v) {}),
+                  Chip(
+                    avatar: CircleAvatar(
+                      backgroundColor: Colors.grey.shade800,
+                      child: Text('AB'),
+                    ),
+                    label: Text('Aaron Burr'),
+                  ),
+                  // LinearProgressIndicator(
+                  //   backgroundColor: Colors.transparent,
+                  //   // valueColor: Animated,
+                  // ),
+                  // _benchmark(context),
                   // Slider(
                   //   value: 0.2,
                   //   onChanged: print,
@@ -192,6 +286,18 @@ class _AppState extends State<App> {
           // pinned: true,
           // forceElevated: true,
           // floating: true,
+          // tune
+          // developer_board
+          // leading: IconButton(
+          //   icon: Icon(Icons.developer_board, color: Colors.black),
+          //   onPressed: () {
+          //     controller.animateTo(
+          //       0,
+          //       duration: const Duration(seconds: 1),
+          //       curve: Curves.easeInOut,
+          //     );
+          //   },
+          // ),
           leading: Icon(Icons.developer_board, color: Colors.black),
           // title: _benchmark(context),
           title: Text('Logic tuning', style: Theme.of(context).textTheme.title),
@@ -199,7 +305,7 @@ class _AppState extends State<App> {
           //   thickness: 1,
           //   color: Colors.grey.withOpacity(0.3),
           // ),
-          expandedHeight: 200,
+          expandedHeight: 400,
           // bottom: PreferredSize(
           //   preferredSize: Size.fromHeight(50.0),
           //   // child: _benchmark(context),
@@ -209,6 +315,20 @@ class _AppState extends State<App> {
           // ),
           // pinned: true,
         ),
+        // SliverFillRemaining(
+        //     child: Container(color: Colors.blue.withOpacity(0.2))),
+        // SliverFillViewport(
+        //   viewportFraction: .2,
+        //   delegate: SliverChildListDelegate([
+        //     Container(color: Colors.blue.withOpacity(0.2)),
+        //     Container(color: Colors.red.withOpacity(0.2)),
+        //     Container(color: Colors.green.withOpacity(0.2)),
+        //   ]),
+        // ),
+        // SliverLayoutBuilder
+        // SliverPrototypeExtentList
+        // SliverMultiBoxAdaptorElement
+        // SliverOverlapInjector
         // MIDDLE
         SliverAppBar(
           // pinned: true,
@@ -227,7 +347,8 @@ class _AppState extends State<App> {
           // linear_scale
           // polymer
           // select_all
-          // leading: Icon(Icons.bubble_chart, color: Colors.black),
+          // tune
+          // leading: Icon(Icons.select_all, color: Colors.black),
           // leading: Text('🤯'),
           // floating: true,
           flexibleSpace: FlexibleSpaceBar(
@@ -243,6 +364,58 @@ class _AppState extends State<App> {
           // ),
         ),
         SliverList(delegate: SliverChildListDelegate(_list(context))),
+        // SliverFillRemaining(),
+        // if (_results.isEmpty ||
+        //     controller.position.extentAfter - controller.position.extentBefore <
+        //         controller.position.maxScrollExtent)
+        // if (_results.isEmpty ||
+        //     controller.position.maxScrollExtent >
+        //         2 * controller.position.viewportDimension)
+        SliverFillViewport(
+          // viewportFraction: 0.8,
+          delegate: SliverChildListDelegate(
+            [
+              // Container(color: Colors.blue.withOpacity(0.2)),
+              // Container(color: Colors.red.withOpacity(0.2)),
+              // Container(color: Colors.green.withOpacity(0.2)),
+              Column(
+                verticalDirection: VerticalDirection.up,
+                children: <Widget>[
+                  SizedBox(height: 8),
+                  Text('v3.1.0',
+                      style: Theme.of(context).textTheme.title.copyWith(
+                            color: Colors.grey.withOpacity(0.4),
+                          )),
+                  IconButton(
+                    iconSize: 96,
+                    // splashColor: Colors.blue,
+                    icon: Icon(
+                      Icons.select_all,
+                      // size: 96,
+                      color: Colors.blueGrey.withOpacity(0.4),
+                    ),
+                    onPressed: () {
+                      controller.animateTo(
+                        0,
+                        duration: const Duration(seconds: 1),
+                        curve: Curves.easeInOut,
+                      );
+                    },
+                  ),
+                  SizedBox(height: 120),
+                  Text('''
+tap on little blue-grey processor 
+to see tuning options
+''',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.title.copyWith(
+                            color: Colors.grey.withOpacity(0.4),
+                          )),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
