@@ -23,11 +23,9 @@ abstract class HydratedStorage {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage implements HydratedStorage {
+  static final Lock _lock = Lock();
   final Map<String, dynamic> _storage;
   final File _file;
-
-  /// `Lock` is used to synchronize access to IO
-  static final Lock lock = Lock();
 
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
@@ -35,7 +33,7 @@ class HydratedBlocStorage implements HydratedStorage {
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
   }) {
-    return lock.synchronized(() async {
+    return _lock.synchronized(() async {
       final directory = storageDirectory ?? await getTemporaryDirectory();
       final file = File('${directory.path}/.hydrated_bloc.json');
       var storage = <String, dynamic>{};
@@ -62,7 +60,7 @@ class HydratedBlocStorage implements HydratedStorage {
 
   @override
   Future<void> write(String key, dynamic value) {
-    return lock.synchronized(() {
+    return _lock.synchronized(() {
       _storage[key] = value;
       return _file.writeAsString(json.encode(_storage));
     });
@@ -70,7 +68,7 @@ class HydratedBlocStorage implements HydratedStorage {
 
   @override
   Future<void> delete(String key) {
-    return lock.synchronized(() {
+    return _lock.synchronized(() {
       _storage[key] = null;
       return _file.writeAsString(json.encode(_storage));
     });
@@ -78,7 +76,7 @@ class HydratedBlocStorage implements HydratedStorage {
 
   @override
   Future<void> clear() {
-    return lock.synchronized(
+    return _lock.synchronized(
       () async {
         _storage.clear();
         if (await _file.exists()) {
