@@ -186,6 +186,7 @@ class _AppState extends State<App> {
               // ),
               child: ListView(
                 // itemExtent: 140,
+
                 reverse: true,
                 physics: const BouncingScrollPhysics(
                     // parent: AlwaysScrollableScrollPhysics(),
@@ -212,7 +213,8 @@ class _AppState extends State<App> {
                         ? null
                         : () => controller.animateTo(
                               controller.position.maxScrollExtent -
-                                  controller.position.viewportDimension,
+                                  controller.position.viewportDimension +
+                                  5,
                               duration: Duration(
                                   milliseconds: 200 + 50 * _results.length),
                               curve: Curves.easeInOut,
@@ -220,29 +222,13 @@ class _AppState extends State<App> {
                   ),
                   // _benchmark(context),
                   // _benchmark(context),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ChoiceChip(
-                          onSelected: (v) {},
-                          selected: false,
-                          label: Text('wake')),
-                      ChoiceChip(
-                          onSelected: (v) {},
-                          selected: true,
-                          label: Text('read')),
-                      ChoiceChip(
-                          onSelected: (v) {},
-                          selected: false,
-                          label: Text('write')),
-                    ],
-                  ),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       FilterChip(
                           onSelected: (v) {},
-                          selected: false,
+                          selected: true,
                           label: Text('single')),
                       FilterChip(
                           avatar: CircleAvatar(
@@ -258,7 +244,7 @@ class _AppState extends State<App> {
                           label: Text('temp')),
                     ],
                   ),
-                  Switch(value: true, onChanged: (v) {}),
+
                   Chip(
                     avatar: CircleAvatar(
                       backgroundColor: Colors.grey.shade800,
@@ -275,6 +261,75 @@ class _AppState extends State<App> {
                   //   value: 0.2,
                   //   onChanged: print,
                   // ),
+                  // SETTINGS TOP
+                  Divider(),
+                  Center(
+                    child: ToggleButtons(
+                      isSelected: [true, true, false],
+                      onPressed: (v) {},
+                      // renderBorder: false
+                      borderRadius: BorderRadius.circular(4),
+                      children: <Widget>[
+                        // Icon(Icons.bubble_chart),
+                        // Icon(Icons.book),
+                        // Icon(Icons.lightbulb_outline),
+                        Text('      WAKE      '),
+                        Text('      READ      '),
+                        Text('      WRITE     '),
+                      ],
+                    ),
+                  ),
+                  Divider(),
+
+                  RangeSlider(
+                    min: 0,
+                    max: 50,
+                    values: RangeValues(5, 35),
+                    onChanged: print,
+                    divisions: 10,
+                    labels: RangeLabels('5', '35'),
+                  ),
+                  Center(child: Text('BLOC COUNT')),
+                  // Divider(),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: <Widget>[
+                  //     Text('UI LOCK'),
+                  //     Switch(value: true, onChanged: (v) {}),
+                  //   ],
+                  // ),
+                  Divider(),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ChoiceChip(
+                          onSelected: (v) {},
+                          selected: true,
+                          shape: StadiumBorder(
+                            side: BorderSide(color: Colors.blue, width: 1),
+                          ),
+                          // selectedColor: Colors.transparent,
+                          backgroundColor: Colors.transparent,
+                          disabledColor: Colors.transparent,
+                          label: Text('WAKE')),
+                      ChoiceChip(
+                          shape: StadiumBorder(
+                            side: BorderSide(color: Colors.blue, width: 1),
+                          ),
+                          onSelected: (v) {},
+                          selected: true,
+                          label: Text('READ')),
+                      ChoiceChip(
+                          onSelected: (v) {},
+                          shape: StadiumBorder(
+                            side: BorderSide(color: Colors.grey, width: 1),
+                          ),
+                          selected: false,
+                          backgroundColor: Colors.transparent,
+                          label: Text('WRITE')),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -299,8 +354,21 @@ class _AppState extends State<App> {
           //   },
           // ),
           leading: Icon(Icons.developer_board, color: Colors.black),
+          actions: <Widget>[
+            // Text('UI LOCK', style: TextStyle(color: Colors.black)),
+            // Switch(value: true, onChanged: (v) {}),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // Text('UI LOCK', style: TextStyle(color: Colors.black)),
+                Text('UI LOCK', style: Theme.of(context).textTheme.title),
+                // Icon(Icons.verified_user, color: Colors.black),
+                Switch(value: true, onChanged: (v) {}),
+              ],
+            ),
+          ],
           // title: _benchmark(context),
-          title: Text('Logic tuning', style: Theme.of(context).textTheme.title),
+          // title: Text('Logic tuning', style: Theme.of(context).textTheme.title),
           // title: Divider(
           //   thickness: 1,
           //   color: Colors.grey.withOpacity(0.3),
@@ -404,7 +472,7 @@ class _AppState extends State<App> {
                   ),
                   SizedBox(height: 120),
                   Text('''
-tap on little blue-grey processor 
+Tap on little blue processor 
 to see tuning options
 ''',
                       textAlign: TextAlign.center,
