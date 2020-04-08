@@ -23,7 +23,6 @@ abstract class HydratedStorage {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage implements HydratedStorage {
-  static HydratedBlocStorage _instance;
   final Map<String, dynamic> _storage;
   final File _file;
 
@@ -37,10 +36,6 @@ class HydratedBlocStorage implements HydratedStorage {
     Directory storageDirectory,
   }) {
     return lock.synchronized(() async {
-      if (_instance != null) {
-        return _instance;
-      }
-
       final directory = storageDirectory ?? await getTemporaryDirectory();
       final file = File('${directory.path}/.hydrated_bloc.json');
       var storage = <String, dynamic>{};
@@ -54,8 +49,7 @@ class HydratedBlocStorage implements HydratedStorage {
         }
       }
 
-      _instance = HydratedBlocStorage._(storage, file);
-      return _instance;
+      return HydratedBlocStorage._(storage, file);
     });
   }
 
@@ -87,7 +81,6 @@ class HydratedBlocStorage implements HydratedStorage {
     return lock.synchronized(
       () async {
         _storage.clear();
-        _instance = null;
         if (await _file.exists()) {
           await _file.delete();
         }
