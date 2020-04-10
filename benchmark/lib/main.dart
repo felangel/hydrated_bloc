@@ -274,28 +274,28 @@ class _AppState extends State<App> {
                   ),
                   Center(child: Text('STATE SIZE')),
                   Divider(),
-                  Center(
-                    child: ToggleButtons(
-                      isSelected: [true, true, false],
-                      onPressed: (v) {},
-                      constraints: BoxConstraints(
+                  Center(child: () {
+                    const ss = [Storage.single, Storage.multi, Storage.ether];
+                    const ll = {
+                      Storage.single: 'Single file',
+                      Storage.multi: 'Isolated files',
+                      Storage.ether: 'Ethereal'
+                    };
+                    return ToggleButtons(
+                      isSelected: ss.map((s) => settings.storages[s]).toList(),
+                      onPressed: (i) =>
+                          setState(() => settings.flipStorage(ss[i])),
+                      constraints: const BoxConstraints(
                         minWidth: 100.0,
                         minHeight: 32.0,
                       ),
-                      // renderBorder: false,
+                      borderWidth: 0.5,
+                      borderColor: Colors.grey,
+                      selectedBorderColor: Colors.blue,
                       borderRadius: BorderRadius.circular(8),
-                      // borderRadius: BorderRadius.circular(32),
-                      // splashColor: Colors.blue,
-                      children: <Widget>[
-                        // Icon(Icons.bubble_chart),
-                        // Icon(Icons.book),
-                        // Icon(Icons.lightbulb_outline),
-                        Text('Single file'),
-                        Text('Isolated files'),
-                        Text('Ethereal'),
-                      ],
-                    ),
-                  ),
+                      children: ss.map((s) => Text(ll[s])).toList(),
+                    );
+                  }()),
                   SizedBox(height: 8),
                   Center(child: Text('STORAGES')),
                   Divider(),
@@ -318,74 +318,54 @@ class _AppState extends State<App> {
                   ),
 
                   Center(child: Text('BLOC COUNT')),
-                  // Divider(),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: <Widget>[
-                  //     Text('UI LOCK'),
-                  //     Switch(value: true, onChanged: (v) {}),
-                  //   ],
-                  // ),
-                  Divider(),
 
+                  Divider(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ChoiceChip(
-                          onSelected: (v) {},
-                          selected: true,
+                    children: () {
+                      const mm = [
+                        Mode.wake,
+                        Mode.read,
+                        Mode.write,
+                        Mode.delete
+                      ];
+                      const ll = {
+                        Mode.wake: 'WAKE',
+                        Mode.read: 'READ',
+                        Mode.write: 'WRITE',
+                        Mode.delete: 'DELETE',
+                      };
+                      const oss = {
+                        Mode.wake: true,
+                        Mode.read: true,
+                        Mode.write: true,
+                        Mode.delete: false,
+                      };
+                      final ss = settings.modes;
+                      return mm.map((m) => ChoiceChip(
+                          onSelected: oss[m]
+                              ? (b) => setState(() => settings.flipMode(m))
+                              : null,
+                          selected: ss[m],
                           shape: StadiumBorder(
-                            side: BorderSide(color: Colors.blue, width: 1),
+                            side: BorderSide(
+                              color: ss[m] ? Colors.blue : Colors.grey,
+                              width: 0.5,
+                            ),
                           ),
-                          // selectedColor: Colors.transparent,
-                          // backgroundColor: Colors.transparent,
-                          // disabledColor: Colors.transparent,
                           selectedColor: Colors.blue.withOpacity(0.15),
-                          shadowColor: Colors.grey.withOpacity(0.15),
-                          selectedShadowColor: Colors.blue.withOpacity(0.15),
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          label: Text('WAKE')),
-                      SizedBox(width: 12),
-                      ChoiceChip(
-                          shape: StadiumBorder(
-                            side: BorderSide(color: Colors.blue, width: 1),
-                          ),
-                          onSelected: (v) {},
-                          selectedColor: Colors.blue.withOpacity(0.15),
-                          shadowColor: Colors.grey.withOpacity(0.15),
-                          selectedShadowColor: Colors.blue.withOpacity(0.15),
-                          selected: true,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          label: Text(
-                            'READ',
-                            // style: TextStyle(fontWeight: FontWeight.bold),
-                          )),
-                      SizedBox(width: 12),
-                      ChoiceChip(
-                          onSelected: (v) {},
-                          shape: StadiumBorder(
-                            side: BorderSide(color: Colors.grey, width: 1),
-                          ),
-                          selected: false,
-                          selectedColor: Colors.blue.withOpacity(0.15),
-                          shadowColor: Colors.grey.withOpacity(0.15),
-                          selectedShadowColor: Colors.blue.withOpacity(0.15),
+                          shadowColor: Colors.grey.withOpacity(0.25),
+                          selectedShadowColor: Colors.blue.withOpacity(0.25),
                           backgroundColor: Theme.of(context).canvasColor,
                           padding: EdgeInsets.symmetric(horizontal: 8),
-                          label: Text(
-                            'WRITE',
-                          )),
-                      SizedBox(width: 12),
-                      ChoiceChip(
-                          // onSelected: (v) {},
-                          shape: StadiumBorder(
-                            side: BorderSide(color: Colors.grey, width: 1),
-                          ),
-                          selected: false,
-                          backgroundColor: Colors.transparent,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          label: Text('DELETE')),
-                    ],
+                          label: Text(ll[m])));
+                    }() // insert gaps between chips
+                        .expand((w) sync* {
+                          yield const SizedBox(width: 8);
+                          yield w;
+                        })
+                        .skip(1)
+                        .toList(),
                   ),
                   Center(child: Text('BENCH MODES')),
                 ],
@@ -421,7 +401,10 @@ class _AppState extends State<App> {
                 // Text('UI LOCK', style: TextStyle(color: Colors.black)),
                 Text('UI LOCK', style: Theme.of(context).textTheme.title),
                 // Icon(Icons.verified_user, color: Colors.black),
-                Switch(value: true, onChanged: (v) {}),
+                Switch(
+                  value: settings.uiLock,
+                  onChanged: (b) => setState(() => settings.uiLock = b),
+                ),
               ],
             ),
           ],
@@ -529,14 +512,14 @@ class _AppState extends State<App> {
                     },
                   ),
                   SizedBox(height: 120),
-                  Text('''
-Tap on little blue processor 
-to see tuning options
-''',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.title.copyWith(
-                            color: Colors.grey.withOpacity(0.4),
-                          )),
+                  Text(
+                    'Tap on little blue processor\nto see tuning options',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context)
+                        .textTheme
+                        .title
+                        .copyWith(color: Colors.grey.withOpacity(0.4)),
+                  ),
                 ],
               ),
             ],

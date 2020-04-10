@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-enum Mode { wake, read, write }
+enum Mode { wake, read, write, delete }
 enum Storage { single, multi, ether }
 
 class BenchmarkSettings {
@@ -12,6 +12,7 @@ class BenchmarkSettings {
     Mode.wake: true,
     Mode.read: true,
     Mode.write: true,
+    Mode.delete: false,
   }; // what to benchmark
   void addMode(Mode mode) => modes[mode] = true;
   void delMode(Mode mode) => modes[mode] = false;
@@ -46,7 +47,7 @@ class BenchmarkSettings {
   // int _convert(double e) => pow(2, e).toInt();
   String _format(int size) {
     final e = size % 10;
-    final p = ['bytes', 'kb', 'mb', 'gb'][size ~/ 10];
+    final p = const ['Bytes', 'KB', 'MB', 'GB'][size ~/ 10];
     return '${pow(2, e)} $p';
   }
 }
