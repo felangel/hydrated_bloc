@@ -374,7 +374,6 @@ void storageGroup() {
         test('writes heavily to file', () async {
           final token = 'CounterBloc';
           final directory = Directory.current;
-          final file = File('${directory.path}/.hydrated_bloc.json');
           hydratedStorage = await HydratedBlocStorage.getInstance(
             storageDirectory: directory,
           );
@@ -389,9 +388,10 @@ void storageGroup() {
             dynamic written;
             String string;
             try {
-              string = await HydratedBlocStorage.lock.synchronized(
-                file.readAsString,
-              );
+              hydratedStorage = await HydratedBlocStorage.getInstance(
+                storageDirectory: directory,
+              ); // basically refreshes cache
+              string = hydratedStorage.read(token) as String;
               final object = json.decode(string);
               written = object;
             } on dynamic catch (_) {
