@@ -1,3 +1,4 @@
+import 'package:benchmark/settings.dart';
 import 'package:flutter/material.dart';
 import 'benchmark.dart';
 
@@ -116,6 +117,7 @@ class _AppState extends State<App> {
         )
       ];
 
+  final settings = BenchmarkSettings();
   // var controller = ScrollController(initialScrollOffset: 350);
   var controller = ScrollController(initialScrollOffset: 400);
   Widget _view(BuildContext context) {
@@ -223,35 +225,35 @@ class _AppState extends State<App> {
                   // _benchmark(context),
                   // _benchmark(context),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      FilterChip(
-                          onSelected: (v) {},
-                          selected: true,
-                          label: Text('single')),
-                      FilterChip(
-                          avatar: CircleAvatar(
-                            backgroundColor: Colors.grey.shade800,
-                            child: Icon(Icons.polymer),
-                          ),
-                          onSelected: (v) {},
-                          selected: true,
-                          label: Text('multi')),
-                      FilterChip(
-                          onSelected: (v) {},
-                          selected: false,
-                          label: Text('temp')),
-                    ],
-                  ),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.center,
+                  //   children: [
+                  //     FilterChip(
+                  //         onSelected: (v) {},
+                  //         selected: true,
+                  //         label: Text('single')),
+                  //     FilterChip(
+                  //         avatar: CircleAvatar(
+                  //           backgroundColor: Colors.grey.shade800,
+                  //           child: Icon(Icons.polymer),
+                  //         ),
+                  //         onSelected: (v) {},
+                  //         selected: true,
+                  //         label: Text('multi')),
+                  //     FilterChip(
+                  //         onSelected: (v) {},
+                  //         selected: false,
+                  //         label: Text('temp')),
+                  //   ],
+                  // ),
 
-                  Chip(
-                    avatar: CircleAvatar(
-                      backgroundColor: Colors.grey.shade800,
-                      child: Text('AB'),
-                    ),
-                    label: Text('Aaron Burr'),
-                  ),
+                  // Chip(
+                  //   avatar: CircleAvatar(
+                  //     backgroundColor: Colors.grey.shade800,
+                  //     child: Text('AB'),
+                  //   ),
+                  //   label: Text('Aaron Burr'),
+                  // ),
                   // LinearProgressIndicator(
                   //   backgroundColor: Colors.transparent,
                   //   // valueColor: Animated,
@@ -262,33 +264,59 @@ class _AppState extends State<App> {
                   //   onChanged: print,
                   // ),
                   // SETTINGS TOP
+                  RangeSlider(
+                    min: settings.stateSizeRange.start,
+                    max: settings.stateSizeRange.end,
+                    divisions: settings.stateSizeDivs,
+                    labels: settings.stateSizeLabels,
+                    values: settings.stateSize,
+                    onChanged: (rv) => setState(() => settings.stateSize = rv),
+                  ),
+                  Center(child: Text('STATE SIZE')),
                   Divider(),
                   Center(
                     child: ToggleButtons(
                       isSelected: [true, true, false],
                       onPressed: (v) {},
-                      // renderBorder: false
-                      borderRadius: BorderRadius.circular(4),
+                      constraints: BoxConstraints(
+                        minWidth: 100.0,
+                        minHeight: 32.0,
+                      ),
+                      // renderBorder: false,
+                      borderRadius: BorderRadius.circular(8),
+                      // borderRadius: BorderRadius.circular(32),
+                      // splashColor: Colors.blue,
                       children: <Widget>[
                         // Icon(Icons.bubble_chart),
                         // Icon(Icons.book),
                         // Icon(Icons.lightbulb_outline),
-                        Text('      WAKE      '),
-                        Text('      READ      '),
-                        Text('      WRITE     '),
+                        Text('Single file'),
+                        Text('Isolated files'),
+                        Text('Ethereal'),
                       ],
                     ),
                   ),
+                  SizedBox(height: 8),
+                  Center(child: Text('STORAGES')),
                   Divider(),
 
+                  // RangeSlider(
+                  //   min: 0,
+                  //   max: 50,
+                  //   values: RangeValues(5, 35),
+                  //   onChanged: print,
+                  //   divisions: 10,
+                  //   labels: RangeLabels('5', '35'),
+                  // ),
                   RangeSlider(
-                    min: 0,
-                    max: 50,
-                    values: RangeValues(5, 35),
-                    onChanged: print,
-                    divisions: 10,
-                    labels: RangeLabels('5', '35'),
+                    min: settings.blocCountRange.start,
+                    max: settings.blocCountRange.end,
+                    divisions: settings.blocCountDivs,
+                    labels: settings.blocCountLabels,
+                    values: settings.blocCount,
+                    onChanged: (rv) => setState(() => settings.blocCount = rv),
                   ),
+
                   Center(child: Text('BLOC COUNT')),
                   // Divider(),
                   // Row(
@@ -310,26 +338,56 @@ class _AppState extends State<App> {
                             side: BorderSide(color: Colors.blue, width: 1),
                           ),
                           // selectedColor: Colors.transparent,
-                          backgroundColor: Colors.transparent,
-                          disabledColor: Colors.transparent,
+                          // backgroundColor: Colors.transparent,
+                          // disabledColor: Colors.transparent,
+                          selectedColor: Colors.blue.withOpacity(0.15),
+                          shadowColor: Colors.grey.withOpacity(0.15),
+                          selectedShadowColor: Colors.blue.withOpacity(0.15),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
                           label: Text('WAKE')),
+                      SizedBox(width: 12),
                       ChoiceChip(
                           shape: StadiumBorder(
                             side: BorderSide(color: Colors.blue, width: 1),
                           ),
                           onSelected: (v) {},
+                          selectedColor: Colors.blue.withOpacity(0.15),
+                          shadowColor: Colors.grey.withOpacity(0.15),
+                          selectedShadowColor: Colors.blue.withOpacity(0.15),
                           selected: true,
-                          label: Text('READ')),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          label: Text(
+                            'READ',
+                            // style: TextStyle(fontWeight: FontWeight.bold),
+                          )),
+                      SizedBox(width: 12),
                       ChoiceChip(
                           onSelected: (v) {},
                           shape: StadiumBorder(
                             side: BorderSide(color: Colors.grey, width: 1),
                           ),
                           selected: false,
+                          selectedColor: Colors.blue.withOpacity(0.15),
+                          shadowColor: Colors.grey.withOpacity(0.15),
+                          selectedShadowColor: Colors.blue.withOpacity(0.15),
+                          backgroundColor: Theme.of(context).canvasColor,
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          label: Text(
+                            'WRITE',
+                          )),
+                      SizedBox(width: 12),
+                      ChoiceChip(
+                          // onSelected: (v) {},
+                          shape: StadiumBorder(
+                            side: BorderSide(color: Colors.grey, width: 1),
+                          ),
+                          selected: false,
                           backgroundColor: Colors.transparent,
-                          label: Text('WRITE')),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          label: Text('DELETE')),
                     ],
                   ),
+                  Center(child: Text('BENCH MODES')),
                 ],
               ),
             ),
