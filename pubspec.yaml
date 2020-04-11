@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   bloc: ^3.0.0
+  path: ^1.6.4
   path_provider: ^1.1.0
   synchronized: ^2.2.0
 
