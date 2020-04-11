@@ -298,7 +298,7 @@ class _AppState extends State<App> {
                       decorator: (ww) => [
                         TitleText(text: '⩾', transparent: true),
                         ...ww,
-                        TitleText(text: '⩾', transparent: false),
+                        TitleText(text: '⩾', transparent: true),
                       ],
                     );
                   }(),
@@ -592,7 +592,7 @@ class TitleRow extends StatelessWidget {
         TitleText(text: text, transparent: true),
         Text(title),
         SizedBox(width: 4),
-        TitleText(text: text, transparent: true),
+        TitleText(text: text, transparent: false),
       ]),
     );
   }
