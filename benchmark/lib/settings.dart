@@ -38,7 +38,7 @@ class BenchmarkSettings {
   // int64 size is 4 bytes
   // string char 2 or 4 bytes
   final stateSizeRange = RangeValues(2, 22);
-  final stateSizeDivs = 20;
+  final stateSizeDivs = 10;
   var stateSize = RangeValues(2, 8); // 2^n size (0-20)
   RangeLabels get stateSizeLabels => RangeLabels(
         _format(stateSize.start.toInt()),

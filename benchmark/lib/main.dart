@@ -272,38 +272,55 @@ class _AppState extends State<App> {
                     values: settings.stateSize,
                     onChanged: (rv) => setState(() => settings.stateSize = rv),
                   ),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ...() sync* {
-                      final cc = settings.stateSizeBytesMax ~/ 4;
-                      $(int cc) {
-                        if (cc < 1e3) {
-                          return '$cc';
-                        } else if (cc < 1e5) {
-                          cc ~/= 1e3;
-                          return '⩾${cc}k';
-                        } else if (cc < 1e6) {
-                          cc ~/= 1e4;
-                          cc *= 10;
-                          return '⩾${cc}k';
-                        } else {
-                          cc ~/= 1e6;
-                          return '⩾${cc}M';
-                        }
+                  () {
+                    final cc = settings.stateSizeBytesMax ~/ 4;
+                    $(int cc) {
+                      if (cc < 1e3) {
+                        return '$cc';
+                      } else if (cc < 1e5) {
+                        cc ~/= 1e3;
+                        return '⩾${cc}k';
+                      } else if (cc < 1e6) {
+                        cc ~/= 1e4;
+                        cc *= 10;
+                        return '⩾${cc}k';
+                      } else {
+                        cc ~/= 1e6;
+                        return '⩾${cc}M';
                       }
+                    }
 
-                      final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
-                      yield Text(
-                        text + '⩾',
-                        style: TextStyle(color: Colors.transparent),
-                      );
-                      yield Text('STATE SIZE');
-                      yield SizedBox(width: 4);
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
-                      );
-                    }()
-                  ]),
+                    final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
+                    const title = 'STATE SIZE';
+                    return TitleRow(
+                      text: text,
+                      title: title,
+                      decorator: (ww) => [
+                        TitleText(text: '⩾', transparent: true),
+                        ...ww,
+                        TitleText(text: '⩾', transparent: false),
+                      ],
+                    );
+                  }(),
+                  // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  //   ...() sync* {
+
+                  //     yield Text(
+                  //       text + '⩾',
+                  //       style: TextStyle(color: Colors.transparent),
+                  //     );
+                  //     yield Text();
+                  //     yield SizedBox(width: 4);
+                  //     yield Text(
+                  //       text,
+                  //       style: TextStyle(color: Colors.grey.withOpacity(.35)),
+                  //     );
+                  //     yield Text(
+                  //       '⩾',
+                  //       style: TextStyle(color: Colors.transparent),
+                  //     );
+                  //   }()
+                  // ]),
                   Divider(),
                   Center(child: () {
                     const ss = [Storage.single, Storage.multi, Storage.ether];
@@ -327,24 +344,13 @@ class _AppState extends State<App> {
                     );
                   }()),
                   SizedBox(height: 8),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ...() sync* {
-                      final cur =
-                          settings.storages.values.where((v) => v).length;
-                      final tot = settings.storages.length;
-                      final text = '$cur/$tot';
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.transparent),
-                      );
-                      yield Text('STORAGES');
-                      yield SizedBox(width: 4);
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
-                      );
-                    }()
-                  ]),
+                  () {
+                    final cur = settings.storages.values.where((v) => v).length;
+                    final tot = settings.storages.length;
+                    final text = '$cur/$tot';
+                    const title = 'STORAGES';
+                    return TitleRow(text: text, title: title);
+                  }(),
                   Divider(),
                   RangeSlider(
                     min: settings.blocCountRange.start,
@@ -354,24 +360,14 @@ class _AppState extends State<App> {
                     values: settings.blocCount,
                     onChanged: (rv) => setState(() => settings.blocCount = rv),
                   ),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ...() sync* {
-                      final start = settings.blocCount.start.toInt();
-                      final end = settings.blocCount.end.toInt();
-                      final text =
-                          start == end ? '$end' : '$start-$end'.padLeft(2);
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.transparent),
-                      ); // to compensate length variations
-                      yield Text('BLOC COUNT');
-                      yield SizedBox(width: 4);
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
-                      );
-                    }()
-                  ]),
+                  () {
+                    final start = settings.blocCount.start.toInt();
+                    final end = settings.blocCount.end.toInt();
+                    final text =
+                        start == end ? '$end' : '$start-$end'.padLeft(2);
+                    const title = 'BLOC COUNT';
+                    return TitleRow(text: text, title: title);
+                  }(),
                   Divider(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -422,23 +418,13 @@ class _AppState extends State<App> {
                         .skip(1)
                         .toList(),
                   ),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ...() sync* {
-                      final cur = settings.modes.values.where((v) => v).length;
-                      final tot = settings.modes.length;
-                      final text = '$cur/$tot';
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.transparent),
-                      );
-                      yield Text('BENCH MODES');
-                      yield SizedBox(width: 4);
-                      yield Text(
-                        text,
-                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
-                      );
-                    }()
-                  ]),
+                  () {
+                    final cur = settings.modes.values.where((v) => v).length;
+                    final tot = settings.modes.length;
+                    final text = '$cur/$tot';
+                    const title = 'BENCH MODES';
+                    return TitleRow(text: text, title: title);
+                  }()
                 ],
               ),
             ),
@@ -597,6 +583,58 @@ class _AppState extends State<App> {
           ),
         ),
       ],
+    );
+  }
+}
+
+typedef TitleRowDecorator = List<Widget> Function(List<Widget>);
+
+class TitleRow extends StatelessWidget {
+  TitleRow({
+    Key key,
+    @required this.text,
+    @required this.title,
+    TitleRowDecorator decorator,
+  })  : this.decorator = decorator ?? ((ww) => ww),
+        super(key: key);
+
+  final String text;
+  final String title;
+  final TitleRowDecorator decorator;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: decorator([
+        TitleText(text: text, transparent: true),
+        Text(title),
+        SizedBox(width: 4),
+        TitleText(text: text, transparent: false),
+      ]),
+    );
+  }
+}
+
+class TitleText extends StatelessWidget {
+  const TitleText({
+    Key key,
+    @required this.text,
+    @required this.transparent,
+  }) : super(key: key);
+
+  final String text;
+  final bool transparent;
+
+  @override
+  Widget build(BuildContext context) {
+    const tc = Colors.transparent;
+    final cc = Colors.grey.withOpacity(.35);
+    return Text(
+      text,
+      textScaleFactor: 0.825,
+      style: TextStyle(color: transparent ? tc : cc),
     );
   }
 }
