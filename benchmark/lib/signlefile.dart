@@ -1,3 +1,4 @@
+import 'package:benchmark/settings.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -5,7 +6,7 @@ import 'runner.dart';
 
 class SingleFileRunner implements BenchmarkRunner {
   @override
-  String get name => 'single-file-storage';
+  Storage get storageType => Storage.single;
 
   HydratedStorage storage;
 
@@ -18,6 +19,19 @@ class SingleFileRunner implements BenchmarkRunner {
   @override
   Future<void> tearDown() async {
     storage.clear();
+  }
+
+  @override
+  Future<int> batchWakeInt() async {
+    final s = Stopwatch()..start();
+    await setUp();
+    s.stop();
+    return s.elapsedMilliseconds;
+  }
+
+  @override
+  Future<int> batchWakeString() {
+    return batchWakeInt();
   }
 
   @override

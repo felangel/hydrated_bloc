@@ -7,6 +7,7 @@ environment:
   sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
+  uuid: ^2.0.4
   path: ^1.6.4
   random_string: ^2.0.1
   path_provider: ^1.6.5

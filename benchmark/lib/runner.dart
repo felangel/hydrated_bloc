@@ -1,8 +1,14 @@
+import 'package:benchmark/settings.dart';
+
 abstract class BenchmarkRunner {
-  String get name;
+  // String get name;
+  Storage get storageType;
 
   Future<void> setUp();
   Future<void> tearDown();
+
+  Future<int> batchWakeInt();
+  Future<int> batchWakeString();
 
   Future<int> batchReadInt(List<String> keys);
   Future<int> batchReadString(List<String> keys);

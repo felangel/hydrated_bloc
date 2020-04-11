@@ -57,28 +57,30 @@ class _AppState extends State<App> {
       onPressed: _running
           ? null
           : () async {
+              if (_running) return;
               _results.clear();
               setState(() => _running = true);
               print('RUNNING');
-              await benchmarkWrite(100)
-                  .doo((r) => setState(() => _results.add(r)))
-                  // .asyncMap(
-                  //   (_) async {
-                  //     await controller.animateTo(
-                  //       controller.position.maxScrollExtent +
-                  //           controller.position.extentBefore,
-                  //       duration: const Duration(milliseconds: 500),
-                  //       curve: Curves.linear,
-                  //     );
-                  //     return _;
-                  //   },
-                  // )
-                  .map((r) => '${r.runner.name}: ${r.stringTime}ms')
-                  .doo(print)
+              const maa = {
+                Mode.read: benchmarkRead,
+                Mode.write: benchmarkWrite,
+                Mode.wake: benchmarkWake,
+                //  Mode.delete: benchmarkDelete,
+              };
+              const count = 300;
+              final mm = settings.modes;
+              await Stream.fromIterable(mm.keys.where((m) => mm[m]))
+                  .asyncExpand((m) => maa[m](count))
+                  .act((r) => setState(() => _results.add(r)))
+                  .map((r) sync* {
+                    yield '${r.runner.storageType}: int64 : ${r.intTime}ms';
+                    yield '${r.runner.storageType}: string: ${r.stringTime}ms';
+                  })
+                  .act(print)
                   .drain();
               setState(() => _running = false);
               print('DONE');
-              Future.delayed(const Duration(milliseconds: 200)).then(
+              Future.delayed(const Duration(milliseconds: 100)).then(
                   (_) => setState(() {})); //controller.position.extentAfter
             },
     );
@@ -100,7 +102,7 @@ class _AppState extends State<App> {
             child: ListTile(
               dense: true,
               selected: true,
-              subtitle: Text('${r.stringTime}ms'),
+              subtitle: Text('i64 ${r.intTime}ms, str ${r.stringTime}ms'),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 12.0,
                 vertical: 4.0,
@@ -109,7 +111,7 @@ class _AppState extends State<App> {
                 child: Icon(Icons.blur_on, color: Colors.black, size: 30),
               ),
               title: Text(
-                '${r.runner.name}',
+                '${r.runner.storageType}: ${r.mode}',
                 style: Theme.of(context).textTheme.title,
               ),
             ),
@@ -273,20 +275,21 @@ class _AppState extends State<App> {
                     onChanged: (rv) => setState(() => settings.stateSize = rv),
                   ),
                   () {
+                    const px = '⩾';
                     final cc = settings.stateSizeBytesMax ~/ 4;
                     $(int cc) {
                       if (cc < 1e3) {
                         return '$cc';
                       } else if (cc < 1e5) {
                         cc ~/= 1e3;
-                        return '⩾${cc}k';
+                        return '$px${cc}k';
                       } else if (cc < 1e6) {
                         cc ~/= 1e4;
                         cc *= 10;
-                        return '⩾${cc}k';
+                        return '$px${cc}k';
                       } else {
                         cc ~/= 1e6;
-                        return '⩾${cc}M';
+                        return '$px${cc}M';
                       }
                     }
 
@@ -296,9 +299,9 @@ class _AppState extends State<App> {
                       text: text,
                       title: title,
                       decorator: (ww) => [
-                        TitleText(text: '⩾', transparent: true),
+                        TitleText(text: px, transparent: true),
                         ...ww,
-                        TitleText(text: '⩾', transparent: true),
+                        TitleText(text: px, transparent: true),
                       ],
                     );
                   }(),
@@ -621,7 +624,7 @@ class TitleText extends StatelessWidget {
 }
 
 extension Stream$<T> on Stream<T> {
-  Stream<T> doo(void action(T)) {
+  Stream<T> act(void action(T)) {
     return this.map((item) {
       action(item);
       return item;
