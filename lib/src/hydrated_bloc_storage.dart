@@ -66,7 +66,6 @@ abstract class FutureStorage<T> {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
-  static HydratedBlocStorage _instance;
   final InstantStorage<dynamic> _cache;
   final FutureStorage<String> _storage;
 
@@ -76,13 +75,10 @@ class HydratedBlocStorage extends HydratedStorage {
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
   }) async {
-    if (_instance != null) {
-      return _instance;
-    }
     storageDirectory ??= await getTemporaryDirectory();
     final storage = HydratedFutureStorage(storageDirectory);
-    _instance = await getInstanceWith(storage: storage);
-    return _instance;
+    final instance = await getInstanceWith(storage: storage);
+    return instance;
   }
 
   /// Returns an instance of [HydratedBlocStorage].
@@ -95,14 +91,11 @@ class HydratedBlocStorage extends HydratedStorage {
     InstantStorage<dynamic> cache,
     FutureStorage<String> storage,
   }) async {
-    if (_instance != null) {
-      return _instance;
-    }
     cache ??= _HydratedInstantStorage();
     storage ??= HydratedFutureStorage(await getTemporaryDirectory());
-    _instance = HydratedBlocStorage._(cache, storage);
-    await _instance._infuse();
-    return _instance;
+    final instance = HydratedBlocStorage._(cache, storage);
+    await instance._infuse();
+    return instance;
   }
 
   HydratedBlocStorage._(this._cache, this._storage);
@@ -141,7 +134,6 @@ class HydratedBlocStorage extends HydratedStorage {
   /// managed by `this` storage
   Future<void> clear() async {
     _cache.clear();
-    _instance = null;
     return await _storage.clear();
   }
 }
