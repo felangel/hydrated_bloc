@@ -302,25 +302,6 @@ class _AppState extends State<App> {
                       ],
                     );
                   }(),
-                  // Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  //   ...() sync* {
-
-                  //     yield Text(
-                  //       text + '⩾',
-                  //       style: TextStyle(color: Colors.transparent),
-                  //     );
-                  //     yield Text();
-                  //     yield SizedBox(width: 4);
-                  //     yield Text(
-                  //       text,
-                  //       style: TextStyle(color: Colors.grey.withOpacity(.35)),
-                  //     );
-                  //     yield Text(
-                  //       '⩾',
-                  //       style: TextStyle(color: Colors.transparent),
-                  //     );
-                  //   }()
-                  // ]),
                   Divider(),
                   Center(child: () {
                     const ss = [Storage.single, Storage.multi, Storage.ether];
@@ -611,7 +592,7 @@ class TitleRow extends StatelessWidget {
         TitleText(text: text, transparent: true),
         Text(title),
         SizedBox(width: 4),
-        TitleText(text: text, transparent: false),
+        TitleText(text: text, transparent: true),
       ]),
     );
   }
