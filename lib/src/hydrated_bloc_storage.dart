@@ -61,8 +61,6 @@ abstract class FutureStorage<T> {
   Stream<String> get tokens;
 }
 
-//TODO REAL
-
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
@@ -76,7 +74,7 @@ class HydratedBlocStorage extends HydratedStorage {
     Directory storageDirectory,
   }) async {
     storageDirectory ??= await getTemporaryDirectory();
-    final storage = HydratedFutureStorage(storageDirectory);
+    final storage = MultifileStorage(storageDirectory);
     final instance = await getInstanceWith(storage: storage);
     return instance;
   }
@@ -92,7 +90,7 @@ class HydratedBlocStorage extends HydratedStorage {
     FutureStorage<String> storage,
   }) async {
     cache ??= _HydratedInstantStorage();
-    storage ??= HydratedFutureStorage(await getTemporaryDirectory());
+    storage ??= MultifileStorage(await getTemporaryDirectory());
     final instance = HydratedBlocStorage._(cache, storage);
     await instance._infuse();
     return instance;
@@ -161,12 +159,14 @@ class _InstantStorage<T> extends InstantStorage<T> {
 }
 
 /// Default [FutureStorage] for `HydratedBloc`
-class HydratedFutureStorage extends FutureStorage<String> {
+/// [SinglefileStorage] - all blocs to single file
+/// [MultifileStorage] - file per bloc
+class MultifileStorage extends FutureStorage<String> {
   /// `Directory` for files to be managed in
   final Directory directory;
 
-  /// Create `HydratedFutureStorage` working in [directory]
-  HydratedFutureStorage(this.directory);
+  /// Create `MultifileStorage` utilizing [directory]
+  MultifileStorage(this.directory);
 
   // Tokens are keys to `File` objects
   final InstantStorage<File> _files = _InstantStorage<File>();
@@ -222,56 +222,64 @@ class HydratedFutureStorage extends FutureStorage<String> {
       .drain();
 }
 
-//TODO TEMP
-class HydratedSingleStorageTEMP extends HydratedStorage {
+/// Default [FutureStorage] for `HydratedBloc`
+/// [SinglefileStorage] - all blocs to single file
+/// [MultifileStorage] - file per bloc
+class SinglefileStorage extends FutureStorage<String> {
   static final Lock _lock = Lock();
-  final Map<String, dynamic> _storage;
+  final Map<String, String> _cache;
   final File _file;
 
-  /// Returns an instance of `HydratedBlocStorage`.
+  /// Returns an instance of `SinglefileStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
-  static Future<HydratedSingleStorageTEMP> getInstance({
+  static Future<SinglefileStorage> getInstance({
     Directory storageDirectory,
   }) {
     return _lock.synchronized(() async {
       final directory = storageDirectory ?? await getTemporaryDirectory();
       final file = File('${directory.path}/.hydrated_bloc.json');
-      var storage = <String, dynamic>{};
+      var storage = <String, String>{};
 
       if (await file.exists()) {
         try {
           storage =
-              json.decode(await file.readAsString()) as Map<String, dynamic>;
+              json.decode(await file.readAsString()) as Map<String, String>;
         } on dynamic catch (_) {
           await file.delete();
         }
       }
 
-      return HydratedSingleStorageTEMP._(storage, file);
+      return SinglefileStorage._(storage, file);
     });
   }
 
-  HydratedSingleStorageTEMP._(this._storage, this._file);
+  SinglefileStorage._(this._cache, this._file);
 
   @override
-  dynamic read(String key) {
-    return _storage[key];
+  Stream<String> get tokens => Stream.fromIterable(_cache.keys);
+
+  @override
+  Future<String> read(String token) {
+    return Future.value(_cache[token]);
   }
 
   @override
-  Future<void> write(String key, dynamic value) {
-    return _lock.synchronized(() {
-      _storage[key] = value;
-      return _file.writeAsString(json.encode(_storage));
+  Future<String> write(String token, dynamic value) {
+    return _lock.synchronized(() async {
+      _cache[token] = value;
+      await _file.writeAsString(json.encode(_cache));
+      return value;
     });
   }
 
   @override
-  Future<void> delete(String key) {
-    return _lock.synchronized(() {
-      _storage[key] = null;
-      return _file.writeAsString(json.encode(_storage));
+  Future<String> delete(String token) {
+    return _lock.synchronized(() async {
+      final record = _cache[token];
+      _cache[token] = null;
+      await _file.writeAsString(json.encode(_cache));
+      return record;
     });
   }
 
@@ -279,7 +287,7 @@ class HydratedSingleStorageTEMP extends HydratedStorage {
   Future<void> clear() {
     return _lock.synchronized(
       () async {
-        _storage.clear();
+        _cache.clear();
         if (await _file.exists()) {
           await _file.delete();
         }
