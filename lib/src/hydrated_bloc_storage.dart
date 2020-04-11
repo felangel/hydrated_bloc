@@ -160,7 +160,8 @@ class _InstantStorage<T> extends InstantStorage<T> {
 
 /// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-/// [MultifileStorage] - file per bloc
+///  [MultifileStorage] - file per bloc
+///   [EtherealStorage] - does nothing, used to in-memory blocs
 class MultifileStorage extends FutureStorage<String> {
   /// `Directory` for files to be managed in
   final Directory directory;
@@ -224,7 +225,8 @@ class MultifileStorage extends FutureStorage<String> {
 
 /// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-/// [MultifileStorage] - file per bloc
+///  [MultifileStorage] - file per bloc
+///   [EtherealStorage] - does nothing, used to in-memory blocs
 class SinglefileStorage extends FutureStorage<String> {
   static final Lock _lock = Lock();
   final Map<String, String> _cache;
@@ -294,4 +296,30 @@ class SinglefileStorage extends FutureStorage<String> {
       },
     );
   }
+}
+
+/// Default [FutureStorage] for `HydratedBloc`
+/// [SinglefileStorage] - all blocs to single file
+///  [MultifileStorage] - file per bloc
+///   [EtherealStorage] - does nothing, used to in-memory blocs
+class EtherealStorage extends FutureStorage<String> {
+  /// Creates an instance of `EtherealfileStorage`.
+  /// In is used in combination with `HydratedBlocStorage` cache
+  /// to achieve in-memory storage behavior
+  EtherealStorage();
+
+  @override
+  Stream<String> get tokens => Stream.empty();
+
+  @override
+  Future<String> read(String token) => Future.value();
+
+  @override
+  Future<String> write(String token, dynamic value) => Future.value(value);
+
+  @override
+  Future<String> delete(String token) => Future.value();
+
+  @override
+  Future<void> clear() => Future.value();
 }
