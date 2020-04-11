@@ -272,7 +272,38 @@ class _AppState extends State<App> {
                     values: settings.stateSize,
                     onChanged: (rv) => setState(() => settings.stateSize = rv),
                   ),
-                  Center(child: Text('STATE SIZE')),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    ...() sync* {
+                      final cc = settings.stateSizeBytesMax ~/ 4;
+                      $(int cc) {
+                        if (cc < 1e3) {
+                          return '$cc';
+                        } else if (cc < 1e5) {
+                          cc ~/= 1e3;
+                          return '⩾${cc}k';
+                        } else if (cc < 1e6) {
+                          cc ~/= 1e4;
+                          cc *= 10;
+                          return '⩾${cc}k';
+                        } else {
+                          cc ~/= 1e6;
+                          return '⩾${cc}M';
+                        }
+                      }
+
+                      final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
+                      yield Text(
+                        text + '⩾',
+                        style: TextStyle(color: Colors.transparent),
+                      );
+                      yield Text('STATE SIZE');
+                      yield SizedBox(width: 4);
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
+                      );
+                    }()
+                  ]),
                   Divider(),
                   Center(child: () {
                     const ss = [Storage.single, Storage.multi, Storage.ether];
@@ -289,25 +320,32 @@ class _AppState extends State<App> {
                         minWidth: 100.0,
                         minHeight: 32.0,
                       ),
-                      borderWidth: 0.5,
-                      borderColor: Colors.grey,
-                      selectedBorderColor: Colors.blue,
+                      borderColor: Colors.grey.withOpacity(0.3),
+                      selectedBorderColor: Colors.blue.withOpacity(0.3),
                       borderRadius: BorderRadius.circular(8),
                       children: ss.map((s) => Text(ll[s])).toList(),
                     );
                   }()),
                   SizedBox(height: 8),
-                  Center(child: Text('STORAGES')),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    ...() sync* {
+                      final cur =
+                          settings.storages.values.where((v) => v).length;
+                      final tot = settings.storages.length;
+                      final text = '$cur/$tot';
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.transparent),
+                      );
+                      yield Text('STORAGES');
+                      yield SizedBox(width: 4);
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
+                      );
+                    }()
+                  ]),
                   Divider(),
-
-                  // RangeSlider(
-                  //   min: 0,
-                  //   max: 50,
-                  //   values: RangeValues(5, 35),
-                  //   onChanged: print,
-                  //   divisions: 10,
-                  //   labels: RangeLabels('5', '35'),
-                  // ),
                   RangeSlider(
                     min: settings.blocCountRange.start,
                     max: settings.blocCountRange.end,
@@ -316,9 +354,24 @@ class _AppState extends State<App> {
                     values: settings.blocCount,
                     onChanged: (rv) => setState(() => settings.blocCount = rv),
                   ),
-
-                  Center(child: Text('BLOC COUNT')),
-
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    ...() sync* {
+                      final start = settings.blocCount.start.toInt();
+                      final end = settings.blocCount.end.toInt();
+                      final text =
+                          start == end ? '$end' : '$start-$end'.padLeft(2);
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.transparent),
+                      ); // to compensate length variations
+                      yield Text('BLOC COUNT');
+                      yield SizedBox(width: 4);
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
+                      );
+                    }()
+                  ]),
                   Divider(),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -349,8 +402,10 @@ class _AppState extends State<App> {
                           selected: ss[m],
                           shape: StadiumBorder(
                             side: BorderSide(
-                              color: ss[m] ? Colors.blue : Colors.grey,
-                              width: 0.5,
+                              color: ss[m]
+                                  ? Colors.blue.withOpacity(0.3)
+                                  : Colors.grey.withOpacity(0.3),
+                              width: 1,
                             ),
                           ),
                           selectedColor: Colors.blue.withOpacity(0.15),
@@ -367,7 +422,23 @@ class _AppState extends State<App> {
                         .skip(1)
                         .toList(),
                   ),
-                  Center(child: Text('BENCH MODES')),
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    ...() sync* {
+                      final cur = settings.modes.values.where((v) => v).length;
+                      final tot = settings.modes.length;
+                      final text = '$cur/$tot';
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.transparent),
+                      );
+                      yield Text('BENCH MODES');
+                      yield SizedBox(width: 4);
+                      yield Text(
+                        text,
+                        style: TextStyle(color: Colors.grey.withOpacity(.35)),
+                      );
+                    }()
+                  ]),
                 ],
               ),
             ),

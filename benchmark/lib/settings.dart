@@ -44,7 +44,8 @@ class BenchmarkSettings {
         _format(stateSize.start.toInt()),
         _format(stateSize.end.toInt()),
       );
-  // int _convert(double e) => pow(2, e).toInt();
+  int get stateSizeBytesMax => _convert(stateSize.end);
+  int _convert(double e) => pow(2, e).toInt();
   String _format(int size) {
     final e = size % 10;
     final p = const ['Bytes', 'KB', 'MB', 'GB'][size ~/ 10];
