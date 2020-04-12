@@ -19,9 +19,17 @@ class Benchmark {
   Benchmark(this.settings);
 
   final BenchmarkSettings settings;
-  final _runners = [
-    SingleFileRunner(),
-  ];
+  List<BenchmarkRunner> get _runners {
+    final rr = {
+      Storage.single: SinglefileRunner(),
+      Storage.multi: MultifileRunner(),
+      Storage.ether: EtherealfileRunner(),
+    };
+    return rr.keys
+        .where((s) => settings.storages[s])
+        .map((s) => rr[s])
+        .toList();
+  }
 
   List<Result> _createResults() {
     return _runners.map((r) => Result(r)).toList();

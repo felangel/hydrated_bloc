@@ -103,7 +103,14 @@ class _AppState extends State<App> {
             child: ListTile(
               dense: true,
               selected: true,
-              subtitle: Text('i64 ${r.intTime}ms, str ${r.stringTime}ms'),
+              subtitle: () {
+                format(Duration d) => d.inMilliseconds > 0
+                    ? '${d.inMilliseconds}ms'
+                    : '${d.inMicroseconds}μs';
+                final it = format(r.intTime);
+                final st = format(r.stringTime);
+                return Text('i64 $it, str $st');
+              }(),
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 12.0,
                 vertical: 4.0,
