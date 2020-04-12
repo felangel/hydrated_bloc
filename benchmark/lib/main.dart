@@ -104,9 +104,11 @@ class _AppState extends State<App> {
               dense: true,
               selected: true,
               subtitle: () {
-                format(Duration d) => d.inMilliseconds > 0
-                    ? '${d.inMilliseconds}ms'
-                    : '${d.inMicroseconds}μs';
+                format(Duration d) => d.inSeconds >= 10
+                    ? '${d.inSeconds}s'
+                    : d.inMilliseconds > 0
+                        ? '${d.inMilliseconds}ms'
+                        : '${d.inMicroseconds}μs';
                 final it = format(r.intTime);
                 final st = format(r.stringTime);
                 return Text('i64 $it, str $st');

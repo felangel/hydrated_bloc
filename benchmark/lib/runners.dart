@@ -11,7 +11,8 @@ class SinglefileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    return HydratedBlocStorage.getInstance(storageDirectory: dir);
+    final storage = await SinglefileStorage.getInstance(storageDirectory: dir);
+    return HydratedBlocStorage.getInstanceWith(storage: storage);
   }
 }
 
