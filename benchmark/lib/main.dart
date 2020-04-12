@@ -61,16 +61,17 @@ class _AppState extends State<App> {
               _results.clear();
               setState(() => _running = true);
               print('RUNNING');
-              const maa = {
-                Mode.read: benchmarkRead,
-                Mode.write: benchmarkWrite,
-                Mode.wake: benchmarkWake,
-                //  Mode.delete: benchmarkDelete,
+              final bm = Benchmark(settings);
+              final maa = {
+                Mode.read: bm.doReads,
+                Mode.write: bm.doWrites,
+                Mode.wake: bm.doWakes,
+                // Mode.delete: bm.doDeletes,
               };
-              const count = 150;
+
               final mm = settings.modes;
               await Stream.fromIterable(mm.keys.where((m) => mm[m]))
-                  .asyncExpand((m) => maa[m](count))
+                  .asyncExpand((m) => maa[m]())
                   .act((r) => setState(() => _results.add(r)))
                   .map((r) sync* {
                     yield '${r.runner.storageType}: int64 : ${r.intTime}ms';
