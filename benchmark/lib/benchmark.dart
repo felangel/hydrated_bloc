@@ -35,14 +35,17 @@ class Benchmark {
     return _runners.map((r) => Result(r)).toList();
   }
 
-  Map<String, int> generateIntEntries(int count) {
-    final map = <String, int>{};
+  Map<String, List<int>> generateIntEntries(int count) {
+    final map = <String, List<int>>{};
     final random = Random();
     final uuid = Uuid();
+    final intcount = settings.stateSizeBytesMax ~/ 4;
     for (var i = 0; i < count; i++) {
       final key = uuid.v4();
-      final val = random.nextInt(2 ^ 50);
-      map[key] = val;
+      map[key] = Iterable.generate(
+        intcount,
+        (_) => random.nextInt(1 << 32),
+      ).toList();
     }
     return map;
   }
@@ -50,9 +53,10 @@ class Benchmark {
   Map<String, String> generateStringEntries(int count) {
     final map = <String, String>{};
     final uuid = Uuid();
+    final charcount = settings.stateSizeBytesMax ~/ 4;
     for (var i = 0; i < count; i++) {
       final key = uuid.v4();
-      final val = randomString(randomBetween(5, 500));
+      final val = randomString(randomBetween(0, charcount));
       map[key] = val;
     }
     return map;
