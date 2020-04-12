@@ -32,7 +32,7 @@ abstract class InstantStorage<T> {
   T write(String key, T value);
 
   /// Deletes key value pair
-  T delete(String key);
+  void delete(String key);
 
   /// Clears all key value pairs from storage
   void clear();
@@ -52,7 +52,7 @@ abstract class FutureStorage<T> {
   Future<T> write(String token, T record);
 
   /// Deletes record for token
-  Future<T> delete(String token);
+  Future<void> delete(String token);
 
   /// Clears all records storage
   Future<void> clear();
@@ -116,23 +116,22 @@ class HydratedBlocStorage extends HydratedStorage {
   }
 
   /// Persists key value pair
-  Future<void> write(String key, dynamic value) async {
+  Future<void> write(String key, dynamic value) {
     _cache.write(key, value);
-    await _storage.write(key, json.encode(value));
-    return _cache.write(key, value);
+    return _storage.write(key, json.encode(value));
   }
 
   /// Deletes key value pair
-  Future<void> delete(String key) async {
+  Future<void> delete(String key) {
     _cache.delete(key);
-    return await _storage.delete(key);
+    return _storage.delete(key);
   }
 
   /// Clears all key value pairs
   /// managed by `this` storage
-  Future<void> clear() async {
+  Future<void> clear() {
     _cache.clear();
-    return await _storage.clear();
+    return _storage.clear();
   }
 }
 
@@ -149,7 +148,7 @@ class _InstantStorage<T> extends InstantStorage<T> {
   T write(String key, T value) => _map[key] = value;
 
   @override
-  T delete(String key) => _map[key] = null;
+  void delete(String key) => _map[key] = null;
 
   @override
   void clear() => _map.clear();
@@ -158,6 +157,7 @@ class _InstantStorage<T> extends InstantStorage<T> {
   Iterable<String> get keys => _map.keys;
 }
 
+// HydratedFutureStorage
 /// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
 ///  [MultifileStorage] - file per bloc
@@ -171,6 +171,10 @@ class MultifileStorage extends FutureStorage<String> {
 
   // Tokens are keys to `File` objects
   final InstantStorage<File> _files = _InstantStorage<File>();
+
+  static final _locks = _InstantStorage<Lock>();
+  Lock _lockByToken(String token) => // wanted to use files as locks but
+      _locks.read(token) ?? _locks.write(token, Lock()); // locks must be static
 
   static const String _prefix = '.bloc.';
   String _token(String path) => p.split(path).last.split('.')[2];
@@ -193,34 +197,33 @@ class MultifileStorage extends FutureStorage<String> {
       .map(_token);
 
   @override
-  Future<String> read(String token) async =>
-      (await _find(token))?.readAsString();
+  Future<String> read(String token) => _lockByToken(token)
+      .synchronized(() async => (await _find(token))?.readAsString());
 
   @override
-  Future<String> write(String token, String record) async {
-    final file = await _fileByToken(token).writeAsString(record);
-    return file.readAsString();
-  }
+  Future<String> write(String token, String record) =>
+      _lockByToken(token).synchronized(() async {
+        await _fileByToken(token).writeAsString(record);
+        return record;
+      });
 
   @override
-  Future<String> delete(String token) async {
-    var file = _files.read(token);
-    if (file == null) return null;
-    file = await _find(token);
-    if (file == null) return null;
-    final record = await file.readAsString();
-    await file.delete();
-    _files.delete(token);
-    return record;
-  }
+  Future<void> delete(String token) =>
+      _lockByToken(token).synchronized(() async {
+        var file = _files.read(token);
+        if (file == null) return null;
+        file = await _find(token);
+        if (file == null) return null;
+        await file.delete();
+        _files.delete(token);
+      });
 
-  // Intentionally deletes only cached files
   @override
   Future<void> clear() => Stream.fromIterable(_files.keys)
-      .asyncMap(_find)
-      .where((file) => file != null)
-      .asyncMap((file) => file.delete())
-      .drain();
+      .asyncMap((token) => _lockByToken(token).synchronized(
+            () async => (await _find(token))?.delete(),
+          )) // Intentionally deletes only cached files
+      .drain(); // files storage worked with
 }
 
 /// Default [FutureStorage] for `HydratedBloc`
@@ -276,12 +279,10 @@ class SinglefileStorage extends FutureStorage<String> {
   }
 
   @override
-  Future<String> delete(String token) {
-    return _lock.synchronized(() async {
-      final record = _cache[token];
+  Future<void> delete(String token) {
+    return _lock.synchronized(() {
       _cache[token] = null;
-      await _file.writeAsString(json.encode(_cache));
-      return record;
+      return _file.writeAsString(json.encode(_cache));
     });
   }
 
@@ -298,28 +299,19 @@ class SinglefileStorage extends FutureStorage<String> {
   }
 }
 
-/// Default [FutureStorage] for `HydratedBloc`
-/// [SinglefileStorage] - all blocs to single file
-///  [MultifileStorage] - file per bloc
-///   [EtherealStorage] - does nothing, used to in-memory blocs
+/// Used in combination with `HydratedBlocStorage` cache
+/// to achieve in-memory storage behavior.
 class EtherealStorage extends FutureStorage<String> {
-  /// Creates an instance of `EtherealfileStorage`.
-  /// In is used in combination with `HydratedBlocStorage` cache
-  /// to achieve in-memory storage behavior
+  /// Creates an instance of `EtherealStorage`.
   EtherealStorage();
-
   @override
   Stream<String> get tokens => Stream.empty();
-
   @override
   Future<String> read(String token) => Future.value();
-
   @override
   Future<String> write(String token, dynamic value) => Future.value(value);
-
   @override
-  Future<String> delete(String token) => Future.value();
-
+  Future<void> delete(String token) => Future.value();
   @override
   Future<void> clear() => Future.value();
 }

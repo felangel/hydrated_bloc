@@ -32,11 +32,11 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// Builds a new instance of `HydratedBlocDelegate` with
   /// `HydratedBlocStorage`'s default implementations of
   /// [InstantStorage] cache and [FutureStorage] permanent storage.
-  /// You can slide the default [HydratedFutureStorage] with
+  /// You can slide the default [MultifileStorage] with
   /// custom storage `Directory` into this builder.
   ///
   /// Otherwise you can implement your own ([cache]|[storage]).
-  /// Explore our [HydratedFutureStorage] for more implementation details.
+  /// Explore our [MultifileStorage] for more implementation details.
   ///
   /// This is straightforward, yet agile way to use a `HydratedBlocDelegate`,
   /// though you can extend and make your own.
