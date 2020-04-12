@@ -67,7 +67,7 @@ class _AppState extends State<App> {
                 Mode.wake: benchmarkWake,
                 //  Mode.delete: benchmarkDelete,
               };
-              const count = 300;
+              const count = 150;
               final mm = settings.modes;
               await Stream.fromIterable(mm.keys.where((m) => mm[m]))
                   .asyncExpand((m) => maa[m](count))
