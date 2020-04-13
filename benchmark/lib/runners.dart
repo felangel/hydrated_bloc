@@ -34,7 +34,12 @@ class EtherealfileRunner extends BenchmarkRunner {
 
   @override
   Future<HydratedStorage> get storageFactory async {
-    final storage = EtherealStorage();
+    final dir = await getTemporaryDirectory();
+    final storage = AESDecorator(
+      storage: Base64Adapter(MultifileStorage(dir)),
+      pass: 'I should benchmark benchmark. Meta benchmarking bro',
+    );
+    // final storage = EtherealStorage();
     return HydratedBlocStorage.getInstanceWith(storage: storage);
   }
 }
