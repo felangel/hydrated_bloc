@@ -259,7 +259,7 @@ class AESDecorator extends FutureStorage<String> {
   Future<String> write(String token, String record) async {
     final iv = IV.fromSecureRandom(16);
     final encrypted = _encrypter.encrypt(record, iv: iv);
-    final pair = iv.bytes + encrypted.bytes;
+    final pair = Uint8List.fromList(iv.bytes + encrypted.bytes);
     await _storage.write(token, pair);
     return record;
   }
