@@ -13,6 +13,8 @@ dependencies:
   path: ^1.6.4
   path_provider: ^1.1.0
   synchronized: ^2.2.0
+  encrypt: ^4.0.0
+  crypto: ^2.1.4
 
 dev_dependencies:
   flutter_test:

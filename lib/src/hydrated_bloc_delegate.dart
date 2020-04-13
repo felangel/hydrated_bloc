@@ -36,6 +36,7 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// custom storage `Directory` into this builder.
   ///
   /// Otherwise you can implement your own ([cache]|[storage]).
+  /// Typically custom [storage] is what you will be interested in.
   /// Explore our [MultifileStorage] for more implementation details.
   ///
   /// This is straightforward, yet agile way to use a `HydratedBlocDelegate`,
