@@ -271,6 +271,37 @@ class AESDecorator extends FutureStorage<String> {
   Future<void> clear() => _storage.clear();
 }
 
+/// Adapts `StringStorage` to be `BinaryStorage`
+class Base64Adapter extends FutureStorage<Uint8List> {
+  final FutureStorage<String> _storage;
+
+  /// Load it with `MultifileStorage`
+  /// for example
+  Base64Adapter(this._storage);
+
+  @override
+  Stream<String> get tokens => _storage.tokens;
+
+  @override
+  Future<Uint8List> read(String token) async {
+    final b64 = await _storage.read(token);
+    return base64.decode(b64);
+  }
+
+  @override
+  Future<Uint8List> write(String token, Uint8List record) async {
+    final b64 = base64.encode(record);
+    await _storage.write(token, b64);
+    return record;
+  }
+
+  @override
+  Future<void> delete(String token) => _storage.delete(token);
+
+  @override
+  Future<void> clear() => _storage.clear();
+}
+
 /// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
 ///  [MultifileStorage] - file per bloc
