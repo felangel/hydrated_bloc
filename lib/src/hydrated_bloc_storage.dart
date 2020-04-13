@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:crypto/crypto.dart';
+import 'package:encrypt/encrypt.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:path/path.dart' as p;
@@ -226,6 +229,79 @@ class MultifileStorage extends FutureStorage<String> {
       .drain(); // files storage worked with
 }
 
+/// Consumes `FutureStorage` to be `FutureStorage`
+class AESDecorator extends FutureStorage<String> {
+  final FutureStorage<Uint8List> _storage;
+  final Encrypter _encrypter;
+
+  /// AESDecorator is an encryption layer.
+  /// Pack it with BinaryStorage
+  /// And provide password string
+  AESDecorator({String pass, FutureStorage<Uint8List> storage})
+      : _storage = storage,
+        _encrypter = Encrypter(AES(
+          Key(sha256.convert(utf8.encode(pass)).bytes),
+        ));
+
+  @override
+  Stream<String> get tokens => _storage.tokens;
+
+  @override
+  Future<String> read(String token) async {
+    final pair = await _storage.read(token);
+    final iv = IV(pair.sublist(0, 16));
+    final encrypted = Encrypted(pair.sublist(16));
+    final decrypted = _encrypter.decrypt(encrypted, iv: iv);
+    return decrypted;
+  }
+
+  @override
+  Future<String> write(String token, String record) async {
+    final iv = IV.fromSecureRandom(16);
+    final encrypted = _encrypter.encrypt(record, iv: iv);
+    final pair = iv.bytes + encrypted.bytes;
+    await _storage.write(token, pair);
+    return record;
+  }
+
+  @override
+  Future<void> delete(String token) => _storage.delete(token);
+
+  @override
+  Future<void> clear() => _storage.clear();
+}
+
+/// Adapts `StringStorage` to be `BinaryStorage`
+class Base64Adapter extends FutureStorage<Uint8List> {
+  final FutureStorage<String> _storage;
+
+  /// Load it with `MultifileStorage`
+  /// for example
+  Base64Adapter(this._storage);
+
+  @override
+  Stream<String> get tokens => _storage.tokens;
+
+  @override
+  Future<Uint8List> read(String token) async {
+    final b64 = await _storage.read(token);
+    return base64.decode(b64);
+  }
+
+  @override
+  Future<Uint8List> write(String token, Uint8List record) async {
+    final b64 = base64.encode(record);
+    await _storage.write(token, b64);
+    return record;
+  }
+
+  @override
+  Future<void> delete(String token) => _storage.delete(token);
+
+  @override
+  Future<void> clear() => _storage.clear();
+}
+
 /// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
 ///  [MultifileStorage] - file per bloc
@@ -302,16 +378,18 @@ class SinglefileStorage extends FutureStorage<String> {
 /// Used in combination with `HydratedBlocStorage` cache
 /// to achieve in-memory storage behavior.
 class EtherealStorage extends FutureStorage<String> {
-  /// Creates an instance of `EtherealStorage`.
-  EtherealStorage();
   @override
   Stream<String> get tokens => Stream.empty();
+
   @override
   Future<String> read(String token) => Future.value();
+
   @override
   Future<String> write(String token, dynamic value) => Future.value(value);
+
   @override
   Future<void> delete(String token) => Future.value();
+
   @override
   Future<void> clear() => Future.value();
 }
