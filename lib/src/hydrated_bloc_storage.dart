@@ -337,29 +337,31 @@ class CellMultiplexer extends TokenStorage<String> {
       .drain(); // files storage worked with
 }
 
-/// Consumes `FutureStorage` to be `FutureStorage`
-class AESDecorator extends TokenStorage<String> {
-  final TokenStorage<Uint8List> _storage;
+// /// AESCell is `AES with PKCS7 padding, CTR mode` encrypted cell with
+class AESCell implements StringCell {
+  final BinaryCell _cell;
   final Encrypter _encrypter;
 
-  /// AESDecorator is an encryption layer.
-  /// Pack it with BinaryStorage
-  /// And provide password string
-  AESDecorator({String pass, TokenStorage<Uint8List> storage})
-      : _storage = storage,
-        _encrypter = Encrypter(AES(
-          Key(sha256.convert(utf8.encode(pass)).bytes),
-        ));
+  // AESDecorator({String pass, TokenStorage<Uint8List> storage})
+  //     : _storage = storage,
+  //       _encrypter = Encrypter(AES(
+  //         Key(sha256.convert(utf8.encode(pass)).bytes),
+  //       ));
 
-  // factory AESDecorator.password(
-  //     {String pass, TokenStorage<Uint8List> storage}) = AESDecorator;
-
-  @override
-  Stream<String> get tokens => _storage.tokens;
+  /// `AESCell` encrypts it's data with `Encrypter`.
+  /// Has `StringCell` api outside
+  /// and `BinaryCell` api inside.
+  AESCell(this._cell, this._encrypter);
 
   @override
-  Future<String> read(String token) async {
-    final pair = await _storage.read(token);
+  File get _file => _cell._file;
+
+  @override
+  Future<bool> exists() => _cell.exists();
+
+  @override
+  Future<String> read() async {
+    final pair = await _cell.read();
     final iv = IV(pair.sublist(0, 16));
     final encrypted = Encrypted(pair.sublist(16));
     final decrypted = _encrypter.decrypt(encrypted, iv: iv);
@@ -367,51 +369,65 @@ class AESDecorator extends TokenStorage<String> {
   }
 
   @override
-  Future<String> write(String token, String record) async {
+  Future<void> write(String contents) {
     final iv = IV.fromSecureRandom(16);
-    final encrypted = _encrypter.encrypt(record, iv: iv);
+    final encrypted = _encrypter.encrypt(contents, iv: iv);
     final pair = Uint8List.fromList(iv.bytes + encrypted.bytes);
-    await _storage.write(token, pair);
-    return record;
+    return _cell.write(pair);
   }
 
   @override
-  Future<void> delete(String token) => _storage.delete(token);
-
-  @override
-  Future<void> clear() => _storage.clear();
+  Future<void> delete() => _cell.delete();
 }
 
-/// Adapts `StringStorage` to be `BinaryStorage`
-class Base64Adapter extends TokenStorage<Uint8List> {
-  final TokenStorage<String> _storage;
+// /// Consumes `FutureStorage` to be `FutureStorage`
+// class AESDecorator extends TokenStorage<String> {
+//   final TokenStorage<Uint8List> _storage;
+//   final Encrypter _encrypter;
 
-  /// Load it with `MultifileStorage`
-  /// for example
-  Base64Adapter(this._storage);
+//   /// AESDecorator is an encryption layer.
+//   /// Pack it with BinaryStorage
+//   /// And provide password string
+//   AESDecorator({String pass, TokenStorage<Uint8List> storage})
+//       : _storage = storage,
+//         _encrypter = Encrypter(AES(
+//           Key(sha256.convert(utf8.encode(pass)).bytes),
+//         ));
 
-  @override
-  Stream<String> get tokens => _storage.tokens;
+//   // factory AESDecorator.password(
+//   //     {String pass, TokenStorage<Uint8List> storage}) = AESDecorator;
+// }
 
-  @override
-  Future<Uint8List> read(String token) async {
-    final b64 = await _storage.read(token);
-    return base64.decode(b64);
-  }
+// /// Adapts `StringStorage` to be `BinaryStorage`
+// class Base64Adapter extends TokenStorage<Uint8List> {
+//   final TokenStorage<String> _storage;
 
-  @override
-  Future<Uint8List> write(String token, Uint8List record) async {
-    final b64 = base64.encode(record);
-    await _storage.write(token, b64);
-    return record;
-  }
+//   /// Load it with `MultifileStorage`
+//   /// for example
+//   Base64Adapter(this._storage);
 
-  @override
-  Future<void> delete(String token) => _storage.delete(token);
+//   @override
+//   Stream<String> get tokens => _storage.tokens;
 
-  @override
-  Future<void> clear() => _storage.clear();
-}
+//   @override
+//   Future<Uint8List> read(String token) async {
+//     final b64 = await _storage.read(token);
+//     return base64.decode(b64);
+//   }
+
+//   @override
+//   Future<Uint8List> write(String token, Uint8List record) async {
+//     final b64 = base64.encode(record);
+//     await _storage.write(token, b64);
+//     return record;
+//   }
+
+//   @override
+//   Future<void> delete(String token) => _storage.delete(token);
+
+//   @override
+//   Future<void> clear() => _storage.clear();
+// }
 
 /// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
