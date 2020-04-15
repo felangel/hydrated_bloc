@@ -111,7 +111,7 @@ class StringCell {
 class HydratedBlocStorage extends HydratedStorage {
   static final _lock = Lock();
   final Map<String, dynamic> _storage;
-  final File _file;
+  final StringCell _cell;
 
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
@@ -121,23 +121,22 @@ class HydratedBlocStorage extends HydratedStorage {
   }) {
     return _lock.synchronized(() async {
       final directory = storageDirectory ?? await getTemporaryDirectory();
-      final file = File('${directory.path}/.hydrated_bloc.json');
+      final cell = StringCell(File('${directory.path}/.hydrated_bloc.json'));
       var storage = <String, dynamic>{};
 
-      if (await file.exists()) {
+      if (await cell.exists()) {
         try {
-          storage =
-              json.decode(await file.readAsString()) as Map<String, dynamic>;
+          storage = json.decode(await cell.read()) as Map<String, dynamic>;
         } on dynamic catch (_) {
-          await file.delete();
+          await cell.delete();
         }
       }
 
-      return HydratedBlocStorage._(storage, file);
+      return HydratedBlocStorage._(storage, cell);
     });
   }
 
-  HydratedBlocStorage._(this._storage, this._file);
+  HydratedBlocStorage._(this._storage, this._cell);
 
   @override
   dynamic read(String key) {
@@ -148,7 +147,7 @@ class HydratedBlocStorage extends HydratedStorage {
   Future<void> write(String key, dynamic value) {
     return _lock.synchronized(() {
       _storage[key] = value;
-      return _file.writeAsString(json.encode(_storage));
+      return _cell.write(json.encode(_storage));
     });
   }
 
@@ -156,7 +155,7 @@ class HydratedBlocStorage extends HydratedStorage {
   Future<void> delete(String key) {
     return _lock.synchronized(() {
       _storage[key] = null;
-      return _file.writeAsString(json.encode(_storage));
+      return _cell.write(json.encode(_storage));
     });
   }
 
@@ -165,8 +164,8 @@ class HydratedBlocStorage extends HydratedStorage {
     return _lock.synchronized(
       () async {
         _storage.clear();
-        if (await _file.exists()) {
-          await _file.delete();
+        if (await _cell.exists()) {
+          await _cell.delete();
         }
       },
     );
@@ -201,7 +200,10 @@ class Duplex extends HydratedStorage {
     TokenStorage<String> storage,
   }) async {
     cache ??= _HydratedInstantStorage();
-    storage ??= await CellMultiplexer(await getTemporaryDirectory());
+    storage ??= await CellMultiplexer(
+      await getTemporaryDirectory(),
+      (file) => StringCell(file),
+    );
     final instance = Duplex._(cache, storage);
     await instance._infuse();
     return instance;
@@ -268,6 +270,9 @@ class _InstantStorage<T> extends InstantStorage<T> {
   Iterable<String> get keys => _map.keys;
 }
 
+/// This factory creates `StringCell`s
+typedef CellFactory = StringCell Function(File file);
+
 // HydratedFutureStorage
 /// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
@@ -276,12 +281,13 @@ class _InstantStorage<T> extends InstantStorage<T> {
 class CellMultiplexer extends TokenStorage<String> {
   /// `Directory` for cells to be managed in
   final Directory directory;
+  final CellFactory _factory;
 
   /// Create `CellMultiplexer` utilizing [directory]
-  CellMultiplexer(this.directory);
+  CellMultiplexer(this.directory, this._factory);
 
   // Tokens are keys to `StringCell` objects
-  final InstantStorage<StringCell> _files = _InstantStorage<StringCell>();
+  final InstantStorage<StringCell> _cells = _InstantStorage<StringCell>();
 
   static final _locks = _InstantStorage<Lock>();
   Lock _lockByToken(String token) => // wanted to use cells as locks but
@@ -290,12 +296,12 @@ class CellMultiplexer extends TokenStorage<String> {
   static const String _prefix = '.bloc.';
   String _token(String path) => p.split(path).last.split('.')[2];
   String _path(String token) => p.join(directory.path, '$_prefix$token.json');
-  StringCell _fileByToken(String token) =>
-      _files.read(token) ?? _files.write(token, StringCell(File(_path(token))));
+  StringCell _cellByToken(String token) =>
+      _cells.read(token) ?? _cells.write(token, _factory(File(_path(token))));
 
-  // Returns null if file was not found
+  // Returns null if cell was not found
   Future<StringCell> _find(String token) async {
-    final cell = _fileByToken(token);
+    final cell = _cellByToken(token);
     return (await cell.exists()) ? cell : null;
   }
 
@@ -314,27 +320,27 @@ class CellMultiplexer extends TokenStorage<String> {
   @override
   Future<String> write(String token, String record) =>
       _lockByToken(token).synchronized(() async {
-        await _fileByToken(token).write(record);
+        await _cellByToken(token).write(record);
         return record;
       });
 
   @override
   Future<void> delete(String token) =>
       _lockByToken(token).synchronized(() async {
-        var file = _files.read(token);
-        if (file == null) return null;
-        file = await _find(token);
-        if (file == null) return null;
-        await file.delete();
-        _files.delete(token);
+        var cell = _cells.read(token);
+        if (cell == null) return null;
+        cell = await _find(token);
+        if (cell == null) return null;
+        await cell.delete();
+        _cells.delete(token);
       });
 
   @override
-  Future<void> clear() => Stream.fromIterable(_files.keys)
+  Future<void> clear() => Stream.fromIterable(_cells.keys)
       .asyncMap((token) => _lockByToken(token).synchronized(
             () async => (await _find(token))?.delete(),
-          )) // Intentionally deletes only cached files
-      .drain(); // files storage worked with
+          )) // Intentionally deletes only cached cells,
+      .drain(); // cells multiplexer worked with
 }
 
 // /// AESCell is `AES with PKCS7 padding, CTR mode` encrypted cell with
@@ -429,78 +435,77 @@ class AESCell implements StringCell {
 //   Future<void> clear() => _storage.clear();
 // }
 
-/// Default [TokenStorage] for `HydratedBloc`
-/// [SinglefileStorage] - all blocs to single file
-///  [CellMultiplexer] - file per bloc
-///   [TemporalStorage] - does nothing, used to in-memory blocs
-class SinglefileStorage extends HydratedStorage {
-  static final Lock _lock = Lock(); // TODO simplify
-  final Map<String, dynamic> _storage;
-  final File _file;
+// /// Default [TokenStorage] for `HydratedBloc`
+// /// [SinglefileStorage] - all blocs to single file
+// ///  [CellMultiplexer] - file per bloc
+// ///   [TemporalStorage] - does nothing, used to in-memory blocs
+// class SinglefileStorage extends HydratedStorage {
+//   static final _lock = Lock();
+//   final Map<String, dynamic> _storage;
+//   final File _file;
 
-  /// Returns an instance of `HydratedBlocStorage`.
-  /// `storageDirectory` can optionally be provided.
-  /// By default, `getTemporaryDirectory` is used.
-  static Future<SinglefileStorage> getInstance({
-    Directory storageDirectory,
-  }) {
-    return _lock.synchronized(() async {
-      final directory = storageDirectory ?? await getTemporaryDirectory();
-      final file = File('${directory.path}/.hydrated_bloc.json');
-      var storage = <String, dynamic>{};
+//   /// Returns an instance of `HydratedBlocStorage`.
+//   /// `storageDirectory` can optionally be provided.
+//   /// By default, `getTemporaryDirectory` is used.
+//   static Future<SinglefileStorage> getInstance({
+//     Directory storageDirectory,
+//   }) {
+//     return _lock.synchronized(() async {
+//       final directory = storageDirectory ?? await getTemporaryDirectory();
+//       final file = File('${directory.path}/.hydrated_bloc.json');
+//       var storage = <String, dynamic>{};
 
-      if (await file.exists()) {
-        try {
-          storage =
-              json.decode(await file.readAsString()) as Map<String, dynamic>;
-        } on dynamic catch (_) {
-          await file.delete();
-        }
-      }
+//       if (await file.exists()) {
+//         try {
+//           storage =
+//               json.decode(await file.readAsString()) as Map<String, dynamic>;
+//         } on dynamic catch (_) {
+//           await file.delete();
+//         }
+//       }
 
-      return SinglefileStorage._(storage, file);
-    });
-  }
+//       return SinglefileStorage._(storage, file);
+//     });
+//   }
 
-  SinglefileStorage._(this._storage, this._file);
+//   SinglefileStorage._(this._storage, this._file);
 
-  @override
-  dynamic read(String key) {
-    return _storage[key];
-  }
+//   @override
+//   dynamic read(String key) {
+//     return _storage[key];
+//   }
 
-  @override
-  Future<void> write(String key, dynamic value) {
-    return _lock.synchronized(() {
-      _storage[key] = value;
-      return _file.writeAsString(json.encode(_storage));
-    });
-  }
+//   @override
+//   Future<void> write(String key, dynamic value) {
+//     return _lock.synchronized(() {
+//       _storage[key] = value;
+//       return _file.writeAsString(json.encode(_storage));
+//     });
+//   }
 
-  @override
-  Future<void> delete(String key) {
-    return _lock.synchronized(() {
-      _storage[key] = null;
-      return _file.writeAsString(json.encode(_storage));
-    });
-  }
+//   @override
+//   Future<void> delete(String key) {
+//     return _lock.synchronized(() {
+//       _storage[key] = null;
+//       return _file.writeAsString(json.encode(_storage));
+//     });
+//   }
 
-  @override
-  Future<void> clear() {
-    return _lock.synchronized(
-      () async {
-        _storage.clear();
-        if (await _file.exists()) {
-          await _file.delete();
-        }
-      },
-    );
-  }
-}
+//   @override
+//   Future<void> clear() {
+//     return _lock.synchronized(
+//       () async {
+//         _storage.clear();
+//         if (await _file.exists()) {
+//           await _file.delete();
+//         }
+//       },
+//     );
+//   }
+// }
 
 /// Used in combination with `HydratedBlocStorage` cache
 /// to achieve in-memory storage behavior.
-// TODO Temporal
 class TemporalStorage extends TokenStorage<String> {
   @override
   Stream<String> get tokens => Stream.empty();
