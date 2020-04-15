@@ -384,18 +384,13 @@ void storageGroup() {
             ).toList();
             hydratedStorage.write(token, record); // no await here
 
-            dynamic written;
-            try {
-              hydratedStorage = await HydratedBlocStorage.getInstance(
-                storageDirectory: directory,
-              ); // basically refreshes cache
-              written = hydratedStorage.read(token);
-            } on dynamic catch (_) {
-              written = null;
-            } // At least json is not corrupted
-            expect(written, isNotNull);
-            expect(written, record); // definitely should crash
-          }); // but Future.wait executes Futures in iterable order
+            hydratedStorage = await HydratedBlocStorage.getInstance(
+              storageDirectory: directory,
+            ); // basically refreshes cache
+
+            final written = hydratedStorage.read(token);
+            expect(written, record);
+          });
 
           await Future.wait(tasks, eagerError: true);
         });
