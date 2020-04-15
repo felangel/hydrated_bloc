@@ -64,6 +64,48 @@ abstract class TokenStorage<T> {
   Stream<String> get tokens;
 }
 
+/// `BinaryCell` is a cell which stores binary contents
+class BinaryCell {
+  final File _file;
+
+  /// Creates `BinaryCell` object
+  BinaryCell(this._file);
+
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
+
+  /// Read cell contents
+  Future<Uint8List> read() => _file.readAsBytes();
+
+  /// Write to cell
+  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
+
+  /// Delete cell
+  Future<void> delete() => _file.delete();
+}
+
+/// `StringCell` is a cell which stores text contents
+/// I need this abstraction against `File` object to
+/// wrap it with AESCell and other decorators later.
+class StringCell {
+  final File _file;
+
+  /// Creates `BinaryCell` object
+  StringCell(this._file);
+
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
+
+  /// Read cell contents
+  Future<String> read() => _file.readAsString();
+
+  /// Write to cell
+  Future<void> write(String contents) => _file.writeAsString(contents);
+
+  /// Delete cell
+  Future<void> delete() => _file.delete();
+}
+
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
@@ -131,6 +173,7 @@ class HydratedBlocStorage extends HydratedStorage {
   }
 }
 
+/// `Duplex` is a combination of `InstantStorage` and `TokenStorage`
 class Duplex extends HydratedStorage {
   final InstantStorage<dynamic> _cache;
   final TokenStorage<String> _storage;
@@ -158,7 +201,7 @@ class Duplex extends HydratedStorage {
     TokenStorage<String> storage,
   }) async {
     cache ??= _HydratedInstantStorage();
-    storage ??= await Multiplexer(await getTemporaryDirectory());
+    storage ??= await CellMultiplexer(await getTemporaryDirectory());
     final instance = Duplex._(cache, storage);
     await instance._infuse();
     return instance;
@@ -228,32 +271,32 @@ class _InstantStorage<T> extends InstantStorage<T> {
 // HydratedFutureStorage
 /// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-/// [Multiplexer] - file per bloc
-/// [EtherealStorage] - does nothing, used to in-memory blocs
-class Multiplexer extends TokenStorage<String> {
-  /// `Directory` for files to be managed in
+/// [CellMultiplexer] - file per bloc
+/// [TemporalStorage] - does nothing, used to in-memory blocs
+class CellMultiplexer extends TokenStorage<String> {
+  /// `Directory` for cells to be managed in
   final Directory directory;
 
-  /// Create `MultifileStorage` utilizing [directory]
-  Multiplexer(this.directory);
+  /// Create `CellMultiplexer` utilizing [directory]
+  CellMultiplexer(this.directory);
 
-  // Tokens are keys to `File` objects
-  final InstantStorage<File> _files = _InstantStorage<File>();
+  // Tokens are keys to `StringCell` objects
+  final InstantStorage<StringCell> _files = _InstantStorage<StringCell>();
 
   static final _locks = _InstantStorage<Lock>();
-  Lock _lockByToken(String token) => // wanted to use files as locks but
+  Lock _lockByToken(String token) => // wanted to use cells as locks but
       _locks.read(token) ?? _locks.write(token, Lock()); // locks must be static
 
   static const String _prefix = '.bloc.';
   String _token(String path) => p.split(path).last.split('.')[2];
   String _path(String token) => p.join(directory.path, '$_prefix$token.json');
-  File _fileByToken(String token) =>
-      _files.read(token) ?? _files.write(token, File(_path(token)));
+  StringCell _fileByToken(String token) =>
+      _files.read(token) ?? _files.write(token, StringCell(File(_path(token))));
 
   // Returns null if file was not found
-  Future<File> _find(String token) async {
-    final file = _fileByToken(token);
-    return (await file.exists()) ? file : null;
+  Future<StringCell> _find(String token) async {
+    final cell = _fileByToken(token);
+    return (await cell.exists()) ? cell : null;
   }
 
   @override
@@ -266,12 +309,12 @@ class Multiplexer extends TokenStorage<String> {
 
   @override
   Future<String> read(String token) => _lockByToken(token)
-      .synchronized(() async => (await _find(token))?.readAsString());
+      .synchronized(() async => (await _find(token))?.read());
 
   @override
   Future<String> write(String token, String record) =>
       _lockByToken(token).synchronized(() async {
-        await _fileByToken(token).writeAsString(record);
+        await _fileByToken(token).write(record);
         return record;
       });
 
@@ -372,8 +415,8 @@ class Base64Adapter extends TokenStorage<Uint8List> {
 
 /// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-///  [Multiplexer] - file per bloc
-///   [EtherealStorage] - does nothing, used to in-memory blocs
+///  [CellMultiplexer] - file per bloc
+///   [TemporalStorage] - does nothing, used to in-memory blocs
 class SinglefileStorage extends HydratedStorage {
   static final Lock _lock = Lock(); // TODO simplify
   final Map<String, dynamic> _storage;
@@ -442,7 +485,7 @@ class SinglefileStorage extends HydratedStorage {
 /// Used in combination with `HydratedBlocStorage` cache
 /// to achieve in-memory storage behavior.
 // TODO Temporal
-class EtherealStorage extends TokenStorage<String> {
+class TemporalStorage extends TokenStorage<String> {
   @override
   Stream<String> get tokens => Stream.empty();
 
