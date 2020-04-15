@@ -67,7 +67,7 @@ abstract class TokenStorage<T> {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
-  static final Lock _lock = Lock();
+  static final _lock = Lock();
   final Map<String, dynamic> _storage;
   final File _file;
 
