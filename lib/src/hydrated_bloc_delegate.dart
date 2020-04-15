@@ -31,24 +31,24 @@ class HydratedBlocDelegate extends BlocDelegate {
 
   /// Builds a new instance of `HydratedBlocDelegate` with
   /// `HydratedBlocStorage`'s default implementations of
-  /// [InstantStorage] cache and [FutureStorage] permanent storage.
-  /// You can slide the default [MultifileStorage] with
+  /// [InstantStorage] cache and [TokenStorage] permanent storage.
+  /// You can slide the default [Multiplexer] with
   /// custom storage `Directory` into this builder.
   ///
   /// Otherwise you can implement your own ([cache]|[storage]).
   /// Typically custom [storage] is what you will be interested in.
-  /// Explore our [MultifileStorage] for more implementation details.
+  /// Explore our [Multiplexer] for more implementation details.
   ///
   /// This is straightforward, yet agile way to use a `HydratedBlocDelegate`,
   /// though you can extend and make your own.
-  static Future<HydratedBlocDelegate> buildWith({
-    InstantStorage<dynamic> cache,
-    FutureStorage<String> storage,
-  }) async {
-    return HydratedBlocDelegate(
-      await HydratedBlocStorage.getInstanceWith(cache: cache, storage: storage),
-    );
-  }
+  // static Future<HydratedBlocDelegate> buildWith({
+  //   InstantStorage<dynamic> cache,
+  //   TokenStorage<String> storage,
+  // }) async {
+  //   return HydratedBlocDelegate(
+  //     await Duplex.getInstanceWith(cache: cache, storage: storage),
+  //   );
+  // }
 
   /// {@macro hydratedblocdelegate}
   HydratedBlocDelegate(this.storage);

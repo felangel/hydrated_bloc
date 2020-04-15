@@ -47,7 +47,7 @@ abstract class InstantStorage<T> {
 /// An abstraction over generic asynchronous storage
 /// ([read]|[write]|[delete]|[clear]|[tokens]) will take place
 /// in future `Isolate`'s event-loop
-abstract class FutureStorage<T> {
+abstract class TokenStorage<T> {
   /// Returns record for key
   Future<T> read(String token);
 
@@ -67,39 +67,104 @@ abstract class FutureStorage<T> {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
-  final InstantStorage<dynamic> _cache;
-  final FutureStorage<String> _storage;
+  static final Lock _lock = Lock();
+  final Map<String, dynamic> _storage;
+  final File _file;
 
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
-  }) async {
-    storageDirectory ??= await getTemporaryDirectory();
-    final storage = MultifileStorage(storageDirectory);
-    final instance = await getInstanceWith(storage: storage);
-    return instance;
+  }) {
+    return _lock.synchronized(() async {
+      final directory = storageDirectory ?? await getTemporaryDirectory();
+      final file = File('${directory.path}/.hydrated_bloc.json');
+      var storage = <String, dynamic>{};
+
+      if (await file.exists()) {
+        try {
+          storage =
+              json.decode(await file.readAsString()) as Map<String, dynamic>;
+        } on dynamic catch (_) {
+          await file.delete();
+        }
+      }
+
+      return HydratedBlocStorage._(storage, file);
+    });
   }
+
+  HydratedBlocStorage._(this._storage, this._file);
+
+  @override
+  dynamic read(String key) {
+    return _storage[key];
+  }
+
+  @override
+  Future<void> write(String key, dynamic value) {
+    return _lock.synchronized(() {
+      _storage[key] = value;
+      return _file.writeAsString(json.encode(_storage));
+    });
+  }
+
+  @override
+  Future<void> delete(String key) {
+    return _lock.synchronized(() {
+      _storage[key] = null;
+      return _file.writeAsString(json.encode(_storage));
+    });
+  }
+
+  @override
+  Future<void> clear() {
+    return _lock.synchronized(
+      () async {
+        _storage.clear();
+        if (await _file.exists()) {
+          await _file.delete();
+        }
+      },
+    );
+  }
+}
+
+class Duplex extends HydratedStorage {
+  final InstantStorage<dynamic> _cache;
+  final TokenStorage<String> _storage;
+
+  // /// Returns an instance of `HydratedBlocStorage`.
+  // /// `storageDirectory` can optionally be provided.
+  // /// By default, `getTemporaryDirectory` is used.
+  // static Future<Duplex> getInstance({
+  //   Directory storageDirectory,
+  // }) async {
+  //   storageDirectory ??= await getTemporaryDirectory();
+  //   final storage = await SinglefileStorage.getInstance(storageDirectory);
+  //   final instance = await getInstanceWith(storage: storage);
+  //   return instance;
+  // }
 
   /// Returns an instance of [HydratedBlocStorage].
   /// You can provide custom ([cache]|[storage]),
   /// otherwise default implementation will be used.
   /// Default [InstantStorage] is just in-memory `Map`
-  /// Default [FutureStorage] uses `getTemporaryDirectory`
+  /// Default [TokenStorage] uses `getTemporaryDirectory`
   /// for storing file per `HydratedBloc`'s `storageToken`
-  static Future<HydratedBlocStorage> getInstanceWith({
+  static Future<Duplex> getInstanceWith({
     InstantStorage<dynamic> cache,
-    FutureStorage<String> storage,
+    TokenStorage<String> storage,
   }) async {
     cache ??= _HydratedInstantStorage();
-    storage ??= MultifileStorage(await getTemporaryDirectory());
-    final instance = HydratedBlocStorage._(cache, storage);
+    storage ??= await Multiplexer(await getTemporaryDirectory());
+    final instance = Duplex._(cache, storage);
     await instance._infuse();
     return instance;
   }
 
-  HydratedBlocStorage._(this._cache, this._storage);
+  Duplex._(this._cache, this._storage);
 
   // Used to fill in-memory cache
   // Corrupted files are removed
@@ -161,16 +226,16 @@ class _InstantStorage<T> extends InstantStorage<T> {
 }
 
 // HydratedFutureStorage
-/// Default [FutureStorage] for `HydratedBloc`
+/// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-///  [MultifileStorage] - file per bloc
-///   [EtherealStorage] - does nothing, used to in-memory blocs
-class MultifileStorage extends FutureStorage<String> {
+/// [Multiplexer] - file per bloc
+/// [EtherealStorage] - does nothing, used to in-memory blocs
+class Multiplexer extends TokenStorage<String> {
   /// `Directory` for files to be managed in
   final Directory directory;
 
   /// Create `MultifileStorage` utilizing [directory]
-  MultifileStorage(this.directory);
+  Multiplexer(this.directory);
 
   // Tokens are keys to `File` objects
   final InstantStorage<File> _files = _InstantStorage<File>();
@@ -230,18 +295,21 @@ class MultifileStorage extends FutureStorage<String> {
 }
 
 /// Consumes `FutureStorage` to be `FutureStorage`
-class AESDecorator extends FutureStorage<String> {
-  final FutureStorage<Uint8List> _storage;
+class AESDecorator extends TokenStorage<String> {
+  final TokenStorage<Uint8List> _storage;
   final Encrypter _encrypter;
 
   /// AESDecorator is an encryption layer.
   /// Pack it with BinaryStorage
   /// And provide password string
-  AESDecorator({String pass, FutureStorage<Uint8List> storage})
+  AESDecorator({String pass, TokenStorage<Uint8List> storage})
       : _storage = storage,
         _encrypter = Encrypter(AES(
           Key(sha256.convert(utf8.encode(pass)).bytes),
         ));
+
+  // factory AESDecorator.password(
+  //     {String pass, TokenStorage<Uint8List> storage}) = AESDecorator;
 
   @override
   Stream<String> get tokens => _storage.tokens;
@@ -272,8 +340,8 @@ class AESDecorator extends FutureStorage<String> {
 }
 
 /// Adapts `StringStorage` to be `BinaryStorage`
-class Base64Adapter extends FutureStorage<Uint8List> {
-  final FutureStorage<String> _storage;
+class Base64Adapter extends TokenStorage<Uint8List> {
+  final TokenStorage<String> _storage;
 
   /// Load it with `MultifileStorage`
   /// for example
@@ -302,16 +370,16 @@ class Base64Adapter extends FutureStorage<Uint8List> {
   Future<void> clear() => _storage.clear();
 }
 
-/// Default [FutureStorage] for `HydratedBloc`
+/// Default [TokenStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
-///  [MultifileStorage] - file per bloc
+///  [Multiplexer] - file per bloc
 ///   [EtherealStorage] - does nothing, used to in-memory blocs
-class SinglefileStorage extends FutureStorage<String> {
-  static final Lock _lock = Lock();
-  final Map<String, String> _cache;
+class SinglefileStorage extends HydratedStorage {
+  static final Lock _lock = Lock(); // TODO simplify
+  final Map<String, dynamic> _storage;
   final File _file;
 
-  /// Returns an instance of `SinglefileStorage`.
+  /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
   static Future<SinglefileStorage> getInstance({
@@ -320,12 +388,12 @@ class SinglefileStorage extends FutureStorage<String> {
     return _lock.synchronized(() async {
       final directory = storageDirectory ?? await getTemporaryDirectory();
       final file = File('${directory.path}/.hydrated_bloc.json');
-      var storage = <String, String>{};
+      var storage = <String, dynamic>{};
 
       if (await file.exists()) {
         try {
           storage =
-              json.decode(await file.readAsString()) as Map<String, String>;
+              json.decode(await file.readAsString()) as Map<String, dynamic>;
         } on dynamic catch (_) {
           await file.delete();
         }
@@ -335,30 +403,26 @@ class SinglefileStorage extends FutureStorage<String> {
     });
   }
 
-  SinglefileStorage._(this._cache, this._file);
+  SinglefileStorage._(this._storage, this._file);
 
   @override
-  Stream<String> get tokens => Stream.fromIterable(_cache.keys);
-
-  @override
-  Future<String> read(String token) {
-    return Future.value(_cache[token]);
+  dynamic read(String key) {
+    return _storage[key];
   }
 
   @override
-  Future<String> write(String token, dynamic value) {
-    return _lock.synchronized(() async {
-      _cache[token] = value;
-      await _file.writeAsString(json.encode(_cache));
-      return value;
+  Future<void> write(String key, dynamic value) {
+    return _lock.synchronized(() {
+      _storage[key] = value;
+      return _file.writeAsString(json.encode(_storage));
     });
   }
 
   @override
-  Future<void> delete(String token) {
+  Future<void> delete(String key) {
     return _lock.synchronized(() {
-      _cache[token] = null;
-      return _file.writeAsString(json.encode(_cache));
+      _storage[key] = null;
+      return _file.writeAsString(json.encode(_storage));
     });
   }
 
@@ -366,7 +430,7 @@ class SinglefileStorage extends FutureStorage<String> {
   Future<void> clear() {
     return _lock.synchronized(
       () async {
-        _cache.clear();
+        _storage.clear();
         if (await _file.exists()) {
           await _file.delete();
         }
@@ -377,7 +441,8 @@ class SinglefileStorage extends FutureStorage<String> {
 
 /// Used in combination with `HydratedBlocStorage` cache
 /// to achieve in-memory storage behavior.
-class EtherealStorage extends FutureStorage<String> {
+// TODO Temporal
+class EtherealStorage extends TokenStorage<String> {
   @override
   Stream<String> get tokens => Stream.empty();
 
