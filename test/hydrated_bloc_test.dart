@@ -382,27 +382,22 @@ void storageGroup() {
               i,
               (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
             ).toList();
-            final jsoned = json.encode(record);
-            hydratedStorage.write(token, jsoned); // no await here
+            hydratedStorage.write(token, record); // no await here
 
             dynamic written;
-            String string;
             try {
               hydratedStorage = await HydratedBlocStorage.getInstance(
                 storageDirectory: directory,
               ); // basically refreshes cache
-              string = hydratedStorage.read(token) as String;
-              final object = json.decode(string);
-              written = object;
+              written = hydratedStorage.read(token);
             } on dynamic catch (_) {
               written = null;
-              print(string);
             } // At least json is not corrupted
             expect(written, isNotNull);
-            // expect(string, jsoned); // will definitely crash
-          });
+            expect(written, record); // definitely should crash
+          }); // but Future.wait executes Futures in iterable order
 
-          await Future.wait(tasks);
+          await Future.wait(tasks, eagerError: true);
         });
       });
 

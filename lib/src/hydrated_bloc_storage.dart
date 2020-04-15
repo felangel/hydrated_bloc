@@ -23,7 +23,7 @@ abstract class HydratedStorage {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage implements HydratedStorage {
-  static final Lock _lock = Lock();
+  static final _lock = Lock();
   final Map<String, dynamic> _storage;
   final File _file;
 
