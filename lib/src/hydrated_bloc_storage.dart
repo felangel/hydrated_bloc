@@ -279,46 +279,48 @@ typedef CellFactory = StringCell Function(File file);
 /// `Singlet` is a duplex lol of `StringCell` and cache
 class Singlet extends HydratedStorage {
   static final _lock = Lock();
-  final Map<String, dynamic> _storage;
+  final Map<String, dynamic> _cache;
   final StringCell _cell;
 
   /// Returns an instance of `Singlet`
+  /// Persists values to `StringCell`
+  /// If cell is null acts as `TemporalStorage`
   static Future<Singlet> instance(StringCell cell) {
     return _lock.synchronized(() async {
-      var storage = <String, dynamic>{};
+      var cache = <String, dynamic>{};
 
       if (await cell.exists()) {
         try {
-          storage = json.decode(await cell.read()) as Map<String, dynamic>;
+          cache = json.decode(await cell.read()) as Map<String, dynamic>;
         } on dynamic catch (_) {
           await cell.delete();
         }
       }
-
-      return Singlet._(storage, cell);
+      // TemporalStorage cell == null
+      return Singlet._(cache, cell);
     });
   }
 
-  Singlet._(this._storage, this._cell);
+  Singlet._(this._cache, this._cell);
 
   @override
   dynamic read(String key) {
-    return _storage[key];
+    return _cache[key];
   }
 
   @override
   Future<void> write(String key, dynamic value) {
     return _lock.synchronized(() {
-      _storage[key] = value;
-      return _cell.write(json.encode(_storage));
+      _cache[key] = value;
+      return _cell.write(json.encode(_cache));
     });
   }
 
   @override
   Future<void> delete(String key) {
     return _lock.synchronized(() {
-      _storage[key] = null;
-      return _cell.write(json.encode(_storage));
+      _cache[key] = null;
+      return _cell.write(json.encode(_cache));
     });
   }
 
@@ -326,7 +328,7 @@ class Singlet extends HydratedStorage {
   Future<void> clear() {
     return _lock.synchronized(
       () async {
-        _storage.clear();
+        _cache.clear();
         if (await _cell.exists()) {
           await _cell.delete();
         }
@@ -335,23 +337,22 @@ class Singlet extends HydratedStorage {
   }
 }
 
-/// Used in combination with `HydratedBlocStorage` cache
-/// to achieve in-memory storage behavior.
-class TemporalStorage extends TokenStorage<String> {
-  @override
-  Stream<String> get tokens => Stream.empty();
+/// Achieves in-memory storage behavior.
+class Temporal extends HydratedStorage {
+  final InstantStorage<dynamic> _cache = _HydratedInstantStorage();
 
   @override
-  Future<String> read(String token) => Future.value();
+  dynamic read(String key) => _cache.read(key);
 
   @override
-  Future<String> write(String token, dynamic value) => Future.value(value);
+  Future<void> write(String key, dynamic value) async =>
+      _cache.write(key, value);
 
   @override
-  Future<void> delete(String token) => Future.value();
+  Future<void> delete(String key) async => _cache.delete(key);
 
   @override
-  Future<void> clear() => Future.value();
+  Future<void> clear() async => _cache.clear();
 }
 
 // HydratedFutureStorage
