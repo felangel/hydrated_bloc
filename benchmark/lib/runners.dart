@@ -45,7 +45,7 @@ class EtherealfileRunner extends BenchmarkRunner {
     );
     return HydratedBlocStorage.getInstance(
       storageDirectory: dir,
-      mode: StorageMode.singlefile,
+      mode: StorageMode.multifile, //TODO temporal
       key: key,
     );
   }
