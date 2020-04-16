@@ -43,4 +43,9 @@ class HydratedBlocDelegate extends BlocDelegate {
       }
     }
   }
+
+  @override //TODO what if error
+  void onError(Bloc bloc, Object error, StackTrace stacktrace) {
+    super.onError(bloc, error, stacktrace);
+  }
 }
