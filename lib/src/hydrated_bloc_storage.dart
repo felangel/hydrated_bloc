@@ -87,11 +87,91 @@ class StorageKey {
   StorageKey(Uint8List key) : key = Key(key);
 
   /// Key from regular list
-  factory StorageKey.list(List<int> key) => StorageKey(key);
+  factory StorageKey.list(List<int> list) =>
+      StorageKey(Uint8List.fromList(list));
 
   /// Key from string password
   factory StorageKey.password(String pass) =>
       StorageKey(sha256.convert(utf8.encode(pass)).bytes);
+}
+
+/// `StringCell` is a cell which stores text contents
+/// I need this abstraction against `File` object to
+/// wrap it with AESCell and other decorators later.
+class StringCell {
+  final File _file;
+
+  /// Creates `BinaryCell` object
+  StringCell(this._file);
+
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
+
+  /// Read cell contents
+  Future<String> read() => _file.readAsString();
+
+  /// Write to cell
+  Future<void> write(String contents) => _file.writeAsString(contents);
+
+  /// Delete cell
+  Future<void> delete() => _file.delete();
+}
+
+/// `BinaryCell` is a cell which stores binary contents
+class BinaryCell {
+  final File _file;
+
+  /// Creates `BinaryCell` object
+  BinaryCell(this._file);
+
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
+
+  /// Read cell contents
+  Future<Uint8List> read() => _file.readAsBytes();
+
+  /// Write to cell
+  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
+
+  /// Delete cell
+  Future<void> delete() => _file.delete();
+}
+
+/// `AESCell` encrypts it's data with `Encrypter`.
+/// Has `StringCell` api outside
+/// and `BinaryCell` api inside.
+class AESCell implements StringCell {
+  final BinaryCell _cell;
+  final Encrypter _encrypter;
+
+  /// Create `AESCell` with `Encrypter`
+  AESCell(this._cell, this._encrypter);
+
+  @override
+  File get _file => _cell._file;
+
+  @override
+  Future<bool> exists() => _cell.exists();
+
+  @override
+  Future<String> read() async {
+    final pair = await _cell.read();
+    final iv = IV(pair.sublist(0, 16));
+    final encrypted = Encrypted(pair.sublist(16));
+    final decrypted = _encrypter.decrypt(encrypted, iv: iv);
+    return decrypted;
+  }
+
+  @override
+  Future<void> write(String contents) {
+    final iv = IV.fromSecureRandom(16);
+    final encrypted = _encrypter.encrypt(contents, iv: iv);
+    final pair = Uint8List.fromList(iv.bytes + encrypted.bytes);
+    return _cell.write(pair);
+  }
+
+  @override
+  Future<void> delete() => _cell.delete();
 }
 
 /// This factory creates `StringCell`s
@@ -363,85 +443,6 @@ class CellMultiplexer extends FutureStorage<String> {
             () async => (await _find(token))?.delete(),
           )) // Intentionally deletes only cached cells,
       .drain(); // cells multiplexer worked with
-}
-
-/// `BinaryCell` is a cell which stores binary contents
-class BinaryCell {
-  final File _file;
-
-  /// Creates `BinaryCell` object
-  BinaryCell(this._file);
-
-  ///Checks whether the cell exists
-  Future<bool> exists() => _file.exists();
-
-  /// Read cell contents
-  Future<Uint8List> read() => _file.readAsBytes();
-
-  /// Write to cell
-  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
-
-  /// Delete cell
-  Future<void> delete() => _file.delete();
-}
-
-/// `StringCell` is a cell which stores text contents
-/// I need this abstraction against `File` object to
-/// wrap it with AESCell and other decorators later.
-class StringCell {
-  final File _file;
-
-  /// Creates `BinaryCell` object
-  StringCell(this._file);
-
-  ///Checks whether the cell exists
-  Future<bool> exists() => _file.exists();
-
-  /// Read cell contents
-  Future<String> read() => _file.readAsString();
-
-  /// Write to cell
-  Future<void> write(String contents) => _file.writeAsString(contents);
-
-  /// Delete cell
-  Future<void> delete() => _file.delete();
-}
-
-/// `AESCell` encrypts it's data with `Encrypter`.
-/// Has `StringCell` api outside
-/// and `BinaryCell` api inside.
-class AESCell implements StringCell {
-  final BinaryCell _cell;
-  final Encrypter _encrypter;
-
-  /// Create `AESCell` with `Encrypter`
-  AESCell(this._cell, this._encrypter);
-
-  @override
-  File get _file => _cell._file;
-
-  @override
-  Future<bool> exists() => _cell.exists();
-
-  @override
-  Future<String> read() async {
-    final pair = await _cell.read();
-    final iv = IV(pair.sublist(0, 16));
-    final encrypted = Encrypted(pair.sublist(16));
-    final decrypted = _encrypter.decrypt(encrypted, iv: iv);
-    return decrypted;
-  }
-
-  @override
-  Future<void> write(String contents) {
-    final iv = IV.fromSecureRandom(16);
-    final encrypted = _encrypter.encrypt(contents, iv: iv);
-    final pair = Uint8List.fromList(iv.bytes + encrypted.bytes);
-    return _cell.write(pair);
-  }
-
-  @override
-  Future<void> delete() => _cell.delete();
 }
 
 /// Achieves in-memory storage behavior.

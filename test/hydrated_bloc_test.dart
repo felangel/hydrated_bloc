@@ -279,6 +279,46 @@ void storageGroup() {
 
           expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
         });
+
+        test('writes to file multi', () async {
+          hydratedStorage = await HydratedBlocStorage.getInstance(
+            mode: StorageMode.multifile,
+          );
+          await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
+
+          expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
+        });
+
+        test('writes to file enc', () async {
+          spawn() => HydratedBlocStorage.getInstance(
+                mode: StorageMode.singlefile,
+                key: StorageKey.password("hydrated bloc"),
+              );
+          hydratedStorage = await spawn();
+          await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
+          hydratedStorage = await spawn();
+          expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
+        });
+
+        test('writes to file enc-multi', () async {
+          spawn() => HydratedBlocStorage.getInstance(
+                mode: StorageMode.multifile,
+                key: StorageKey.password("hydrated bloc"),
+              );
+          hydratedStorage = await spawn();
+          await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
+          hydratedStorage = await spawn();
+          expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
+        });
+
+        test('writes to temporal', () async {
+          hydratedStorage = await HydratedBlocStorage.getInstance(
+            mode: StorageMode.temporal,
+          );
+          await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
+
+          expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
+        });
       });
 
       group('clear', () {
