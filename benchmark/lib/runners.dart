@@ -11,8 +11,10 @@ class SinglefileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    final storage = await SinglefileStorage.getInstance(storageDirectory: dir);
-    return HydratedBlocStorage.getInstanceWith(storage: storage);
+    return HydratedBlocStorage.getInstance(
+      storageDirectory: dir,
+      mode: StorageMode.singlefile,
+    );
   }
 }
 
@@ -23,11 +25,14 @@ class MultifileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    final storage = MultifileStorage(dir);
-    return HydratedBlocStorage.getInstanceWith(storage: storage);
+    return HydratedBlocStorage.getInstance(
+      storageDirectory: dir,
+      mode: StorageMode.multifile,
+    );
   }
 }
 
+// TODO restore Temporal here
 class EtherealfileRunner extends BenchmarkRunner {
   @override
   Storage get storageType => Storage.ether;
@@ -35,11 +40,13 @@ class EtherealfileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    final storage = AESDecorator(
-      storage: Base64Adapter(MultifileStorage(dir)),
-      pass: 'I should benchmark benchmark. Meta benchmarking bro',
+    final key = StorageKey.password(
+      'I should benchmark benchmark. Meta benchmarking bro',
     );
-    // final storage = EtherealStorage();
-    return HydratedBlocStorage.getInstanceWith(storage: storage);
+    return HydratedBlocStorage.getInstance(
+      storageDirectory: dir,
+      mode: StorageMode.singlefile,
+      key: key,
+    );
   }
 }
