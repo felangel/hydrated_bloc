@@ -117,26 +117,6 @@ class StringCell {
   Future<void> delete() => _file.delete();
 }
 
-/// `BinaryCell` is a cell which stores binary contents
-class BinaryCell {
-  final File _file;
-
-  /// Creates `BinaryCell` object
-  BinaryCell(this._file);
-
-  ///Checks whether the cell exists
-  Future<bool> exists() => _file.exists();
-
-  /// Read cell contents
-  Future<Uint8List> read() => _file.readAsBytes();
-
-  /// Write to cell
-  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
-
-  /// Delete cell
-  Future<void> delete() => _file.delete();
-}
-
 /// `AESCell` encrypts it's data with `Encrypter`.
 /// Has `StringCell` api outside
 /// and `BinaryCell` api inside.
@@ -174,6 +154,54 @@ class AESCell implements StringCell {
   Future<void> delete() => _cell.delete();
 }
 
+/// Adapts `StringCell` to be `BinaryCell`
+class Base64Cell implements BinaryCell {
+  final StringCell _cell;
+
+  /// Creates `Base64Cell` adapter
+  Base64Cell(this._cell);
+
+  @override
+  File get _file => _cell._file;
+
+  @override
+  Future<bool> exists() => _cell.exists();
+  @override
+  Future<Uint8List> read() async {
+    final b64 = await _cell.read();
+    return base64.decode(b64);
+  }
+
+  @override
+  Future<void> write(Uint8List bytes) {
+    final b64 = base64.encode(bytes);
+    return _cell.write(b64);
+  }
+
+  @override
+  Future<void> delete() => _cell.delete();
+}
+
+/// `BinaryCell` is a cell which stores binary contents
+class BinaryCell {
+  final File _file;
+
+  /// Creates `BinaryCell` object
+  BinaryCell(this._file);
+
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
+
+  /// Read cell contents
+  Future<Uint8List> read() => _file.readAsBytes();
+
+  /// Write to cell
+  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
+
+  /// Delete cell
+  Future<void> delete() => _file.delete();
+}
+
 /// This factory creates `StringCell`s
 typedef CellFactory = StringCell Function(File file);
 
@@ -194,10 +222,12 @@ class HydratedBlocStorage extends HydratedStorage {
     StorageKey key,
   }) async {
     if (mode != StorageMode.temporal) {
-      var cellFactory = (file) => StringCell(file);
+      // ignore: omit_local_variable_types
+      CellFactory cellFactory = (file) => StringCell(file);
       if (key != null) {
         final enc = Encrypter(AES(key.key));
         cellFactory = (file) => AESCell(BinaryCell(file), enc);
+        // cellFactory = (file) => AESCell(Base64Cell(StringCell(file)), enc);
       }
 
       final directory = storageDirectory ?? await getTemporaryDirectory();
