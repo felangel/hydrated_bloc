@@ -47,7 +47,7 @@ abstract class InstantStorage<T> {
 /// An abstraction over generic asynchronous storage
 /// ([read]|[write]|[delete]|[clear]|[tokens]) will take place
 /// in future `Isolate`'s event-loop
-abstract class TokenStorage<T> {
+abstract class FutureStorage<T> {
   /// Returns record for key
   Future<T> read(String token);
 
@@ -106,23 +106,71 @@ class StringCell {
   Future<void> delete() => _file.delete();
 }
 
+// TODO make syncing between modes?
+// To make switching non-breaking
+/// Storage mode to run in
+enum StorageMode {
+  /// Save all states to same file
+  singlefile,
+
+  /// Allocate file per bloc
+  multifile,
+
+  /// In-memory storage, lost on restart
+  temporal,
+}
+
+/// `StorageKey` is used to encrypt/decrypt saved data
+class StorageKey {
+  /// The key itself
+  final Key key;
+
+  /// Key from bytes
+  StorageKey(Uint8List key) : key = Key(key);
+
+  /// Key from regular list
+  factory StorageKey.list(List<int> key) => StorageKey(key);
+
+  /// Key from string password
+  factory StorageKey.password(String pass) =>
+      StorageKey(sha256.convert(utf8.encode(pass)).bytes);
+}
+
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
-  // static final _lock = Lock();
-  // final Map<String, dynamic> _storage;
-  // final StringCell _cell;
   final HydratedStorage _storage;
 
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
+  /// `StorageMode` toggles between storages.
+  /// If `StorageKey` provided, storage will encrypt states
+  /// (AES, PKCS7 padding, CTR mode)
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
+    StorageMode mode = StorageMode.singlefile,
+    StorageKey key,
   }) async {
-    final directory = storageDirectory ?? await getTemporaryDirectory();
-    final cell = StringCell(File('${directory.path}/.hydrated_bloc.json'));
-    return HydratedBlocStorage._(await Singlet.instance(cell));
+    if (mode != StorageMode.temporal) {
+      var cellFactory = (file) => StringCell(file);
+      if (key != null) {
+        final enc = Encrypter(AES(key.key));
+        cellFactory = (file) => AESCell(BinaryCell(file), enc);
+      }
+
+      final directory = storageDirectory ?? await getTemporaryDirectory();
+      if (mode == StorageMode.singlefile) {
+        final cell = cellFactory(File('${directory.path}/.hydrated_bloc.json'));
+        return HydratedBlocStorage._(await Singlet.instance(cell));
+      }
+      if (mode == StorageMode.multifile) {
+        return HydratedBlocStorage._(await Duplex.instance(
+          storage: CellMultiplexer(directory, cellFactory),
+        ));
+      }
+    }
+    return HydratedBlocStorage._(Temporal());
   }
 
   HydratedBlocStorage._(this._storage);
@@ -178,7 +226,7 @@ class HydratedBlocStorage extends HydratedStorage {
 /// `Duplex` is a combination of `InstantStorage` and `TokenStorage`
 class Duplex extends HydratedStorage {
   final InstantStorage<dynamic> _cache;
-  final TokenStorage<String> _storage;
+  final FutureStorage<String> _storage;
 
   // /// Returns an instance of `HydratedBlocStorage`.
   // /// `storageDirectory` can optionally be provided.
@@ -196,11 +244,11 @@ class Duplex extends HydratedStorage {
   /// You can provide custom ([cache]|[storage]),
   /// otherwise default implementation will be used.
   /// Default [InstantStorage] is just in-memory `Map`
-  /// Default [TokenStorage] uses `getTemporaryDirectory`
+  /// Default [FutureStorage] uses `getTemporaryDirectory`
   /// for storing file per `HydratedBloc`'s `storageToken`
-  static Future<Duplex> getInstanceWith({
+  static Future<Duplex> instance({
     InstantStorage<dynamic> cache,
-    TokenStorage<String> storage,
+    FutureStorage<String> storage,
   }) async {
     cache ??= _HydratedInstantStorage();
     storage ??= await CellMultiplexer(
@@ -296,7 +344,7 @@ class Singlet extends HydratedStorage {
           await cell.delete();
         }
       }
-      // TemporalStorage cell == null
+
       return Singlet._(cache, cell);
     });
   }
@@ -356,11 +404,11 @@ class Temporal extends HydratedStorage {
 }
 
 // HydratedFutureStorage
-/// Default [TokenStorage] for `HydratedBloc`
+/// Default [FutureStorage] for `HydratedBloc`
 /// [SinglefileStorage] - all blocs to single file
 /// [CellMultiplexer] - file per bloc
 /// [TemporalStorage] - does nothing, used to in-memory blocs
-class CellMultiplexer extends TokenStorage<String> {
+class CellMultiplexer extends FutureStorage<String> {
   /// `Directory` for cells to be managed in
   final Directory directory;
   final CellFactory _factory;
@@ -425,20 +473,14 @@ class CellMultiplexer extends TokenStorage<String> {
       .drain(); // cells multiplexer worked with
 }
 
-// /// AESCell is `AES with PKCS7 padding, CTR mode` encrypted cell with
+/// `AESCell` encrypts it's data with `Encrypter`.
+/// Has `StringCell` api outside
+/// and `BinaryCell` api inside.
 class AESCell implements StringCell {
   final BinaryCell _cell;
   final Encrypter _encrypter;
 
-  // AESDecorator({String pass, TokenStorage<Uint8List> storage})
-  //     : _storage = storage,
-  //       _encrypter = Encrypter(AES(
-  //         Key(sha256.convert(utf8.encode(pass)).bytes),
-  //       ));
-
-  /// `AESCell` encrypts it's data with `Encrypter`.
-  /// Has `StringCell` api outside
-  /// and `BinaryCell` api inside.
+  /// Create `AESCell` with `Encrypter`
   AESCell(this._cell, this._encrypter);
 
   @override
