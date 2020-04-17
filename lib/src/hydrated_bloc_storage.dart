@@ -232,8 +232,9 @@ class HydratedBlocStorage extends HydratedStorage {
 
       final directory = storageDirectory ?? await getTemporaryDirectory();
       if (mode == StorageMode.singlefile) {
-        final cell = cellFactory(File('${directory.path}/.hydrated_bloc.json'));
-        return HydratedBlocStorage._(await Singlet.instance(cell));
+        return HydratedBlocStorage._(await Duplex.instance(
+          storage: await CellSinglet.instance(directory, cellFactory),
+        ));
       }
       if (mode == StorageMode.multifile) {
         return HydratedBlocStorage._(await Duplex.instance(
@@ -278,7 +279,7 @@ class Duplex extends HydratedStorage {
     storage ??= await CellMultiplexer(
       await getTemporaryDirectory(),
       (file) => StringCell(file),
-    );
+    ); // TODO defaults here?
     final instance = Duplex._(cache, storage);
     await instance._infuse();
     return instance;
@@ -345,50 +346,59 @@ class _InstantStorage<T> extends InstantStorage<T> {
   Iterable<String> get keys => _map.keys;
 }
 
-/// `Singlet` is a duplex lol of `StringCell` and cache
-class Singlet extends HydratedStorage {
+//TODO SinglefileStorage
+//TODO better `docs`
+/// `CellSinglet` is a one-file key:string storage
+class CellSinglet extends FutureStorage<String> {
   static final _lock = Lock();
-  final Map<String, dynamic> _cache;
+  final Map<String, String> _cache;
   final StringCell _cell;
 
-  /// Returns an instance of `Singlet`
-  /// Persists values to `StringCell`
-  /// If cell is null acts as `TemporalStorage`
-  static Future<Singlet> instance(StringCell cell) {
+  /// Returns an instance of `CellSinglet`.
+  static Future<CellSinglet> instance(
+    Directory directory,
+    CellFactory cellFactory,
+  ) {
     return _lock.synchronized(() async {
-      var cache = <String, dynamic>{};
+      final cell = cellFactory(File('${directory.path}/.hydrated_bloc.json'));
+      var storage = <String, String>{};
 
       if (await cell.exists()) {
         try {
-          cache = json.decode(await cell.read()) as Map<String, dynamic>;
+          final storageJson = json.decode(await cell.read());
+          storage = (storageJson as Map).cast<String, String>();
         } on dynamic catch (_) {
           await cell.delete();
         }
       }
 
-      return Singlet._(cache, cell);
+      return CellSinglet._(storage, cell);
     });
   }
 
-  Singlet._(this._cache, this._cell);
+  CellSinglet._(this._cache, this._cell);
 
   @override
-  dynamic read(String key) {
-    return _cache[key];
+  Stream<String> get tokens => Stream.fromIterable(_cache.keys);
+
+  @override
+  Future<String> read(String token) {
+    return Future.value(_cache[token]);
   }
 
   @override
-  Future<void> write(String key, dynamic value) {
-    return _lock.synchronized(() {
-      _cache[key] = value;
-      return _cell.write(json.encode(_cache));
+  Future<String> write(String token, String value) {
+    return _lock.synchronized(() async {
+      _cache[token] = value;
+      await _cell.write(json.encode(_cache));
+      return value;
     });
   }
 
   @override
-  Future<void> delete(String key) {
+  Future<void> delete(String token) {
     return _lock.synchronized(() {
-      _cache[key] = null;
+      _cache[token] = null;
       return _cell.write(json.encode(_cache));
     });
   }
@@ -406,10 +416,8 @@ class Singlet extends HydratedStorage {
   }
 }
 
-/// Default [FutureStorage] for `HydratedBloc`
-/// [SinglefileStorage] - all blocs to single file
+//TODO MultifileStorage
 /// [CellMultiplexer] - file per bloc
-/// [TemporalStorage] - does nothing, used to in-memory blocs
 class CellMultiplexer extends FutureStorage<String> {
   /// `Directory` for cells to be managed in
   final Directory directory;

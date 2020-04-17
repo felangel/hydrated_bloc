@@ -253,9 +253,10 @@ void storageGroup() {
 
         test('returns correct value when file exists', () async {
           final file = File('./.hydrated_bloc.json');
+
           file.writeAsStringSync(json.encode({
-            "CounterBloc": {"value": 4}
-          }));
+            "CounterBloc": json.encode({"value": 4}),
+          })); // TODO but bloc saves all states as string
           hydratedStorage = await HydratedBlocStorage.getInstance();
           expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
         });
@@ -277,6 +278,14 @@ void storageGroup() {
           hydratedStorage = await HydratedBlocStorage.getInstance();
           await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
 
+          expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
+        });
+
+        test('writes to file, read from fresh', () async {
+          hydratedStorage = await HydratedBlocStorage.getInstance();
+          await hydratedStorage.write('CounterBloc', json.encode({"value": 4}));
+
+          hydratedStorage = await HydratedBlocStorage.getInstance();
           expect(hydratedStorage.read('CounterBloc'), '{"value":4}');
         });
 
@@ -377,7 +386,7 @@ void storageGroup() {
         test('returns correct value when file exists', () async {
           final file = File('./.hydrated_bloc.json');
           file.writeAsStringSync(json.encode({
-            "CounterBloc": {"value": 4}
+            "CounterBloc": json.encode({"value": 4})
           }));
           hydratedStorage = await HydratedBlocStorage.getInstance(
             storageDirectory: Directory.current,
