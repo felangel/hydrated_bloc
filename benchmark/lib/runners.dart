@@ -11,9 +11,13 @@ class SinglefileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
+    final key = StorageKey.password(
+      'I should benchmark benchmark. Meta benchmarking bro',
+    );
     return HydratedBlocStorage.getInstance(
       storageDirectory: dir,
       mode: StorageMode.singlefile,
+      key: key,
     );
   }
 }
@@ -25,14 +29,17 @@ class MultifileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
+    final key = StorageKey.password(
+      'I should benchmark benchmark. Meta benchmarking bro',
+    );
     return HydratedBlocStorage.getInstance(
       storageDirectory: dir,
       mode: StorageMode.multifile,
+      key: key,
     );
   }
 }
 
-// TODO restore Temporal here
 class EtherealfileRunner extends BenchmarkRunner {
   @override
   Storage get storageType => Storage.ether;
@@ -40,13 +47,10 @@ class EtherealfileRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    final key = StorageKey.password(
-      'I should benchmark benchmark. Meta benchmarking bro',
-    );
+
     return HydratedBlocStorage.getInstance(
       storageDirectory: dir,
-      mode: StorageMode.multifile, //TODO temporal
-      key: key,
+      mode: StorageMode.temporal,
     );
   }
 }
