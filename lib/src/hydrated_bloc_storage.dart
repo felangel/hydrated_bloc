@@ -24,6 +24,115 @@ abstract class HydratedStorage {
   Future<void> clear();
 }
 
+/// Storage mode to run in
+enum StorageMode {
+  /// Save all states to same file
+  singlefile,
+
+  /// Allocate file per bloc
+  multifile,
+
+  /// In-memory storage, lost on restart
+  temporal,
+}
+
+/// `StorageKey` is used to encrypt/decrypt stored data
+class StorageKey {
+  /// The key itself
+  final Key key;
+
+  /// Key from bytes
+  StorageKey(Uint8List key) : key = Key(key);
+
+  /// Key from regular list
+  factory StorageKey.list(List<int> list) =>
+      StorageKey(Uint8List.fromList(list));
+
+  /// Key from string password
+  factory StorageKey.password(String pass) =>
+      StorageKey(sha256.convert(utf8.encode(pass)).bytes);
+}
+
+/// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
+/// to persist and retrieve state changes from the local device.
+class HydratedBlocStorage extends HydratedStorage {
+  /// Returns an instance of `HydratedBlocStorage`.
+  /// `storageDirectory` can optionally be provided.
+  /// By default, `getTemporaryDirectory` is used.
+  ///
+  /// `StorageMode` toggles between storages.
+  /// `safeSync` is highly advised to prevent data loss
+  /// on switchings. However, wake time increases.
+  ///
+  /// If `StorageKey` is provided, storage becomes
+  /// AES with PKCS7 padding in CTR mode secured.
+  /// When storage is secured it writes binary files,
+  /// `useBase64Cells` switches storage to write text.
+  static Future<HydratedBlocStorage> getInstance({
+    Directory storageDirectory,
+    StorageMode mode = StorageMode.singlefile,
+    StorageKey key,
+    bool safeSync = true, // AES<->Plain conversion is deferred for now
+    bool useBase64Cells = false, // refactoring desirable
+  }) async {
+    // TODO get singletons back, as Storages are now separate from `this`
+    if (mode == StorageMode.temporal) {
+      return HydratedBlocStorage._(Temporal());
+    }
+
+    // ignore: omit_local_variable_types
+    CellFactory cellFactory = (file) => StringCell(file);
+    if (key != null) {
+      final enc = Encrypter(AES(key.key));
+      cellFactory = !useBase64Cells // OTRICALA here😭
+          ? (file) => AESCell(BinaryCell(file), enc)
+          : (file) => AESCell(Base64Cell(StringCell(file)), enc);
+    }
+
+    final directory = storageDirectory ?? await getTemporaryDirectory();
+
+    final ss = {
+      StorageMode.singlefile: () async =>
+          await CellSinglet.instance(directory, cellFactory),
+      StorageMode.multifile: () async =>
+          CellMultiplexer(directory, cellFactory),
+    };
+
+    if (!safeSync) {
+      return HydratedBlocStorage._(await Duplex.instance(await ss[mode]()));
+    }
+
+    final invmode = mode == StorageMode.singlefile
+        ? StorageMode.multifile
+        : StorageMode.singlefile;
+
+    final slave = await ss[mode]();
+    final master = await ss[invmode]();
+    await master.tokens.asyncMap((token) async {
+      final record = await master.read(token);
+      slave.write(token, record);
+    }).drain();
+    await master.clear();
+
+    return HydratedBlocStorage._(await Duplex.instance(slave));
+  }
+
+  final HydratedStorage _storage;
+  HydratedBlocStorage._(this._storage);
+
+  @override
+  dynamic read(String key) => _storage.read(key);
+
+  @override
+  Future<void> write(String key, dynamic value) => _storage.write(key, value);
+
+  @override
+  Future<void> delete(String key) => _storage.delete(key);
+
+  @override
+  Future<void> clear() => _storage.clear();
+}
+
 /// An abstraction over generic instantaneous storage
 /// ([read]|[write]|[delete]|[clear]|[keys]) will take place
 /// in current `Isolate`'s event-loop
@@ -42,6 +151,44 @@ abstract class InstantStorage<T> {
 
   /// Iterable of keys
   Iterable<String> get keys;
+}
+
+class _InstantStorage<T> extends InstantStorage<T> {
+  final Map<String, T> _map = <String, T>{};
+
+  @override
+  T read(String key) => _map[key];
+
+  @override
+  T write(String key, T value) => _map[key] = value;
+
+  @override
+  void delete(String key) => _map[key] = null;
+
+  @override
+  void clear() => _map.clear();
+
+  @override
+  Iterable<String> get keys => _map.keys;
+}
+
+/// Achieves in-memory storage behavior.
+/// Type instance of `HydratedStorage`.
+class Temporal extends HydratedStorage {
+  final InstantStorage<dynamic> _cache = _InstantStorage<dynamic>();
+
+  @override
+  dynamic read(String key) => _cache.read(key);
+
+  @override
+  Future<void> write(String key, dynamic value) async =>
+      _cache.write(key, value);
+
+  @override
+  Future<void> delete(String key) async => _cache.delete(key);
+
+  @override
+  Future<void> clear() async => _cache.clear();
 }
 
 /// An abstraction over generic asynchronous storage
@@ -64,40 +211,200 @@ abstract class FutureStorage<T> {
   Stream<String> get tokens;
 }
 
-// TODO make syncing between modes?
-// To make switching non-breaking
-/// Storage mode to run in
-enum StorageMode {
-  /// Save all states to same file
-  singlefile,
+/// `Duplex` is a duplex of `InstantStorage` and `FutureStorage`.
+/// Type instance of `HydratedStorage`.
+class Duplex extends HydratedStorage {
+  /// Instantiates `Duplex` of default cache
+  /// and provided `FutureStorage<String>`.
+  static Future<Duplex> instance(FutureStorage<String> storage) async {
+    final instance = Duplex._(storage);
+    await instance._infuse();
+    return instance;
+  }
 
-  /// Allocate file per bloc
-  multifile,
+  final InstantStorage<dynamic> _cache = _InstantStorage<dynamic>();
+  final FutureStorage<String> _storage;
+  Duplex._(this._storage);
 
-  /// In-memory storage, lost on restart
-  temporal,
+  // Used to fill in-memory cache
+  // Corrupted files are removed
+  Future<void> _infuse() => _storage.tokens.asyncMap((token) async {
+        try {
+          final string = await _storage.read(token);
+          final object = json.decode(string);
+          return _cache.write(token, object);
+        } on dynamic catch (_) {
+          await _storage.delete(token);
+        }
+      }).drain();
+
+  /// Returns cached value by key
+  dynamic read(String key) {
+    return _cache.read(key);
+  }
+
+  /// Persists key value pair
+  Future<void> write(String key, dynamic value) {
+    _cache.write(key, value);
+    return _storage.write(key, json.encode(value));
+  }
+
+  /// Deletes key value pair
+  Future<void> delete(String key) {
+    _cache.delete(key);
+    return _storage.delete(key);
+  }
+
+  /// Clears all key value pairs
+  /// managed by `this` storage
+  Future<void> clear() {
+    _cache.clear();
+    return _storage.clear();
+  }
 }
 
-/// `StorageKey` is used to encrypt/decrypt saved data
-class StorageKey {
-  /// The key itself
-  final Key key;
+/// This factory creates `StringCell`s
+typedef CellFactory = StringCell Function(File file);
 
-  /// Key from bytes
-  StorageKey(Uint8List key) : key = Key(key);
+/// `CellMultiplexer` - is file per bloc `FutureStorage<String>`
+class CellMultiplexer extends FutureStorage<String> {
+  /// Create `CellMultiplexer` utilizing `Directory`
+  /// `CellFactory` is used to produce `StringCell`s
+  CellMultiplexer(this._directory, this._factory);
 
-  /// Key from regular list
-  factory StorageKey.list(List<int> list) =>
-      StorageKey(Uint8List.fromList(list));
+  final Directory _directory;
+  final CellFactory _factory;
 
-  /// Key from string password
-  factory StorageKey.password(String pass) =>
-      StorageKey(sha256.convert(utf8.encode(pass)).bytes);
+  // Tokens are keys to `StringCell` objects
+  final InstantStorage<StringCell> _cells = _InstantStorage<StringCell>();
+
+  static final _locks = _InstantStorage<Lock>();
+  Lock _lockByToken(String token) => // wanted to use cells as locks but
+      _locks.read(token) ?? _locks.write(token, Lock()); // locks must be static
+
+  static const String _prefix = '.bloc.';
+  String _token(String path) => p.split(path).last.split('.')[2];
+  String _path(String token) => p.join(_directory.path, '$_prefix$token.json');
+  StringCell _cellByToken(String token) =>
+      _cells.read(token) ?? _cells.write(token, _factory(File(_path(token))));
+
+  // Returns null if cell was not found
+  Future<StringCell> _find(String token) async {
+    final cell = _cellByToken(token);
+    return (await cell.exists()) ? cell : null;
+  }
+
+  @override
+  Stream<String> get tokens => _directory
+      .list()
+      .where((item) => item is File)
+      .map((file) => file.path)
+      .where((path) => path.contains(_prefix))
+      .map(_token);
+
+  @override
+  Future<String> read(String token) => _lockByToken(token)
+      .synchronized(() async => (await _find(token))?.read());
+
+  @override
+  Future<String> write(String token, String record) =>
+      _lockByToken(token).synchronized(() async {
+        await _cellByToken(token).write(record);
+        return record;
+      });
+
+  @override
+  Future<void> delete(String token) =>
+      _lockByToken(token).synchronized(() async {
+        var cell = _cells.read(token);
+        if (cell == null) return null;
+        cell = await _find(token);
+        if (cell == null) return null;
+        await cell.delete();
+        _cells.delete(token);
+      });
+
+  @override
+  Future<void> clear() => Stream.fromIterable(_cells.keys)
+      .asyncMap((token) => _lockByToken(token).synchronized(
+            () async => (await _find(token))?.delete(),
+          )) // Intentionally deletes only cached cells,
+      .drain(); // cell multiplexer worked with
 }
 
-/// `StringCell` is a cell which stores text contents
+/// `CellSinglet` is a one-file `FutureStorage<String>`.
+class CellSinglet extends FutureStorage<String> {
+  static final _lock = Lock();
+  final Map<String, String> _cache;
+  final StringCell _cell;
+
+  /// Returns an instance of `CellSinglet`.
+  /// `CellFactory` is used to produce
+  /// one `StringCell` inside `Directory`.
+  static Future<CellSinglet> instance(
+    Directory directory,
+    CellFactory cellFactory,
+  ) {
+    return _lock.synchronized(() async {
+      final cell = cellFactory(File('${directory.path}/.hydrated_bloc.json'));
+      var storage = <String, String>{};
+
+      if (await cell.exists()) {
+        try {
+          final storageJson = json.decode(await cell.read());
+          storage = (storageJson as Map).cast<String, String>();
+        } on dynamic catch (_) {
+          await cell.delete();
+        }
+      }
+
+      return CellSinglet._(storage, cell);
+    });
+  }
+
+  CellSinglet._(this._cache, this._cell);
+
+  @override
+  Stream<String> get tokens => Stream.fromIterable(_cache.keys);
+
+  @override
+  Future<String> read(String token) {
+    return Future.value(_cache[token]);
+  }
+
+  @override
+  Future<String> write(String token, String value) {
+    return _lock.synchronized(() async {
+      _cache[token] = value;
+      await _cell.write(json.encode(_cache));
+      return value;
+    });
+  }
+
+  @override
+  Future<void> delete(String token) {
+    return _lock.synchronized(() {
+      _cache[token] = null;
+      return _cell.write(json.encode(_cache));
+    });
+  }
+
+  @override
+  Future<void> clear() {
+    return _lock.synchronized(
+      () async {
+        _cache.clear();
+        if (await _cell.exists()) {
+          await _cell.delete();
+        }
+      },
+    );
+  }
+}
+
+/// `StringCell` is a cell which stores text contents.
 /// I need this abstraction against `File` object to
-/// wrap it with AESCell and other decorators later.
+/// wrap it with `AESCell` and other decorators later.
 class StringCell {
   final File _file;
 
@@ -112,26 +419,6 @@ class StringCell {
 
   /// Write to cell
   Future<void> write(String contents) => _file.writeAsString(contents);
-
-  /// Delete cell
-  Future<void> delete() => _file.delete();
-}
-
-/// `BinaryCell` is a cell which stores binary contents
-class BinaryCell {
-  final File _file;
-
-  /// Creates `BinaryCell` object
-  BinaryCell(this._file);
-
-  ///Checks whether the cell exists
-  Future<bool> exists() => _file.exists();
-
-  /// Read cell contents
-  Future<Uint8List> read() => _file.readAsBytes();
-
-  /// Write to cell
-  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
 
   /// Delete cell
   Future<void> delete() => _file.delete();
@@ -174,291 +461,50 @@ class AESCell implements StringCell {
   Future<void> delete() => _cell.delete();
 }
 
-/// This factory creates `StringCell`s
-typedef CellFactory = StringCell Function(File file);
-
-/// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
-/// to persist and retrieve state changes from the local device.
-class HydratedBlocStorage extends HydratedStorage {
-  final HydratedStorage _storage;
-
-  /// Returns an instance of `HydratedBlocStorage`.
-  /// `storageDirectory` can optionally be provided.
-  /// By default, `getTemporaryDirectory` is used.
-  /// `StorageMode` toggles between storages.
-  /// If `StorageKey` is provided, storage becomes
-  /// AES with PKCS7 padding in CTR mode secured.
-  static Future<HydratedBlocStorage> getInstance({
-    Directory storageDirectory,
-    StorageMode mode = StorageMode.singlefile,
-    StorageKey key,
-  }) async {
-    if (mode != StorageMode.temporal) {
-      var cellFactory = (file) => StringCell(file);
-      if (key != null) {
-        final enc = Encrypter(AES(key.key));
-        cellFactory = (file) => AESCell(BinaryCell(file), enc);
-      }
-
-      final directory = storageDirectory ?? await getTemporaryDirectory();
-      if (mode == StorageMode.singlefile) {
-        final cell = cellFactory(File('${directory.path}/.hydrated_bloc.json'));
-        return HydratedBlocStorage._(await Singlet.instance(cell));
-      }
-      if (mode == StorageMode.multifile) {
-        return HydratedBlocStorage._(await Duplex.instance(
-          storage: CellMultiplexer(directory, cellFactory),
-        ));
-      }
-    }
-    return HydratedBlocStorage._(Temporal());
-  }
-
-  HydratedBlocStorage._(this._storage);
-
-  @override
-  dynamic read(String key) => _storage.read(key);
-
-  @override
-  Future<void> write(String key, dynamic value) => _storage.write(key, value);
-
-  @override
-  Future<void> delete(String key) => _storage.delete(key);
-
-  @override
-  Future<void> clear() => _storage.clear();
-}
-
-/// `Duplex` is a combination of `InstantStorage` and `TokenStorage`
-class Duplex extends HydratedStorage {
-  final InstantStorage<dynamic> _cache;
-  final FutureStorage<String> _storage;
-
-  /// Returns an instance of [HydratedBlocStorage].
-  /// You can provide custom ([cache]|[storage]),
-  /// otherwise default implementation will be used.
-  /// Default [InstantStorage] is just in-memory `Map`
-  /// Default [FutureStorage] uses `getTemporaryDirectory`
-  /// for storing file per `HydratedBloc`'s `storageToken`
-  static Future<Duplex> instance({
-    InstantStorage<dynamic> cache,
-    FutureStorage<String> storage,
-  }) async {
-    cache ??= _HydratedInstantStorage();
-    storage ??= await CellMultiplexer(
-      await getTemporaryDirectory(),
-      (file) => StringCell(file),
-    );
-    final instance = Duplex._(cache, storage);
-    await instance._infuse();
-    return instance;
-  }
-
-  Duplex._(this._cache, this._storage);
-
-  // Used to fill in-memory cache
-  // Corrupted files are removed
-  Future<void> _infuse() => _storage.tokens.asyncMap((token) async {
-        try {
-          final string = await _storage.read(token);
-          final object = json.decode(string);
-          return _cache.write(token, object);
-        } on dynamic catch (_) {
-          await _storage.delete(token);
-        }
-      }).drain();
-
-  /// Returns cached value by key
-  dynamic read(String key) {
-    return _cache.read(key);
-  }
-
-  /// Persists key value pair
-  Future<void> write(String key, dynamic value) {
-    _cache.write(key, value);
-    return _storage.write(key, json.encode(value));
-  }
-
-  /// Deletes key value pair
-  Future<void> delete(String key) {
-    _cache.delete(key);
-    return _storage.delete(key);
-  }
-
-  /// Clears all key value pairs
-  /// managed by `this` storage
-  Future<void> clear() {
-    _cache.clear();
-    return _storage.clear();
-  }
-}
-
-/// Default [InstantStorage] for `HydratedBloc`
-class _HydratedInstantStorage extends _InstantStorage<dynamic> {}
-
-class _InstantStorage<T> extends InstantStorage<T> {
-  final Map<String, T> _map = <String, T>{};
-
-  @override
-  T read(String key) => _map[key];
-
-  @override
-  T write(String key, T value) => _map[key] = value;
-
-  @override
-  void delete(String key) => _map[key] = null;
-
-  @override
-  void clear() => _map.clear();
-
-  @override
-  Iterable<String> get keys => _map.keys;
-}
-
-/// `Singlet` is a duplex lol of `StringCell` and cache
-class Singlet extends HydratedStorage {
-  static final _lock = Lock();
-  final Map<String, dynamic> _cache;
+/// Adapts `StringCell` to be `BinaryCell`
+class Base64Cell implements BinaryCell {
   final StringCell _cell;
 
-  /// Returns an instance of `Singlet`
-  /// Persists values to `StringCell`
-  /// If cell is null acts as `TemporalStorage`
-  static Future<Singlet> instance(StringCell cell) {
-    return _lock.synchronized(() async {
-      var cache = <String, dynamic>{};
-
-      if (await cell.exists()) {
-        try {
-          cache = json.decode(await cell.read()) as Map<String, dynamic>;
-        } on dynamic catch (_) {
-          await cell.delete();
-        }
-      }
-
-      return Singlet._(cache, cell);
-    });
-  }
-
-  Singlet._(this._cache, this._cell);
+  /// Creates `Base64Cell` adapter
+  Base64Cell(this._cell);
 
   @override
-  dynamic read(String key) {
-    return _cache[key];
+  File get _file => _cell._file;
+
+  @override
+  Future<bool> exists() => _cell.exists();
+  @override
+  Future<Uint8List> read() async {
+    final b64 = await _cell.read();
+    return base64.decode(b64);
   }
 
   @override
-  Future<void> write(String key, dynamic value) {
-    return _lock.synchronized(() {
-      _cache[key] = value;
-      return _cell.write(json.encode(_cache));
-    });
+  Future<void> write(Uint8List bytes) {
+    final b64 = base64.encode(bytes);
+    return _cell.write(b64);
   }
 
   @override
-  Future<void> delete(String key) {
-    return _lock.synchronized(() {
-      _cache[key] = null;
-      return _cell.write(json.encode(_cache));
-    });
-  }
-
-  @override
-  Future<void> clear() {
-    return _lock.synchronized(
-      () async {
-        _cache.clear();
-        if (await _cell.exists()) {
-          await _cell.delete();
-        }
-      },
-    );
-  }
+  Future<void> delete() => _cell.delete();
 }
 
-/// Default [FutureStorage] for `HydratedBloc`
-/// [SinglefileStorage] - all blocs to single file
-/// [CellMultiplexer] - file per bloc
-/// [TemporalStorage] - does nothing, used to in-memory blocs
-class CellMultiplexer extends FutureStorage<String> {
-  /// `Directory` for cells to be managed in
-  final Directory directory;
-  final CellFactory _factory;
+/// `BinaryCell` is a cell which stores binary contents
+class BinaryCell {
+  final File _file;
 
-  /// Create `CellMultiplexer` utilizing [directory]
-  CellMultiplexer(this.directory, this._factory);
+  /// Creates `BinaryCell` object
+  BinaryCell(this._file);
 
-  // Tokens are keys to `StringCell` objects
-  final InstantStorage<StringCell> _cells = _InstantStorage<StringCell>();
+  ///Checks whether the cell exists
+  Future<bool> exists() => _file.exists();
 
-  static final _locks = _InstantStorage<Lock>();
-  Lock _lockByToken(String token) => // wanted to use cells as locks but
-      _locks.read(token) ?? _locks.write(token, Lock()); // locks must be static
+  /// Read cell contents
+  Future<Uint8List> read() => _file.readAsBytes();
 
-  static const String _prefix = '.bloc.';
-  String _token(String path) => p.split(path).last.split('.')[2];
-  String _path(String token) => p.join(directory.path, '$_prefix$token.json');
-  StringCell _cellByToken(String token) =>
-      _cells.read(token) ?? _cells.write(token, _factory(File(_path(token))));
+  /// Write to cell
+  Future<void> write(Uint8List bytes) => _file.writeAsBytes(bytes);
 
-  // Returns null if cell was not found
-  Future<StringCell> _find(String token) async {
-    final cell = _cellByToken(token);
-    return (await cell.exists()) ? cell : null;
-  }
-
-  @override
-  Stream<String> get tokens => directory
-      .list()
-      .where((item) => item is File)
-      .map((file) => file.path)
-      .where((path) => path.contains(_prefix))
-      .map(_token);
-
-  @override
-  Future<String> read(String token) => _lockByToken(token)
-      .synchronized(() async => (await _find(token))?.read());
-
-  @override
-  Future<String> write(String token, String record) =>
-      _lockByToken(token).synchronized(() async {
-        await _cellByToken(token).write(record);
-        return record;
-      });
-
-  @override
-  Future<void> delete(String token) =>
-      _lockByToken(token).synchronized(() async {
-        var cell = _cells.read(token);
-        if (cell == null) return null;
-        cell = await _find(token);
-        if (cell == null) return null;
-        await cell.delete();
-        _cells.delete(token);
-      });
-
-  @override
-  Future<void> clear() => Stream.fromIterable(_cells.keys)
-      .asyncMap((token) => _lockByToken(token).synchronized(
-            () async => (await _find(token))?.delete(),
-          )) // Intentionally deletes only cached cells,
-      .drain(); // cells multiplexer worked with
-}
-
-/// Achieves in-memory storage behavior.
-class Temporal extends HydratedStorage {
-  final InstantStorage<dynamic> _cache = _HydratedInstantStorage();
-
-  @override
-  dynamic read(String key) => _cache.read(key);
-
-  @override
-  Future<void> write(String key, dynamic value) async =>
-      _cache.write(key, value);
-
-  @override
-  Future<void> delete(String key) async => _cache.delete(key);
-
-  @override
-  Future<void> clear() async => _cache.clear();
+  /// Delete cell
+  Future<void> delete() => _file.delete();
 }
