@@ -59,40 +59,62 @@ class HydratedBlocStorage extends HydratedStorage {
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
+  ///
   /// `StorageMode` toggles between storages.
+  /// `safeSync` is highly advised to prevent data loss
+  /// on switchings. However, wake time increases.
+  ///
   /// If `StorageKey` is provided, storage becomes
   /// AES with PKCS7 padding in CTR mode secured.
+  /// When storage is secured it writes binary files,
+  /// `useBase64Cells` switches storage to write text.
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
     StorageMode mode = StorageMode.singlefile,
     StorageKey key,
-    bool safeSync = true,
-    bool useBase64Cells = false, // TODO refactoring desirable
+    bool safeSync = true, // AES<->Plain conversion is deferred for now
+    bool useBase64Cells = false, // refactoring desirable
   }) async {
     // TODO get singletons back, as Storages are now separate from `this`
-    if (mode != StorageMode.temporal) {
-      // ignore: omit_local_variable_types
-      CellFactory cellFactory = (file) => StringCell(file);
-      if (key != null) {
-        final enc = Encrypter(AES(key.key));
-        cellFactory = !useBase64Cells // OTRICALA here😭
-            ? (file) => AESCell(BinaryCell(file), enc)
-            : (file) => AESCell(Base64Cell(StringCell(file)), enc);
-      }
-
-      final directory = storageDirectory ?? await getTemporaryDirectory();
-      if (mode == StorageMode.singlefile) {
-        return HydratedBlocStorage._(await Duplex.instance(
-          await CellSinglet.instance(directory, cellFactory),
-        ));
-      }
-      if (mode == StorageMode.multifile) {
-        return HydratedBlocStorage._(await Duplex.instance(
-          CellMultiplexer(directory, cellFactory),
-        ));
-      }
+    if (mode == StorageMode.temporal) {
+      return HydratedBlocStorage._(Temporal());
     }
-    return HydratedBlocStorage._(Temporal());
+
+    // ignore: omit_local_variable_types
+    CellFactory cellFactory = (file) => StringCell(file);
+    if (key != null) {
+      final enc = Encrypter(AES(key.key));
+      cellFactory = !useBase64Cells // OTRICALA here😭
+          ? (file) => AESCell(BinaryCell(file), enc)
+          : (file) => AESCell(Base64Cell(StringCell(file)), enc);
+    }
+
+    final directory = storageDirectory ?? await getTemporaryDirectory();
+
+    final ss = {
+      StorageMode.singlefile: () async =>
+          await CellSinglet.instance(directory, cellFactory),
+      StorageMode.multifile: () async =>
+          CellMultiplexer(directory, cellFactory),
+    };
+
+    if (!safeSync) {
+      return HydratedBlocStorage._(await Duplex.instance(await ss[mode]()));
+    }
+
+    final invmode = mode == StorageMode.singlefile
+        ? StorageMode.multifile
+        : StorageMode.singlefile;
+
+    final slave = await ss[mode]();
+    final master = await ss[invmode]();
+    await master.tokens.asyncMap((token) async {
+      final record = await master.read(token);
+      slave.write(token, record);
+    }).drain();
+    await master.clear();
+
+    return HydratedBlocStorage._(await Duplex.instance(slave));
   }
 
   final HydratedStorage _storage;
