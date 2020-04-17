@@ -109,8 +109,13 @@ class HydratedBlocStorage extends HydratedStorage {
     final slave = await ss[mode]();
     final master = await ss[invmode]();
     await master.tokens.asyncMap((token) async {
-      final record = await master.read(token);
-      slave.write(token, record);
+      try {
+        final record = await master.read(token);
+        await slave.write(token, record);
+      } on dynamic catch (_) {
+        print("\t-> Plain to AES problem");
+        print(_);
+      }
     }).drain();
     await master.clear();
 
