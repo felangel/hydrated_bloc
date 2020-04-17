@@ -36,7 +36,7 @@ enum StorageMode {
   temporal,
 }
 
-/// `StorageKey` is used to encrypt/decrypt saved data
+/// `StorageKey` is used to encrypt/decrypt stored data
 class StorageKey {
   /// The key itself
   final Key key;
@@ -56,8 +56,6 @@ class StorageKey {
 /// Implementation of `HydratedStorage` which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
-  final HydratedStorage _storage;
-
   /// Returns an instance of `HydratedBlocStorage`.
   /// `storageDirectory` can optionally be provided.
   /// By default, `getTemporaryDirectory` is used.
@@ -68,14 +66,18 @@ class HydratedBlocStorage extends HydratedStorage {
     Directory storageDirectory,
     StorageMode mode = StorageMode.singlefile,
     StorageKey key,
+    bool safeSync = true,
+    bool useBase64Cells = false, // TODO refactoring desirable
   }) async {
+    // TODO get singletons back, as Storages are now separate from `this`
     if (mode != StorageMode.temporal) {
       // ignore: omit_local_variable_types
       CellFactory cellFactory = (file) => StringCell(file);
       if (key != null) {
         final enc = Encrypter(AES(key.key));
-        cellFactory = (file) => AESCell(BinaryCell(file), enc);
-        // cellFactory = (file) => AESCell(Base64Cell(StringCell(file)), enc);
+        cellFactory = !useBase64Cells // OTRICALA here😭
+            ? (file) => AESCell(BinaryCell(file), enc)
+            : (file) => AESCell(Base64Cell(StringCell(file)), enc);
       }
 
       final directory = storageDirectory ?? await getTemporaryDirectory();
@@ -93,6 +95,7 @@ class HydratedBlocStorage extends HydratedStorage {
     return HydratedBlocStorage._(Temporal());
   }
 
+  final HydratedStorage _storage;
   HydratedBlocStorage._(this._storage);
 
   @override
@@ -148,6 +151,7 @@ class _InstantStorage<T> extends InstantStorage<T> {
 }
 
 /// Achieves in-memory storage behavior.
+/// Type instance of `HydratedStorage`.
 class Temporal extends HydratedStorage {
   final InstantStorage<dynamic> _cache = _InstantStorage<dynamic>();
 
@@ -185,23 +189,19 @@ abstract class FutureStorage<T> {
   Stream<String> get tokens;
 }
 
-/// `Duplex` is a combination of `InstantStorage` and `TokenStorage`
+/// `Duplex` is a duplex of `InstantStorage` and `FutureStorage`.
+/// Type instance of `HydratedStorage`.
 class Duplex extends HydratedStorage {
-  final InstantStorage<dynamic> _cache = _InstantStorage<dynamic>();
-  final FutureStorage<String> _storage;
-
-  /// Returns an instance of [HydratedBlocStorage].
-  /// You can provide custom ([cache]|[storage]),
-  /// otherwise default implementation will be used.
-  /// Default [InstantStorage] is just in-memory `Map`
-  /// Default [FutureStorage] uses `getTemporaryDirectory`
-  /// for storing file per `HydratedBloc`'s `storageToken`
+  /// Instantiates `Duplex` of default cache
+  /// and provided `FutureStorage<String>`.
   static Future<Duplex> instance(FutureStorage<String> storage) async {
     final instance = Duplex._(storage);
     await instance._infuse();
     return instance;
   }
 
+  final InstantStorage<dynamic> _cache = _InstantStorage<dynamic>();
+  final FutureStorage<String> _storage;
   Duplex._(this._storage);
 
   // Used to fill in-memory cache
@@ -244,15 +244,14 @@ class Duplex extends HydratedStorage {
 /// This factory creates `StringCell`s
 typedef CellFactory = StringCell Function(File file);
 
-//TODO MultifileStorage
-/// [CellMultiplexer] - file per bloc
+/// `CellMultiplexer` - is file per bloc `FutureStorage<String>`
 class CellMultiplexer extends FutureStorage<String> {
-  /// `Directory` for cells to be managed in
-  final Directory directory;
-  final CellFactory _factory;
+  /// Create `CellMultiplexer` utilizing `Directory`
+  /// `CellFactory` is used to produce `StringCell`s
+  CellMultiplexer(this._directory, this._factory);
 
-  /// Create `CellMultiplexer` utilizing [directory]
-  CellMultiplexer(this.directory, this._factory);
+  final Directory _directory;
+  final CellFactory _factory;
 
   // Tokens are keys to `StringCell` objects
   final InstantStorage<StringCell> _cells = _InstantStorage<StringCell>();
@@ -263,7 +262,7 @@ class CellMultiplexer extends FutureStorage<String> {
 
   static const String _prefix = '.bloc.';
   String _token(String path) => p.split(path).last.split('.')[2];
-  String _path(String token) => p.join(directory.path, '$_prefix$token.json');
+  String _path(String token) => p.join(_directory.path, '$_prefix$token.json');
   StringCell _cellByToken(String token) =>
       _cells.read(token) ?? _cells.write(token, _factory(File(_path(token))));
 
@@ -274,7 +273,7 @@ class CellMultiplexer extends FutureStorage<String> {
   }
 
   @override
-  Stream<String> get tokens => directory
+  Stream<String> get tokens => _directory
       .list()
       .where((item) => item is File)
       .map((file) => file.path)
@@ -308,18 +307,18 @@ class CellMultiplexer extends FutureStorage<String> {
       .asyncMap((token) => _lockByToken(token).synchronized(
             () async => (await _find(token))?.delete(),
           )) // Intentionally deletes only cached cells,
-      .drain(); // cells multiplexer worked with
+      .drain(); // cell multiplexer worked with
 }
 
-//TODO SinglefileStorage
-//TODO better `docs`
-/// `CellSinglet` is a one-file key:string storage
+/// `CellSinglet` is a one-file `FutureStorage<String>`.
 class CellSinglet extends FutureStorage<String> {
   static final _lock = Lock();
   final Map<String, String> _cache;
   final StringCell _cell;
 
   /// Returns an instance of `CellSinglet`.
+  /// `CellFactory` is used to produce
+  /// one `StringCell` inside `Directory`.
   static Future<CellSinglet> instance(
     Directory directory,
     CellFactory cellFactory,
@@ -381,9 +380,9 @@ class CellSinglet extends FutureStorage<String> {
   }
 }
 
-/// `StringCell` is a cell which stores text contents
+/// `StringCell` is a cell which stores text contents.
 /// I need this abstraction against `File` object to
-/// wrap it with AESCell and other decorators later.
+/// wrap it with `AESCell` and other decorators later.
 class StringCell {
   final File _file;
 
