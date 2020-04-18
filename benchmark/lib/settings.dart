@@ -7,6 +7,7 @@ enum Storage { single, multi, ether }
 
 class BenchmarkSettings {
   var uiLock = true;
+  var useAES = false;
 
   var modes = <Mode, bool>{
     Mode.wake: true,

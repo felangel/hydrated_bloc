@@ -316,27 +316,57 @@ class _AppState extends State<App> {
                     );
                   }(),
                   Divider(),
-                  Center(child: () {
-                    const ss = [Storage.single, Storage.multi, Storage.ether];
-                    const ll = {
-                      Storage.single: 'Single file',
-                      Storage.multi: 'Isolated files',
-                      Storage.ether: 'Ethereal'
-                    };
-                    return ToggleButtons(
-                      isSelected: ss.map((s) => settings.storages[s]).toList(),
-                      onPressed: (i) =>
-                          setState(() => settings.flipStorage(ss[i])),
-                      constraints: const BoxConstraints(
-                        minWidth: 100.0,
-                        minHeight: 32.0,
+                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    ChoiceChip(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onSelected: (b) => setState(() => settings.useAES = b),
+                      selected: settings.useAES,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                          color: settings.useAES
+                              ? Colors.blue.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.3),
+                          // color: Colors.transparent,
+                          width: 1,
+                        ),
                       ),
-                      borderColor: Colors.grey.withOpacity(0.3),
-                      selectedBorderColor: Colors.blue.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                      children: ss.map((s) => Text(ll[s])).toList(),
-                    );
-                  }()),
+
+                      // borderColor: Colors.grey.withOpacity(0.3),
+                      // selectedBorderColor: Colors.blue.withOpacity(0.3),
+                      // borderRadius: BorderRadius.circular(8),
+                      selectedColor: Colors.blue.withOpacity(0.15),
+                      // backgroundColor: Theme.of(context).canvasColor,
+                      backgroundColor: Colors.grey.withOpacity(0.3),
+                      shadowColor: Colors.grey.withOpacity(0.25),
+                      selectedShadowColor: Colors.blue.withOpacity(0.25),
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      label: Text('AES'),
+                    ),
+                    SizedBox(width: 12),
+                    () {
+                      const ss = [Storage.single, Storage.multi, Storage.ether];
+                      const ll = {
+                        Storage.single: 'Single file',
+                        Storage.multi: 'Isolated files',
+                        Storage.ether: 'Temporal'
+                      };
+                      return ToggleButtons(
+                        isSelected:
+                            ss.map((s) => settings.storages[s]).toList(),
+                        onPressed: (i) =>
+                            setState(() => settings.flipStorage(ss[i])),
+                        children: ss.map((s) => Text(ll[s])).toList(),
+                        constraints: const BoxConstraints(
+                          minWidth: 100.0,
+                          minHeight: 32.0,
+                        ),
+                        borderColor: Colors.grey.withOpacity(0.3),
+                        selectedBorderColor: Colors.blue.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      );
+                    }(),
+                  ]),
                   SizedBox(height: 8),
                   () {
                     final cur = settings.storages.values.where((v) => v).length;
