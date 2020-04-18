@@ -316,57 +316,165 @@ class _AppState extends State<App> {
                     );
                   }(),
                   Divider(),
-                  Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    ChoiceChip(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      onSelected: (b) => setState(() => settings.useAES = b),
-                      selected: settings.useAES,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        side: BorderSide(
-                          color: settings.useAES
-                              ? Colors.blue.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.3),
-                          // color: Colors.transparent,
-                          width: 1,
-                        ),
-                      ),
 
-                      // borderColor: Colors.grey.withOpacity(0.3),
-                      // selectedBorderColor: Colors.blue.withOpacity(0.3),
-                      // borderRadius: BorderRadius.circular(8),
-                      selectedColor: Colors.blue.withOpacity(0.15),
-                      // backgroundColor: Theme.of(context).canvasColor,
-                      backgroundColor: Colors.grey.withOpacity(0.3),
-                      shadowColor: Colors.grey.withOpacity(0.25),
-                      selectedShadowColor: Colors.blue.withOpacity(0.25),
-                      padding: EdgeInsets.symmetric(horizontal: 8),
-                      label: Text('AES'),
-                    ),
-                    SizedBox(width: 12),
-                    () {
-                      const ss = [Storage.single, Storage.multi, Storage.ether];
-                      const ll = {
-                        Storage.single: 'Single file',
-                        Storage.multi: 'Isolated files',
-                        Storage.ether: 'Temporal'
-                      };
-                      return ToggleButtons(
-                        isSelected:
-                            ss.map((s) => settings.storages[s]).toList(),
-                        onPressed: (i) =>
-                            setState(() => settings.flipStorage(ss[i])),
-                        children: ss.map((s) => Text(ll[s])).toList(),
-                        constraints: const BoxConstraints(
-                          minWidth: 100.0,
-                          minHeight: 32.0,
+                  () {
+                    final controller =
+                        PageController(initialPage: 0, viewportFraction: 0.8);
+                    final pageview = PageView(
+                      controller: controller,
+                      pageSnapping: true,
+                      physics: const BouncingScrollPhysics(),
+                      children: [
+                        Center(
+                          child: () {
+                            const ss = [
+                              Storage.single,
+                              Storage.multi,
+                              Storage.ether
+                            ];
+                            const ll = {
+                              Storage.single: 'Single File',
+                              Storage.multi: 'Isonlated',
+                              Storage.ether: 'Temp'
+                            };
+                            return ToggleButtons(
+                              isSelected:
+                                  ss.map((s) => settings.storages[s]).toList(),
+                              onPressed: (i) =>
+                                  setState(() => settings.flipStorage(ss[i])),
+                              children: ss.map((s) => Text(ll[s])).toList(),
+                              constraints: const BoxConstraints(
+                                minWidth: 100.0,
+                                minHeight: 32.0,
+                              ),
+                              borderColor: Colors.grey.withOpacity(0.3),
+                              selectedBorderColor: Colors.blue.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            );
+                          }(),
                         ),
-                        borderColor: Colors.grey.withOpacity(0.3),
-                        selectedBorderColor: Colors.blue.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(8),
-                      );
-                    }(),
-                  ]),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: () {
+                            const ss = [
+                              Storage.single,
+                              Storage.multi,
+                              Storage.ether
+                            ];
+                            const ll = {
+                              Storage.single: 'SafeMode',
+                              Storage.multi: 'AES',
+                              Storage.ether: 'Base64'
+                            };
+                            return ToggleButtons(
+                              isSelected:
+                                  ss.map((s) => settings.storages[s]).toList(),
+                              onPressed: (i) =>
+                                  setState(() => settings.flipStorage(ss[i])),
+                              children: ss.map((s) => Text(ll[s])).toList(),
+                              constraints: const BoxConstraints(
+                                minWidth: 100.0,
+                                minHeight: 32.0,
+                              ),
+                              borderColor: Colors.grey.withOpacity(0.3),
+                              selectedBorderColor: Colors.blue.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            );
+                          }(),
+                        ),
+                      ],
+                    );
+                    return Container(child: pageview, height: 48);
+                  }(),
+                  SizedBox(height: 8),
+                  () {
+                    final cur = settings.storages.values.where((v) => v).length;
+                    final tot = settings.storages.length;
+                    final text = '$cur/$tot';
+                    const title = 'ENCRYPTION';
+                    return TitleRow(text: text, title: title);
+                  }(),
+                  // ExpansionTile(
+                  //   title: Text('Hello'),
+                  //   children: <Widget>[Text('Hello1'), Text('Hello2')],
+                  //   subtitle: Text('Hello3'),
+                  //   trailing: Text('Hello4'),
+                  // ),
+                  Divider(),
+                  () {
+                    final view = CustomScrollView(
+                      scrollDirection: Axis.horizontal,
+                      reverse: true,
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
+                      ),
+                      slivers: [
+                        SliverAppBar(
+                          elevation: 0,
+                          stretch: true,
+                          expandedHeight: 120,
+                          backgroundColor: Colors.transparent,
+                          // expandedHeight: 0,
+                          centerTitle: true,
+                          title: Icon(
+                            Icons.keyboard_arrow_right,
+                            color: Colors.blue,
+                          ),
+                          leading: Text('yo'),
+                          // bottom: ,
+                          bottom: PreferredSize(
+                            preferredSize: Size.fromHeight(50.0),
+                            child: Text('hoho'),
+                          ),
+                          flexibleSpace: FlexibleSpaceBar(
+                            // centerTitle: true,
+                            // title: Icon(
+                            //   Icons.keyboard_arrow_right,
+                            //   color: Colors.blue,
+                            // ),
+                            collapseMode: CollapseMode.none,
+                            centerTitle: true,
+                            titlePadding: EdgeInsets.all(12),
+                            title: Text('Hello'),
+                            // background: Container(
+                            //   width: 120,
+                            //   color: Colors.orange,
+                            //   height: 48,
+                            // ),
+                            background: Text("OLOLOOL"),
+                          ),
+                        ),
+                        SliverToBoxAdapter(child: Center(child: () {
+                          const ss = [
+                            Storage.single,
+                            Storage.multi,
+                            Storage.ether
+                          ];
+                          const ll = {
+                            Storage.single: 'Single file',
+                            Storage.multi: 'Isolated files',
+                            Storage.ether: 'Temporal'
+                          };
+                          return ToggleButtons(
+                            isSelected:
+                                ss.map((s) => settings.storages[s]).toList(),
+                            onPressed: (i) =>
+                                setState(() => settings.flipStorage(ss[i])),
+                            children: ss.map((s) => Text(ll[s])).toList(),
+                            constraints: const BoxConstraints(
+                              minWidth: 100.0,
+                              minHeight: 32.0,
+                            ),
+                            borderColor: Colors.grey.withOpacity(0.3),
+                            selectedBorderColor: Colors.blue.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(8),
+                          );
+                        }()))
+                      ],
+                    );
+
+                    return SizedBox(height: 48, child: view);
+                  }(),
                   SizedBox(height: 8),
                   () {
                     final cur = settings.storages.values.where((v) => v).length;
@@ -376,6 +484,7 @@ class _AppState extends State<App> {
                     return TitleRow(text: text, title: title);
                   }(),
                   Divider(),
+
                   RangeSlider(
                     min: settings.blocCountRange.start,
                     max: settings.blocCountRange.end,
