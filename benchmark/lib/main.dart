@@ -402,7 +402,9 @@ class _AppState extends State<App> {
                   // ),
                   Divider(),
                   () {
+                    final controller = ScrollController();
                     final view = CustomScrollView(
+                      controller: controller,
                       scrollDirection: Axis.horizontal,
                       // shrinkWrap: true,
                       // reverse: true,
@@ -412,7 +414,7 @@ class _AppState extends State<App> {
                       ),
                       slivers: [
                         SliverFillRemaining(
-                          child: Center(child: () {
+                          child: () {
                             const ss = [
                               Storage.single,
                               Storage.multi,
@@ -423,7 +425,7 @@ class _AppState extends State<App> {
                               Storage.multi: 'Isolated files',
                               Storage.ether: 'Temporal'
                             };
-                            return ToggleButtons(
+                            Widget bb = ToggleButtons(
                               isSelected:
                                   ss.map((s) => settings.storages[s]).toList(),
                               onPressed: (i) =>
@@ -437,15 +439,57 @@ class _AppState extends State<App> {
                               selectedBorderColor: Colors.blue.withOpacity(0.3),
                               borderRadius: BorderRadius.circular(8),
                             );
-                          }()),
+                            bb = Center(child: bb);
+                            final tap = Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                onPressed: () {
+                                  controller.animateTo(
+                                    controller.position.extentBefore > 0
+                                        ? controller.position.minScrollExtent
+                                        : controller.position.maxScrollExtent,
+                                    duration: const Duration(milliseconds: 250),
+                                    curve: Curves.easeOut,
+                                  );
+                                },
+                                icon: Icon(
+                                  Icons.keyboard_arrow_left,
+                                  color: Colors.blue.withOpacity(0.5),
+                                ),
+                              ),
+                            );
+                            return Stack(children: [bb, tap]);
+                          }(),
                         ),
                         SliverToBoxAdapter(
                           child: Container(
-                            color: Colors.blue.withOpacity(0.2),
-                            child: Align(
-                              child: Text("BUTTONS"),
-                              alignment: Alignment.centerLeft,
-                            ),
+                            padding: EdgeInsets.only(right: 12),
+                            alignment: Alignment.center,
+                            child: () {
+                              const ll = ['AES', 'Base64'];
+                              final ss = {
+                                'AES': settings.useAES,
+                                'Base64': settings.useB64,
+                              };
+                              final pp = {
+                                'AES': settings.flipUseAES,
+                                'Base64': settings.flipUseB64,
+                              };
+                              return ToggleButtons(
+                                isSelected: ll.map((l) => ss[l]).toList(),
+                                onPressed: (i) => setState(() => pp[ll[i]]()),
+                                // onPressed: (i) => null,
+                                children: ll.map((l) => Text(l)).toList(),
+                                constraints: const BoxConstraints(
+                                  minWidth: 80.0,
+                                  minHeight: 32.0,
+                                ),
+                                borderColor: Colors.grey.withOpacity(0.3),
+                                selectedBorderColor:
+                                    Colors.blue.withOpacity(0.3),
+                                borderRadius: BorderRadius.circular(8),
+                              );
+                            }(),
                           ),
                         ),
                         // SliverFillViewport(
@@ -546,10 +590,9 @@ class _AppState extends State<App> {
                         // ),
                       ],
                     );
-
                     return SizedBox(height: 48, child: view);
                   }(),
-                  SizedBox(height: 8),
+                  // SizedBox(height: 8),
                   () {
                     final cur = settings.storages.values.where((v) => v).length;
                     final tot = settings.storages.length;

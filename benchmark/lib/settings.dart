@@ -8,6 +8,9 @@ enum Storage { single, multi, ether }
 class BenchmarkSettings {
   var uiLock = true;
   var useAES = false;
+  var useB64 = false;
+  void flipUseAES() => useAES = !useAES;
+  void flipUseB64() => useB64 = !useB64;
 
   var modes = <Mode, bool>{
     Mode.wake: true,
