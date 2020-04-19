@@ -42,6 +42,7 @@ class HydratedBlocDelegate extends BlocDelegate {
         try {
           storage.write(bloc.storageToken, json.encode(stateJson));
         } on dynamic catch (error, stackTrace) {
+          bloc.onError(error, stackTrace);
           onError(bloc, error, stackTrace);
         }
       }

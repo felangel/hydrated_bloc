@@ -597,13 +597,14 @@ void delegateGroup() {
       Bloc lastBloc;
       Object lastError;
       StackTrace lastStackTrace;
+      final expectedError = Exception('oops');
       final transition = Transition(
         currentState: 'currentState',
         event: 'event',
         nextState: 'nextState',
       );
       when(bloc.toJson('nextState')).thenReturn({'nextState': 'json'});
-      when(storage.write(any, any)).thenThrow(Exception('oops'));
+      when(storage.write(any, any)).thenThrow(expectedError);
       delegate = MyHydratedBlocDelegate(
         storage,
         onErrorCallback: (bloc, error, stackTrace) {
@@ -616,6 +617,7 @@ void delegateGroup() {
       expect(lastBloc, bloc);
       expect('$lastError', 'Exception: oops');
       expect(lastStackTrace, isNotNull);
+      verify(bloc.onError(expectedError, any)).called(1);
     });
 
     group('Default Storage Directory', () {
