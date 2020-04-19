@@ -118,7 +118,10 @@ class _AppState extends State<App> {
                 vertical: 4.0,
               ),
               leading: Container(
-                child: Icon(Icons.blur_on, color: Colors.black, size: 30),
+                child: () {
+                  final icon = r.runner.aes ? Icons.fingerprint : Icons.blur_on;
+                  return Icon(icon, color: Colors.black, size: 30);
+                }(),
               ),
               title: Text(
                 '${r.runner.storageType}: ${r.mode}',

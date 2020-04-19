@@ -2,6 +2,8 @@ import 'package:benchmark/settings.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 abstract class BenchmarkRunner {
+  bool get aes;
+  bool get b64;
   Storage get storageType;
   Future<HydratedStorage> get storageFactory;
 

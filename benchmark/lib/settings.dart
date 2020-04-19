@@ -31,9 +31,12 @@ class BenchmarkSettings {
   void delStorage(Storage storage) => storages[storage] = false;
   void flipStorage(Storage storage) => storages[storage] = !storages[storage];
 
-  final blocCountRange = RangeValues(0, 50);
+  final blocCountRange = RangeValues(1, 50);
   final blocCountDivs = 10;
-  var blocCount = RangeValues(5, 35); // just amt (0-50)
+  // get coef => (blocCountRange.end - blocCountRange.start) / blocCountDivs;
+  static double adjust(double n) => 1 + n * 49 / 50;
+  // var blocCount = RangeValues(5.9, 35.3); // just amt (0-50)
+  var blocCount = RangeValues(adjust(5), adjust(35)); // just amt (0-50)
   RangeLabels get blocCountLabels => RangeLabels(
         '${blocCount.start.toInt()}',
         '${blocCount.end.toInt()}',

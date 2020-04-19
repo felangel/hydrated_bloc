@@ -20,9 +20,11 @@ class Benchmark {
 
   final BenchmarkSettings settings;
   List<BenchmarkRunner> get _runners {
+    final aes = settings.useAES;
+    final b64 = settings.useB64;
     final rr = {
-      Storage.single: SinglefileRunner(),
-      Storage.multi: MultifileRunner(),
+      Storage.single: SinglefileRunner(aes, b64),
+      Storage.multi: MultifileRunner(aes, b64),
       Storage.ether: EtherealfileRunner(),
     };
     return rr.keys
