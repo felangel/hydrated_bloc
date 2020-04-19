@@ -317,83 +317,83 @@ class _AppState extends State<App> {
                   }(),
                   Divider(),
 
-                  () {
-                    final controller =
-                        PageController(initialPage: 0, viewportFraction: 0.8);
-                    final pageview = PageView(
-                      controller: controller,
-                      pageSnapping: true,
-                      physics: const BouncingScrollPhysics(),
-                      children: [
-                        Center(
-                          child: () {
-                            const ss = [
-                              Storage.single,
-                              Storage.multi,
-                              Storage.ether
-                            ];
-                            const ll = {
-                              Storage.single: 'Single File',
-                              Storage.multi: 'Isonlated',
-                              Storage.ether: 'Temp'
-                            };
-                            return ToggleButtons(
-                              isSelected:
-                                  ss.map((s) => settings.storages[s]).toList(),
-                              onPressed: (i) =>
-                                  setState(() => settings.flipStorage(ss[i])),
-                              children: ss.map((s) => Text(ll[s])).toList(),
-                              constraints: const BoxConstraints(
-                                minWidth: 100.0,
-                                minHeight: 32.0,
-                              ),
-                              borderColor: Colors.grey.withOpacity(0.3),
-                              selectedBorderColor: Colors.blue.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            );
-                          }(),
-                        ),
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: () {
-                            const ss = [
-                              Storage.single,
-                              Storage.multi,
-                              Storage.ether
-                            ];
-                            const ll = {
-                              Storage.single: 'SafeMode',
-                              Storage.multi: 'AES',
-                              Storage.ether: 'Base64'
-                            };
-                            return ToggleButtons(
-                              isSelected:
-                                  ss.map((s) => settings.storages[s]).toList(),
-                              onPressed: (i) =>
-                                  setState(() => settings.flipStorage(ss[i])),
-                              children: ss.map((s) => Text(ll[s])).toList(),
-                              constraints: const BoxConstraints(
-                                minWidth: 100.0,
-                                minHeight: 32.0,
-                              ),
-                              borderColor: Colors.grey.withOpacity(0.3),
-                              selectedBorderColor: Colors.blue.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            );
-                          }(),
-                        ),
-                      ],
-                    );
-                    return Container(child: pageview, height: 48);
-                  }(),
-                  SizedBox(height: 8),
-                  () {
-                    final cur = settings.storages.values.where((v) => v).length;
-                    final tot = settings.storages.length;
-                    final text = '$cur/$tot';
-                    const title = 'ENCRYPTION';
-                    return TitleRow(text: text, title: title);
-                  }(),
+                  // () {
+                  //   final controller =
+                  //       PageController(initialPage: 0, viewportFraction: 0.8);
+                  //   final pageview = PageView(
+                  //     controller: controller,
+                  //     pageSnapping: true,
+                  //     physics: const BouncingScrollPhysics(),
+                  //     children: [
+                  //       Center(
+                  //         child: () {
+                  //           const ss = [
+                  //             Storage.single,
+                  //             Storage.multi,
+                  //             Storage.ether
+                  //           ];
+                  //           const ll = {
+                  //             Storage.single: 'Single File',
+                  //             Storage.multi: 'Isonlated',
+                  //             Storage.ether: 'Temp'
+                  //           };
+                  //           return ToggleButtons(
+                  //             isSelected:
+                  //                 ss.map((s) => settings.storages[s]).toList(),
+                  //             onPressed: (i) =>
+                  //                 setState(() => settings.flipStorage(ss[i])),
+                  //             children: ss.map((s) => Text(ll[s])).toList(),
+                  //             constraints: const BoxConstraints(
+                  //               minWidth: 100.0,
+                  //               minHeight: 32.0,
+                  //             ),
+                  //             borderColor: Colors.grey.withOpacity(0.3),
+                  //             selectedBorderColor: Colors.blue.withOpacity(0.3),
+                  //             borderRadius: BorderRadius.circular(8),
+                  //           );
+                  //         }(),
+                  //       ),
+                  //       Align(
+                  //         alignment: Alignment.centerLeft,
+                  //         child: () {
+                  //           const ss = [
+                  //             Storage.single,
+                  //             Storage.multi,
+                  //             Storage.ether
+                  //           ];
+                  //           const ll = {
+                  //             Storage.single: 'SafeMode',
+                  //             Storage.multi: 'AES',
+                  //             Storage.ether: 'Base64'
+                  //           };
+                  //           return ToggleButtons(
+                  //             isSelected:
+                  //                 ss.map((s) => settings.storages[s]).toList(),
+                  //             onPressed: (i) =>
+                  //                 setState(() => settings.flipStorage(ss[i])),
+                  //             children: ss.map((s) => Text(ll[s])).toList(),
+                  //             constraints: const BoxConstraints(
+                  //               minWidth: 100.0,
+                  //               minHeight: 32.0,
+                  //             ),
+                  //             borderColor: Colors.grey.withOpacity(0.3),
+                  //             selectedBorderColor: Colors.blue.withOpacity(0.3),
+                  //             borderRadius: BorderRadius.circular(8),
+                  //           );
+                  //         }(),
+                  //       ),
+                  //     ],
+                  //   );
+                  //   return Container(child: pageview, height: 48);
+                  // }(),
+                  // SizedBox(height: 8),
+                  // () {
+                  //   final cur = settings.storages.values.where((v) => v).length;
+                  //   final tot = settings.storages.length;
+                  //   final text = '$cur/$tot';
+                  //   const title = 'ENCRYPTION';
+                  //   return TitleRow(text: text, title: title);
+                  // }(),
                   // ExpansionTile(
                   //   title: Text('Hello'),
                   //   children: <Widget>[Text('Hello1'), Text('Hello2')],
@@ -404,72 +404,146 @@ class _AppState extends State<App> {
                   () {
                     final view = CustomScrollView(
                       scrollDirection: Axis.horizontal,
-                      reverse: true,
+                      // shrinkWrap: true,
+                      // reverse: true,
+                      // anchor: 0.5,
                       physics: const BouncingScrollPhysics(
                         parent: AlwaysScrollableScrollPhysics(),
                       ),
                       slivers: [
-                        SliverAppBar(
-                          elevation: 0,
-                          stretch: true,
-                          expandedHeight: 120,
-                          backgroundColor: Colors.transparent,
-                          // expandedHeight: 0,
-                          centerTitle: true,
-                          title: Icon(
-                            Icons.keyboard_arrow_right,
-                            color: Colors.blue,
-                          ),
-                          leading: Text('yo'),
-                          // bottom: ,
-                          bottom: PreferredSize(
-                            preferredSize: Size.fromHeight(50.0),
-                            child: Text('hoho'),
-                          ),
-                          flexibleSpace: FlexibleSpaceBar(
-                            // centerTitle: true,
-                            // title: Icon(
-                            //   Icons.keyboard_arrow_right,
-                            //   color: Colors.blue,
-                            // ),
-                            collapseMode: CollapseMode.none,
-                            centerTitle: true,
-                            titlePadding: EdgeInsets.all(12),
-                            title: Text('Hello'),
-                            // background: Container(
-                            //   width: 120,
-                            //   color: Colors.orange,
-                            //   height: 48,
-                            // ),
-                            background: Text("OLOLOOL"),
+                        SliverFillRemaining(
+                          child: Center(child: () {
+                            const ss = [
+                              Storage.single,
+                              Storage.multi,
+                              Storage.ether
+                            ];
+                            const ll = {
+                              Storage.single: 'Single file',
+                              Storage.multi: 'Isolated files',
+                              Storage.ether: 'Temporal'
+                            };
+                            return ToggleButtons(
+                              isSelected:
+                                  ss.map((s) => settings.storages[s]).toList(),
+                              onPressed: (i) =>
+                                  setState(() => settings.flipStorage(ss[i])),
+                              children: ss.map((s) => Text(ll[s])).toList(),
+                              constraints: const BoxConstraints(
+                                minWidth: 100.0,
+                                minHeight: 32.0,
+                              ),
+                              borderColor: Colors.grey.withOpacity(0.3),
+                              selectedBorderColor: Colors.blue.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(8),
+                            );
+                          }()),
+                        ),
+                        SliverToBoxAdapter(
+                          child: Container(
+                            color: Colors.blue.withOpacity(0.2),
+                            child: Align(
+                              child: Text("BUTTONS"),
+                              alignment: Alignment.centerLeft,
+                            ),
                           ),
                         ),
-                        SliverToBoxAdapter(child: Center(child: () {
-                          const ss = [
-                            Storage.single,
-                            Storage.multi,
-                            Storage.ether
-                          ];
-                          const ll = {
-                            Storage.single: 'Single file',
-                            Storage.multi: 'Isolated files',
-                            Storage.ether: 'Temporal'
-                          };
-                          return ToggleButtons(
-                            isSelected:
-                                ss.map((s) => settings.storages[s]).toList(),
-                            onPressed: (i) =>
-                                setState(() => settings.flipStorage(ss[i])),
-                            children: ss.map((s) => Text(ll[s])).toList(),
-                            constraints: const BoxConstraints(
-                              minWidth: 100.0,
-                              minHeight: 32.0,
-                            ),
-                            borderColor: Colors.grey.withOpacity(0.3),
-                            selectedBorderColor: Colors.blue.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          );
-                        }()))
+                        // SliverFillViewport(
+                        //   viewportFraction: 0.5,
+                        //   delegate: SliverChildListDelegate(
+                        //     [
+                        //       // Container(color: Colors.blue.withOpacity(0.2)),
+                        //       // Container(color: Colors.red.withOpacity(0.2)),
+                        //       // Container(
+                        //       //   color: Colors.green.withOpacity(0.2),
+                        //       //   child: Center(child: Text("BUTTONS")),
+                        //       // ),
+                        //       Container(
+                        //         color: Colors.blue.withOpacity(0.2),
+                        //         child: Align(
+                        //           child: Text("BUTTONS"),
+                        //           alignment: Alignment.centerLeft,
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   ),
+                        // ),
+                        // SliverAppBar(
+                        //   elevation: 0,
+                        //   // stretch: true,
+                        //   // pinned: true,
+                        //   expandedHeight: 320,
+                        //   backgroundColor: Colors.transparent,
+                        //   // expandedHeight: 0,
+                        //   centerTitle: true,
+                        //   leading: Icon(
+                        //     Icons.keyboard_arrow_right,
+                        //     color: Colors.blue,
+                        //   ),
+                        //   // leading: Text('yo'),
+                        //   // bottom: ,
+                        //   // bottom: PreferredSize(
+                        //   //   preferredSize: Size.fromHeight(50.0),
+                        //   //   child: Text('hoho'),
+                        //   // ),
+                        //   flexibleSpace: FlexibleSpaceBar(
+                        //     // centerTitle: true,
+                        //     // title: Icon(
+                        //     //   Icons.keyboard_arrow_right,
+                        //     //   color: Colors.blue,
+                        //     // ),
+
+                        //     collapseMode: CollapseMode.none,
+                        //     centerTitle: true,
+                        //     // titlePadding: EdgeInsets.all(12),
+                        //     // title: Text('Hello'),
+                        //     background: SingleChildScrollView(
+                        //       scrollDirection: Axis.horizontal,
+                        //       child: Container(
+                        //         // color: Colors.orange,
+                        //         // height: 48,
+                        //         // width: 100,
+                        //         child: () {
+                        //           const ss = [
+                        //             Storage.single,
+                        //             Storage.multi,
+                        //             Storage.ether
+                        //           ];
+                        //           const ll = {
+                        //             Storage.single: 'SafeMode',
+                        //             Storage.multi: 'AES',
+                        //             Storage.ether: 'Base64'
+                        //           };
+                        //           final bb = ToggleButtons(
+                        //             isSelected: ss
+                        //                 .map((s) => settings.storages[s])
+                        //                 .toList(),
+                        //             onPressed: (i) => setState(
+                        //                 () => settings.flipStorage(ss[i])),
+                        //             children:
+                        //                 ss.map((s) => Text(ll[s])).toList(),
+                        //             constraints: const BoxConstraints(
+                        //               minWidth: 100.0,
+                        //               minHeight: 32.0,
+                        //             ),
+                        //             borderColor: Colors.grey.withOpacity(0.3),
+                        //             selectedBorderColor:
+                        //                 Colors.blue.withOpacity(0.3),
+                        //             borderRadius: BorderRadius.circular(8),
+                        //           );
+                        //           return Align(
+                        //             child: bb,
+                        //             alignment: Alignment.topLeft,
+                        //           );
+                        //           // return bb;
+                        //         }(),
+                        //         // width: 120,
+                        //         // height: 48,
+                        //       ),
+                        //     ),
+                        //     // background: Text("OLOLOOL"),
+                        //   ),
+                        // ),
                       ],
                     );
 
