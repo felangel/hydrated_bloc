@@ -1,5 +1,7 @@
+import 'package:benchmark/hooks.dart';
 import 'package:benchmark/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
 import 'benchmark.dart';
 
 void main() => runApp(App());
@@ -31,7 +33,6 @@ class _AppState extends State<App> {
       buttonTheme: ButtonThemeData(
         highlightColor: Colors.blue.withOpacity(0.2),
         splashColor: Colors.blue.withOpacity(0.5),
-        // colorScheme:
       ),
       textTheme: TextTheme(
         button: TextStyle(fontSize: 18),
@@ -51,9 +52,7 @@ class _AppState extends State<App> {
         horizontal: 12.0,
         vertical: 4.0,
       ),
-      child: Text(
-        "BENCHMARK",
-      ),
+      child: Text("BENCHMARK"),
       onPressed: _running
           ? null
           : () async {
@@ -133,709 +132,363 @@ class _AppState extends State<App> {
       ];
 
   final settings = BenchmarkSettings();
-  // var controller = ScrollController(initialScrollOffset: 350);
-  var controller = ScrollController(initialScrollOffset: 400);
   Widget _view(BuildContext context) {
-    // final controller = ScrollController(initialScrollOffset: 600);
-    //NestedScrollView
-    return CustomScrollView(
-      controller: controller,
-      // primary: true,
-      reverse: true,
-      // anchor: 0.25,
-      // shrinkWrap: true,
-      // physics: BouncingScrollPhysics(),
-      // physics: const AlwaysScrollableScrollPhysics(),
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      slivers: [
-        // BOTTOM
-        SliverAppBar(
-          // expandedHeight: 0,
-          elevation: 0,
-          // centerTitle: true,
-          // title: Slider(
-          //   value: 0.2,
-          //   onChanged: (v) {},
-          // ),
-          // title: Text('build: 3.1.0', style: Theme.of(context).textTheme.title),
-          // leading: Icon(Icons.developer_board, color: Colors.black),
-          // title: Row(children: [
-          //   Icon(
-          //     Icons.verified_user, // (developer_board|verified_user)
-          //     color: Colors.black,
-          //   ),
-          //   Text(
-          //     "v1.0.0",
-          //     style: Theme.of(context).textTheme.title,
-          //   ),
-          // ]),
-          // actions: <Widget>[Icon(Icons.ac_unit, color: Colors.black)],
-          // stretch: true, // ?
-          // bottom: ,
-          // title: _benchmark(context),
-          // pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            // title: _benchmark(context),
-            background: Container(
-              padding: EdgeInsets.only(top: 24),
-              // color: Colors.blue.withOpacity(0.2),
-              // color: Color(0xffecf0f1),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0x00ffffff), Colors.blue.withOpacity(0.2)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
-              // child: Column(
-              //   mainAxisSize: MainAxisSize.max,
-              //   crossAxisAlignment: CrossAxisAlignment.center,
-              //   children: <Widget>[
-              //     _benchmark(context),
-              //     _benchmark(context),
-              //     _benchmark(context),
-              //     _benchmark(context),
-              //     _benchmark(context),
-              //   ],
-              // ),
-              child: ListView(
-                // itemExtent: 140,
-
-                reverse: true,
-                physics: const BouncingScrollPhysics(
-                    // parent: AlwaysScrollableScrollPhysics(),
-                    ),
-                children: <Widget>[
-                  // FlatButton(
-                  //   child: Text("PRESS"),
-                  //   onPressed: () {
-                  //     // controller.positions.forEach(print);
-                  //     controller.animateTo(
-                  //       controller.position.maxScrollExtent,
-                  //       duration: const Duration(seconds: 1),
-                  //       curve: Curves.linear,
-                  //     );
-                  //   },
-                  // ),
-                  IconButton(
-                    icon: Icon(Icons.keyboard_arrow_up),
-                    // splashColor: Colors.blue.withOpacity(0.4),
-                    // highlightColor: Colors.blue.withOpacity(0.2),
-                    // onPressed: _results.isEmpty || _running
-                    onPressed: _results.isEmpty ||
-                            controller.position.maxScrollExtent <= 0
-                        ? null
-                        : () => controller.animateTo(
-                              controller.position.maxScrollExtent -
-                                  controller.position.viewportDimension +
-                                  5,
-                              duration: Duration(
-                                  milliseconds: 200 + 50 * _results.length),
-                              curve: Curves.easeInOut,
-                            ),
-                  ),
-                  // _benchmark(context),
-                  // _benchmark(context),
-
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.center,
-                  //   children: [
-                  //     FilterChip(
-                  //         onSelected: (v) {},
-                  //         selected: true,
-                  //         label: Text('single')),
-                  //     FilterChip(
-                  //         avatar: CircleAvatar(
-                  //           backgroundColor: Colors.grey.shade800,
-                  //           child: Icon(Icons.polymer),
-                  //         ),
-                  //         onSelected: (v) {},
-                  //         selected: true,
-                  //         label: Text('multi')),
-                  //     FilterChip(
-                  //         onSelected: (v) {},
-                  //         selected: false,
-                  //         label: Text('temp')),
-                  //   ],
-                  // ),
-
-                  // Chip(
-                  //   avatar: CircleAvatar(
-                  //     backgroundColor: Colors.grey.shade800,
-                  //     child: Text('AB'),
-                  //   ),
-                  //   label: Text('Aaron Burr'),
-                  // ),
-                  // LinearProgressIndicator(
-                  //   backgroundColor: Colors.transparent,
-                  //   // valueColor: Animated,
-                  // ),
-                  // _benchmark(context),
-                  // Slider(
-                  //   value: 0.2,
-                  //   onChanged: print,
-                  // ),
-                  // SETTINGS TOP
-                  RangeSlider(
-                    min: settings.stateSizeRange.start,
-                    max: settings.stateSizeRange.end,
-                    divisions: settings.stateSizeDivs,
-                    labels: settings.stateSizeLabels,
-                    values: settings.stateSize,
-                    onChanged: (rv) => setState(() => settings.stateSize = rv),
-                  ),
-                  () {
-                    const px = '⩾';
-                    final cc = settings.stateSizeBytesMax ~/ 4;
-                    $(int cc) {
-                      if (cc < 1e3) {
-                        return '$cc';
-                      } else if (cc < 1e5) {
-                        cc ~/= 1e3;
-                        return '$px${cc}k';
-                      } else if (cc < 1e6) {
-                        cc ~/= 1e4;
-                        cc *= 10;
-                        return '$px${cc}k';
-                      } else {
-                        cc ~/= 1e6;
-                        return '$px${cc}M';
-                      }
-                    }
-
-                    final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
-                    const title = 'STATE SIZE';
-                    return TitleRow(
-                      text: text,
-                      title: title,
-                      decorator: (ww) => [
-                        TitleText(text: px, transparent: true),
-                        ...ww,
-                        TitleText(text: px, transparent: true),
-                      ],
-                    );
-                  }(),
-                  Divider(),
-
-                  // () {
-                  //   final controller =
-                  //       PageController(initialPage: 0, viewportFraction: 0.8);
-                  //   final pageview = PageView(
-                  //     controller: controller,
-                  //     pageSnapping: true,
-                  //     physics: const BouncingScrollPhysics(),
-                  //     children: [
-                  //       Center(
-                  //         child: () {
-                  //           const ss = [
-                  //             Storage.single,
-                  //             Storage.multi,
-                  //             Storage.ether
-                  //           ];
-                  //           const ll = {
-                  //             Storage.single: 'Single File',
-                  //             Storage.multi: 'Isonlated',
-                  //             Storage.ether: 'Temp'
-                  //           };
-                  //           return ToggleButtons(
-                  //             isSelected:
-                  //                 ss.map((s) => settings.storages[s]).toList(),
-                  //             onPressed: (i) =>
-                  //                 setState(() => settings.flipStorage(ss[i])),
-                  //             children: ss.map((s) => Text(ll[s])).toList(),
-                  //             constraints: const BoxConstraints(
-                  //               minWidth: 100.0,
-                  //               minHeight: 32.0,
-                  //             ),
-                  //             borderColor: Colors.grey.withOpacity(0.3),
-                  //             selectedBorderColor: Colors.blue.withOpacity(0.3),
-                  //             borderRadius: BorderRadius.circular(8),
-                  //           );
-                  //         }(),
-                  //       ),
-                  //       Align(
-                  //         alignment: Alignment.centerLeft,
-                  //         child: () {
-                  //           const ss = [
-                  //             Storage.single,
-                  //             Storage.multi,
-                  //             Storage.ether
-                  //           ];
-                  //           const ll = {
-                  //             Storage.single: 'SafeMode',
-                  //             Storage.multi: 'AES',
-                  //             Storage.ether: 'Base64'
-                  //           };
-                  //           return ToggleButtons(
-                  //             isSelected:
-                  //                 ss.map((s) => settings.storages[s]).toList(),
-                  //             onPressed: (i) =>
-                  //                 setState(() => settings.flipStorage(ss[i])),
-                  //             children: ss.map((s) => Text(ll[s])).toList(),
-                  //             constraints: const BoxConstraints(
-                  //               minWidth: 100.0,
-                  //               minHeight: 32.0,
-                  //             ),
-                  //             borderColor: Colors.grey.withOpacity(0.3),
-                  //             selectedBorderColor: Colors.blue.withOpacity(0.3),
-                  //             borderRadius: BorderRadius.circular(8),
-                  //           );
-                  //         }(),
-                  //       ),
-                  //     ],
-                  //   );
-                  //   return Container(child: pageview, height: 48);
-                  // }(),
-                  // SizedBox(height: 8),
-                  // () {
-                  //   final cur = settings.storages.values.where((v) => v).length;
-                  //   final tot = settings.storages.length;
-                  //   final text = '$cur/$tot';
-                  //   const title = 'ENCRYPTION';
-                  //   return TitleRow(text: text, title: title);
-                  // }(),
-                  // ExpansionTile(
-                  //   title: Text('Hello'),
-                  //   children: <Widget>[Text('Hello1'), Text('Hello2')],
-                  //   subtitle: Text('Hello3'),
-                  //   trailing: Text('Hello4'),
-                  // ),
-                  Divider(),
-                  () {
-                    final controller = ScrollController();
-                    final view = CustomScrollView(
-                      controller: controller,
-                      scrollDirection: Axis.horizontal,
-                      // shrinkWrap: true,
-                      // reverse: true,
-                      // anchor: 0.5,
-                      physics: const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      ),
-                      slivers: [
-                        SliverFillRemaining(
-                          child: () {
-                            const ss = [
-                              Storage.single,
-                              Storage.multi,
-                              Storage.ether
-                            ];
-                            const ll = {
-                              Storage.single: 'Single file',
-                              Storage.multi: 'Isolated files',
-                              Storage.ether: 'Temporal'
-                            };
-                            Widget bb = ToggleButtons(
-                              isSelected:
-                                  ss.map((s) => settings.storages[s]).toList(),
-                              onPressed: (i) =>
-                                  setState(() => settings.flipStorage(ss[i])),
-                              children: ss.map((s) => Text(ll[s])).toList(),
-                              constraints: const BoxConstraints(
-                                minWidth: 100.0,
-                                minHeight: 32.0,
-                              ),
-                              borderColor: Colors.grey.withOpacity(0.3),
-                              selectedBorderColor: Colors.blue.withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(8),
-                            );
-                            bb = Center(child: bb);
-                            final tap = Align(
-                              alignment: Alignment.centerRight,
-                              child: IconButton(
-                                onPressed: () {
-                                  controller.animateTo(
-                                    controller.position.extentBefore > 0
-                                        ? controller.position.minScrollExtent
-                                        : controller.position.maxScrollExtent,
-                                    duration: const Duration(milliseconds: 250),
-                                    curve: Curves.easeOut,
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.keyboard_arrow_left,
-                                  color: Colors.blue.withOpacity(0.5),
-                                ),
-                              ),
-                            );
-                            return Stack(children: [bb, tap]);
-                          }(),
-                        ),
-                        SliverToBoxAdapter(
-                          child: Container(
-                            padding: EdgeInsets.only(right: 12),
-                            alignment: Alignment.center,
-                            child: () {
-                              const ll = ['AES', 'Base64'];
-                              final ss = {
-                                'AES': settings.useAES,
-                                'Base64': settings.useB64,
-                              };
-                              final pp = {
-                                'AES': settings.flipUseAES,
-                                'Base64': settings.flipUseB64,
-                              };
-                              return ToggleButtons(
-                                isSelected: ll.map((l) => ss[l]).toList(),
-                                onPressed: (i) => setState(() => pp[ll[i]]()),
-                                // onPressed: (i) => null,
-                                children: ll.map((l) => Text(l)).toList(),
-                                constraints: const BoxConstraints(
-                                  minWidth: 80.0,
-                                  minHeight: 32.0,
-                                ),
-                                borderColor: Colors.grey.withOpacity(0.3),
-                                selectedBorderColor:
-                                    Colors.blue.withOpacity(0.3),
-                                borderRadius: BorderRadius.circular(8),
-                              );
-                            }(),
-                          ),
-                        ),
-                        // SliverFillViewport(
-                        //   viewportFraction: 0.5,
-                        //   delegate: SliverChildListDelegate(
-                        //     [
-                        //       // Container(color: Colors.blue.withOpacity(0.2)),
-                        //       // Container(color: Colors.red.withOpacity(0.2)),
-                        //       // Container(
-                        //       //   color: Colors.green.withOpacity(0.2),
-                        //       //   child: Center(child: Text("BUTTONS")),
-                        //       // ),
-                        //       Container(
-                        //         color: Colors.blue.withOpacity(0.2),
-                        //         child: Align(
-                        //           child: Text("BUTTONS"),
-                        //           alignment: Alignment.centerLeft,
-                        //         ),
-                        //       ),
-                        //     ],
-                        //   ),
-                        // ),
-                        // SliverAppBar(
-                        //   elevation: 0,
-                        //   // stretch: true,
-                        //   // pinned: true,
-                        //   expandedHeight: 320,
-                        //   backgroundColor: Colors.transparent,
-                        //   // expandedHeight: 0,
-                        //   centerTitle: true,
-                        //   leading: Icon(
-                        //     Icons.keyboard_arrow_right,
-                        //     color: Colors.blue,
-                        //   ),
-                        //   // leading: Text('yo'),
-                        //   // bottom: ,
-                        //   // bottom: PreferredSize(
-                        //   //   preferredSize: Size.fromHeight(50.0),
-                        //   //   child: Text('hoho'),
-                        //   // ),
-                        //   flexibleSpace: FlexibleSpaceBar(
-                        //     // centerTitle: true,
-                        //     // title: Icon(
-                        //     //   Icons.keyboard_arrow_right,
-                        //     //   color: Colors.blue,
-                        //     // ),
-
-                        //     collapseMode: CollapseMode.none,
-                        //     centerTitle: true,
-                        //     // titlePadding: EdgeInsets.all(12),
-                        //     // title: Text('Hello'),
-                        //     background: SingleChildScrollView(
-                        //       scrollDirection: Axis.horizontal,
-                        //       child: Container(
-                        //         // color: Colors.orange,
-                        //         // height: 48,
-                        //         // width: 100,
-                        //         child: () {
-                        //           const ss = [
-                        //             Storage.single,
-                        //             Storage.multi,
-                        //             Storage.ether
-                        //           ];
-                        //           const ll = {
-                        //             Storage.single: 'SafeMode',
-                        //             Storage.multi: 'AES',
-                        //             Storage.ether: 'Base64'
-                        //           };
-                        //           final bb = ToggleButtons(
-                        //             isSelected: ss
-                        //                 .map((s) => settings.storages[s])
-                        //                 .toList(),
-                        //             onPressed: (i) => setState(
-                        //                 () => settings.flipStorage(ss[i])),
-                        //             children:
-                        //                 ss.map((s) => Text(ll[s])).toList(),
-                        //             constraints: const BoxConstraints(
-                        //               minWidth: 100.0,
-                        //               minHeight: 32.0,
-                        //             ),
-                        //             borderColor: Colors.grey.withOpacity(0.3),
-                        //             selectedBorderColor:
-                        //                 Colors.blue.withOpacity(0.3),
-                        //             borderRadius: BorderRadius.circular(8),
-                        //           );
-                        //           return Align(
-                        //             child: bb,
-                        //             alignment: Alignment.topLeft,
-                        //           );
-                        //           // return bb;
-                        //         }(),
-                        //         // width: 120,
-                        //         // height: 48,
-                        //       ),
-                        //     ),
-                        //     // background: Text("OLOLOOL"),
-                        //   ),
-                        // ),
-                      ],
-                    );
-                    return SizedBox(height: 48, child: view);
-                  }(),
-                  // SizedBox(height: 8),
-                  () {
-                    final cur = settings.storages.values.where((v) => v).length;
-                    final tot = settings.storages.length;
-                    final text = '$cur/$tot';
-                    const title = 'STORAGES';
-                    return TitleRow(text: text, title: title);
-                  }(),
-                  Divider(),
-
-                  RangeSlider(
-                    min: settings.blocCountRange.start,
-                    max: settings.blocCountRange.end,
-                    divisions: settings.blocCountDivs,
-                    labels: settings.blocCountLabels,
-                    values: settings.blocCount,
-                    onChanged: (rv) => setState(() => settings.blocCount = rv),
-                  ),
-                  () {
-                    final start = settings.blocCount.start.toInt();
-                    final end = settings.blocCount.end.toInt();
-                    final text =
-                        start == end ? '$end' : '$start-$end'.padLeft(2);
-                    const title = 'BLOC COUNT';
-                    return TitleRow(text: text, title: title);
-                  }(),
-                  Divider(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: () {
-                      const mm = [
-                        Mode.wake,
-                        Mode.read,
-                        Mode.write,
-                        Mode.delete
-                      ];
-                      const ll = {
-                        Mode.wake: 'WAKE',
-                        Mode.read: 'READ',
-                        Mode.write: 'WRITE',
-                        Mode.delete: 'DELETE',
-                      };
-                      const oss = {
-                        Mode.wake: true,
-                        Mode.read: true,
-                        Mode.write: true,
-                        Mode.delete: false,
-                      };
-                      final ss = settings.modes;
-                      return mm.map((m) => ChoiceChip(
-                          onSelected: oss[m]
-                              ? (b) => setState(() => settings.flipMode(m))
-                              : null,
-                          selected: ss[m],
-                          shape: StadiumBorder(
-                            side: BorderSide(
-                              color: ss[m]
-                                  ? Colors.blue.withOpacity(0.3)
-                                  : Colors.grey.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          selectedColor: Colors.blue.withOpacity(0.15),
-                          shadowColor: Colors.grey.withOpacity(0.25),
-                          selectedShadowColor: Colors.blue.withOpacity(0.25),
-                          backgroundColor: Theme.of(context).canvasColor,
-                          padding: EdgeInsets.symmetric(horizontal: 8),
-                          label: Text(ll[m])));
-                    }() // insert gaps between chips
-                        .expand((w) sync* {
-                          yield const SizedBox(width: 8);
-                          yield w;
-                        })
-                        .skip(1)
-                        .toList(),
-                  ),
-                  () {
-                    final cur = settings.modes.values.where((v) => v).length;
-                    final tot = settings.modes.length;
-                    final text = '$cur/$tot';
-                    const title = 'BENCH MODES';
-                    return TitleRow(text: text, title: title);
-                  }()
-                ],
-              ),
-            ),
-            collapseMode: CollapseMode.parallax,
+    return HookBuilder(
+      builder: (context) {
+        final controller = useScrollController(initialScrollOffset: 400);
+        return CustomScrollView(
+          controller: controller,
+          reverse: true,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
-          centerTitle: true,
-          backgroundColor: Colors.transparent,
-          // floating: true,
-          // pinned: true,
-          // forceElevated: true,
-          // floating: true,
-          // tune
-          // developer_board
-          // leading: IconButton(
-          //   icon: Icon(Icons.developer_board, color: Colors.black),
-          //   onPressed: () {
-          //     controller.animateTo(
-          //       0,
-          //       duration: const Duration(seconds: 1),
-          //       curve: Curves.easeInOut,
-          //     );
-          //   },
-          // ),
-          leading: Icon(Icons.developer_board, color: Colors.black),
-          actions: <Widget>[
-            // Text('UI LOCK', style: TextStyle(color: Colors.black)),
-            // Switch(value: true, onChanged: (v) {}),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                // Text('UI LOCK', style: TextStyle(color: Colors.black)),
-                Text('UI LOCK', style: Theme.of(context).textTheme.title),
-                // Icon(Icons.verified_user, color: Colors.black),
-                Switch(
-                  value: settings.uiLock,
-                  onChanged: (b) => setState(() => settings.uiLock = b),
+          slivers: [
+            // BOTTOM
+            SliverAppBar(
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                background: Container(
+                  padding: EdgeInsets.only(top: 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0x00ffffff), Colors.blue.withOpacity(0.2)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                  child: ListView(
+                    reverse: true,
+                    physics: const BouncingScrollPhysics(),
+                    children: <Widget>[
+                      IconButton(
+                        icon: Icon(Icons.keyboard_arrow_up),
+                        onPressed: _results.isEmpty ||
+                                controller.position.maxScrollExtent <= 0
+                            ? null
+                            : () => controller.animateTo(
+                                  controller.position.maxScrollExtent -
+                                      controller.position.viewportDimension +
+                                      5,
+                                  duration: Duration(
+                                      milliseconds: 200 + 50 * _results.length),
+                                  curve: Curves.easeInOut,
+                                ),
+                      ),
+                      // SETTINGS TOP
+                      RangeSlider(
+                        min: settings.stateSizeRange.start,
+                        max: settings.stateSizeRange.end,
+                        divisions: settings.stateSizeDivs,
+                        labels: settings.stateSizeLabels,
+                        values: settings.stateSize,
+                        onChanged: (rv) =>
+                            setState(() => settings.stateSize = rv),
+                      ),
+                      () {
+                        const px = '⩾';
+                        final cc = settings.stateSizeBytesMax ~/ 4;
+                        $(int cc) {
+                          if (cc < 1e3) {
+                            return '$cc';
+                          } else if (cc < 1e5) {
+                            cc ~/= 1e3;
+                            return '$px${cc}k';
+                          } else if (cc < 1e6) {
+                            cc ~/= 1e4;
+                            cc *= 10;
+                            return '$px${cc}k';
+                          } else {
+                            cc ~/= 1e6;
+                            return '$px${cc}M';
+                          }
+                        }
+
+                        final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
+                        const title = 'STATE SIZE';
+                        return TitleRow(
+                          text: text,
+                          title: title,
+                          decorator: (ww) => [
+                            TitleText(text: px, transparent: true),
+                            ...ww,
+                            TitleText(text: px, transparent: true),
+                          ],
+                        );
+                      }(),
+                      Divider(),
+                      () {
+                        // final controller2 = ScrollController();
+                        final view = HookBuilder(
+                          builder: (context) {
+                            final controller2 = useScrollController();
+
+                            return CustomScrollView(
+                              controller: controller2,
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(
+                                parent: AlwaysScrollableScrollPhysics(),
+                              ),
+                              slivers: [
+                                SliverFillRemaining(
+                                  child: () {
+                                    const ss = [
+                                      Storage.single,
+                                      Storage.multi,
+                                      Storage.ether
+                                    ];
+                                    const ll = {
+                                      Storage.single: 'Single file',
+                                      Storage.multi: 'Isolated files',
+                                      Storage.ether: 'Temporal'
+                                    };
+                                    Widget bb = ToggleButtons(
+                                      isSelected: ss
+                                          .map((s) => settings.storages[s])
+                                          .toList(),
+                                      onPressed: (i) => setState(
+                                          () => settings.flipStorage(ss[i])),
+                                      children:
+                                          ss.map((s) => Text(ll[s])).toList(),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 100.0,
+                                        minHeight: 32.0,
+                                      ),
+                                      borderColor: Colors.grey.withOpacity(0.3),
+                                      selectedBorderColor:
+                                          Colors.blue.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(8),
+                                    );
+                                    bb = Center(child: bb);
+                                    final tap = Align(
+                                      alignment: Alignment.centerRight,
+                                      child: IconButton(
+                                        onPressed: () {
+                                          controller2.animateTo(
+                                            controller2.position.extentBefore >
+                                                    0
+                                                ? controller2
+                                                    .position.minScrollExtent
+                                                : controller2
+                                                    .position.maxScrollExtent,
+                                            duration: const Duration(
+                                                milliseconds: 250),
+                                            curve: Curves.easeOut,
+                                          );
+                                        },
+                                        icon: Icon(
+                                          Icons.keyboard_arrow_left,
+                                          color: Colors.blue.withOpacity(0.5),
+                                        ),
+                                      ),
+                                    );
+                                    return Stack(children: [bb, tap]);
+                                  }(),
+                                ),
+                                SliverToBoxAdapter(
+                                  child: Container(
+                                    padding: EdgeInsets.only(right: 12),
+                                    alignment: Alignment.center,
+                                    child: () {
+                                      const ll = ['AES', 'Base64'];
+                                      final ss = {
+                                        'AES': settings.useAES,
+                                        'Base64': settings.useB64,
+                                      };
+                                      final pp = {
+                                        'AES': settings.flipUseAES,
+                                        'Base64': settings.flipUseB64,
+                                      };
+                                      return ToggleButtons(
+                                        isSelected:
+                                            ll.map((l) => ss[l]).toList(),
+                                        onPressed: (i) =>
+                                            setState(() => pp[ll[i]]()),
+                                        // onPressed: (i) => null,
+                                        children:
+                                            ll.map((l) => Text(l)).toList(),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 80.0,
+                                          minHeight: 32.0,
+                                        ),
+                                        borderColor:
+                                            Colors.grey.withOpacity(0.3),
+                                        selectedBorderColor:
+                                            Colors.blue.withOpacity(0.3),
+                                        borderRadius: BorderRadius.circular(8),
+                                      );
+                                    }(),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                        return SizedBox(height: 48, child: view);
+                      }(),
+                      // SizedBox(height: 8),
+                      () {
+                        final cur =
+                            settings.storages.values.where((v) => v).length;
+                        final tot = settings.storages.length;
+                        final text = '$cur/$tot';
+                        const title = 'STORAGES';
+                        return TitleRow(text: text, title: title);
+                      }(),
+                      Divider(),
+
+                      RangeSlider(
+                        min: settings.blocCountRange.start,
+                        max: settings.blocCountRange.end,
+                        divisions: settings.blocCountDivs,
+                        labels: settings.blocCountLabels,
+                        values: settings.blocCount,
+                        onChanged: (rv) =>
+                            setState(() => settings.blocCount = rv),
+                      ),
+                      () {
+                        final start = settings.blocCount.start.toInt();
+                        final end = settings.blocCount.end.toInt();
+                        final text =
+                            start == end ? '$end' : '$start-$end'.padLeft(2);
+                        const title = 'BLOC COUNT';
+                        return TitleRow(text: text, title: title);
+                      }(),
+                      Divider(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: () {
+                          const mm = [
+                            Mode.wake,
+                            Mode.read,
+                            Mode.write,
+                            Mode.delete
+                          ];
+                          const ll = {
+                            Mode.wake: 'WAKE',
+                            Mode.read: 'READ',
+                            Mode.write: 'WRITE',
+                            Mode.delete: 'DELETE',
+                          };
+                          const oss = {
+                            Mode.wake: true,
+                            Mode.read: true,
+                            Mode.write: true,
+                            Mode.delete: false,
+                          };
+                          final ss = settings.modes;
+                          return mm.map((m) => ChoiceChip(
+                              onSelected: oss[m]
+                                  ? (b) => setState(() => settings.flipMode(m))
+                                  : null,
+                              selected: ss[m],
+                              shape: StadiumBorder(
+                                side: BorderSide(
+                                  color: ss[m]
+                                      ? Colors.blue.withOpacity(0.3)
+                                      : Colors.grey.withOpacity(0.3),
+                                  width: 1,
+                                ),
+                              ),
+                              selectedColor: Colors.blue.withOpacity(0.15),
+                              shadowColor: Colors.grey.withOpacity(0.25),
+                              selectedShadowColor:
+                                  Colors.blue.withOpacity(0.25),
+                              backgroundColor: Theme.of(context).canvasColor,
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              label: Text(ll[m])));
+                        }() // insert gaps between chips
+                            .expand((w) sync* {
+                              yield const SizedBox(width: 8);
+                              yield w;
+                            })
+                            .skip(1)
+                            .toList(),
+                      ),
+                      () {
+                        final cur =
+                            settings.modes.values.where((v) => v).length;
+                        final tot = settings.modes.length;
+                        final text = '$cur/$tot';
+                        const title = 'BENCH MODES';
+                        return TitleRow(text: text, title: title);
+                      }()
+                    ],
+                  ),
+                ),
+                collapseMode: CollapseMode.parallax,
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              leading: Icon(Icons.developer_board, color: Colors.black),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('UI LOCK', style: Theme.of(context).textTheme.title),
+                    Switch(
+                      value: settings.uiLock,
+                      onChanged: (b) => setState(() => settings.uiLock = b),
+                    ),
+                  ],
                 ),
               ],
+              expandedHeight: 400,
             ),
-          ],
-          // title: _benchmark(context),
-          // title: Text('Logic tuning', style: Theme.of(context).textTheme.title),
-          // title: Divider(
-          //   thickness: 1,
-          //   color: Colors.grey.withOpacity(0.3),
-          // ),
-          expandedHeight: 400,
-          // bottom: PreferredSize(
-          //   preferredSize: Size.fromHeight(50.0),
-          //   // child: _benchmark(context),
-          //   // child: Row(children: <Widget>[
-          //   //   Icon(Icons.developer_board, color: Colors.black)
-          //   // ]),
-          // ),
-          // pinned: true,
-        ),
-        // SliverFillRemaining(
-        //     child: Container(color: Colors.blue.withOpacity(0.2))),
-        // SliverFillViewport(
-        //   viewportFraction: .2,
-        //   delegate: SliverChildListDelegate([
-        //     Container(color: Colors.blue.withOpacity(0.2)),
-        //     Container(color: Colors.red.withOpacity(0.2)),
-        //     Container(color: Colors.green.withOpacity(0.2)),
-        //   ]),
-        // ),
-        // SliverLayoutBuilder
-        // SliverPrototypeExtentList
-        // SliverMultiBoxAdaptorElement
-        // SliverOverlapInjector
-        // MIDDLE
-        SliverAppBar(
-          // pinned: true,
-          backgroundColor: Colors.transparent,
-          expandedHeight: 120,
-          elevation: 0,
-          // title: Text('fire'),
-          // leading: Icon(Icons.developer_board, color: Colors.black),
-          // bubble_chart
-          // verified_user
-          // bug_report
-          // build
-          // developer_board
-          // device_hub
-          // fingerprint
-          // linear_scale
-          // polymer
-          // select_all
-          // tune
-          // leading: Icon(Icons.select_all, color: Colors.black),
-          // leading: Text('🤯'),
-          // floating: true,
-          flexibleSpace: FlexibleSpaceBar(
-            centerTitle: true,
-            // background: _benchmark(context),
-            title: _benchmark(context),
-            // title: Placeholder(),
-            collapseMode: CollapseMode.none,
-          ),
-          // bottom: PreferredSize(
-          //   preferredSize: Size.fromHeight(100.0),
-          //   child: _benchmark(context),
-          // ),
-        ),
-        SliverList(delegate: SliverChildListDelegate(_list(context))),
-        // SliverFillRemaining(),
-        // if (_results.isEmpty ||
-        //     controller.position.extentAfter - controller.position.extentBefore <
-        //         controller.position.maxScrollExtent)
-        // if (_results.isEmpty ||
-        //     controller.position.maxScrollExtent >
-        //         2 * controller.position.viewportDimension)
-        SliverFillViewport(
-          // viewportFraction: 0.8,
-          delegate: SliverChildListDelegate(
-            [
-              // Container(color: Colors.blue.withOpacity(0.2)),
-              // Container(color: Colors.red.withOpacity(0.2)),
-              // Container(color: Colors.green.withOpacity(0.2)),
-              Column(
-                verticalDirection: VerticalDirection.up,
-                children: <Widget>[
-                  SizedBox(height: 8),
-                  Text('v3.1.0',
-                      style: Theme.of(context).textTheme.title.copyWith(
-                            color: Colors.grey.withOpacity(0.4),
-                          )),
-                  IconButton(
-                    iconSize: 96,
-                    // splashColor: Colors.blue,
-                    icon: Icon(
-                      Icons.select_all,
-                      // size: 96,
-                      color: Colors.blueGrey.withOpacity(0.4),
-                    ),
-                    onPressed: () {
-                      controller.animateTo(
-                        0,
-                        duration: const Duration(seconds: 1),
-                        curve: Curves.easeInOut,
-                      );
-                    },
-                  ),
-                  SizedBox(height: 120),
-                  Text(
-                    'Tap on little blue processor\nto see tuning options',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .title
-                        .copyWith(color: Colors.grey.withOpacity(0.4)),
+            // MIDDLE
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              expandedHeight: 120,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: _benchmark(context),
+                collapseMode: CollapseMode.none,
+              ),
+            ),
+            SliverList(delegate: SliverChildListDelegate(_list(context))),
+            SliverFillViewport(
+              delegate: SliverChildListDelegate(
+                [
+                  Column(
+                    verticalDirection: VerticalDirection.up,
+                    children: [
+                      SizedBox(height: 8),
+                      Text('v3.1.0',
+                          style: Theme.of(context).textTheme.title.copyWith(
+                                color: Colors.grey.withOpacity(0.4),
+                              )),
+                      IconButton(
+                        iconSize: 96,
+                        icon: Icon(
+                          Icons.select_all,
+                          color: Colors.blueGrey.withOpacity(0.4),
+                        ),
+                        onPressed: () {
+                          controller.animateTo(
+                            0,
+                            duration: const Duration(seconds: 1),
+                            curve: Curves.easeInOut,
+                          );
+                        },
+                      ),
+                      SizedBox(height: 120),
+                      Text(
+                        'Tap on little blue processor\nto see tuning options',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .title
+                            .copyWith(color: Colors.grey.withOpacity(0.4)),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
