@@ -1,6 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:flutter/foundation.dart';
+import 'package:freezed_annotation/freezed_annotation.dart';
+
+part 'settings.freezed.dart';
 
 enum Mode { wake, read, write, delete }
 enum Storage { single, multi, ether }
@@ -61,60 +66,69 @@ class BenchmarkSettings {
   }
 }
 
-class SettingsModel extends InheritedModel<Aspect> {
-  final BenchmarkSettings settings;
-  const SettingsModel({
-    Widget child,
-    this.settings,
-  }) : super(child: child);
+@freezed
+abstract class SettingsEvent with _$SettingsEvent {
+  const factory SettingsEvent.flipUseAES() = _FlipUseAES;
+  const factory SettingsEvent.flipUseB64() = _FlipUseB64;
+  const factory SettingsEvent.flipMode(Mode mode) = _FlipMode;
+  const factory SettingsEvent.flipStorage(Storage storage) = _FlipStorage;
+  const factory SettingsEvent.newBlocCount(RangeValues count) = _NewBlocCount;
+  const factory SettingsEvent.newStateSize(RangeValues size) = _NewStateSize;
+}
+
+class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
+  @override
+  BenchmarkSettings get initialState =>
+      super.initialState ?? BenchmarkSettings();
 
   @override
-  bool updateShouldNotifyDependent(
-    SettingsModel oldWidget,
-    Set<Aspect> dependencies,
-  ) {
-    final oldSettings = oldWidget.settings;
-    if (dependencies.contains(Aspect.lock)) {
-      if (oldSettings.uiLock != settings.uiLock) {
-        return true;
-      }
-    }
-    if (dependencies.contains(Aspect.mode)) {
-      if (oldSettings.modes != settings.modes) {
-        return true;
-      }
-    }
-    if (dependencies.contains(Aspect.storage)) {
-      if (oldSettings.useAES != settings.useAES ||
-          oldSettings.useB64 != settings.useB64 ||
-          oldSettings.storages != settings.storages) {
-        return true;
-      }
-    }
-    if (dependencies.contains(Aspect.count)) {
-      if (oldSettings.blocCount != settings.blocCount ||
-          oldSettings.blocCountRange != settings.blocCountRange ||
-          oldSettings.blocCountDivs != settings.blocCountDivs) {
-        return true;
-      }
-    }
-    if (dependencies.contains(Aspect.size)) {
-      if (oldSettings.stateSize != settings.stateSize ||
-          oldSettings.stateSizeRange != settings.stateSizeRange ||
-          oldSettings.stateSizeDivs != settings.stateSizeDivs) {
-        return true;
-      }
-    }
-    return false;
+  Stream<BenchmarkSettings> mapEventToState(SettingsEvent event) async* {
+    event.when(
+      flipUseAES: () => state.flipUseAES(),
+      flipUseB64: () => state.flipUseB64(),
+      flipMode: (mode) => state.flipMode(mode),
+      flipStorage: (storage) => state.flipStorage(storage),
+      newBlocCount: (count) => state.blocCount = count,
+      newStateSize: (size) => state.stateSize = size,
+    );
+    yield state;
   }
 
   @override
-  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+  Map<String, dynamic> toJson(BenchmarkSettings settings) {
+    return {
+      'uiLock': settings.uiLock,
+      'useAES': settings.useAES,
+      'useB64': settings.useB64,
+      'modes': settings.modes,
+      'storages': settings.storages,
+      'blocCount': {
+        'start': settings.blocCount.start,
+        'end': settings.blocCount.end
+      },
+      'stateSize': {
+        'start': settings.stateSize.start,
+        'end': settings.stateSize.end
+      },
+    };
+  }
 
-  static SettingsModel of(BuildContext context, Aspect aspect) {
-    return InheritedModel.inheritFrom<SettingsModel>(
-      context,
-      aspect: aspect,
-    );
+  @override
+  BenchmarkSettings fromJson(Map<String, dynamic> json) {
+    final settings = BenchmarkSettings()
+      ..uiLock = json['uiLock']
+      ..useAES = json['useAES']
+      ..useB64 = json['useB64']
+      ..modes = json['modes']
+      ..storages = json['storages']
+      ..blocCount = RangeValues(
+        json['blocCount']['start'],
+        json['blocCount']['end'],
+      )
+      ..stateSize = RangeValues(
+        json['stateSize']['start'],
+        json['stateSize']['end'],
+      );
+    return settings;
   }
 }
