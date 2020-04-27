@@ -216,26 +216,6 @@ class _AppState extends State<App> {
     ValueNotifier<List<Result>> results,
     ScrollController controller,
   ) {
-    goUp() {
-      onPressed() {
-        controller.animateTo(
-          controller.position.maxScrollExtent -
-              controller.position.viewportDimension +
-              5,
-          duration: Duration(milliseconds: 200 + 50 * results.value.length),
-          curve: Curves.easeInOut,
-        );
-      }
-
-      return IconButton(
-        icon: Icon(Icons.keyboard_arrow_up),
-        onPressed:
-            results.value.isEmpty || controller.position.maxScrollExtent <= 0
-                ? null
-                : onPressed,
-      );
-    }
-
     return Container(
       padding: EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
@@ -249,7 +229,7 @@ class _AppState extends State<App> {
         reverse: true,
         physics: const BouncingScrollPhysics(),
         children: [
-          goUp(),
+          _goUp(results, controller),
           ..._stateSize(),
           Divider(),
           ..._storages(),
@@ -373,37 +353,6 @@ class _AppState extends State<App> {
     ];
   }
 
-  Widget _storagesSubPart() {
-    return Container(
-      padding: EdgeInsets.only(right: 12),
-      alignment: Alignment.center,
-      child: () {
-        const ll = ['AES', 'Base64'];
-        final ss = {
-          'AES': settings.useAES,
-          'Base64': settings.useB64,
-        };
-        final pp = {
-          'AES': settings.flipUseAES,
-          'Base64': settings.flipUseB64,
-        };
-        return ToggleButtons(
-          isSelected: ll.map((l) => ss[l]).toList(),
-          onPressed: (i) => setState(() => pp[ll[i]]()),
-          // onPressed: (i) => null,
-          children: ll.map((l) => Text(l)).toList(),
-          constraints: const BoxConstraints(
-            minWidth: 80.0,
-            minHeight: 32.0,
-          ),
-          borderColor: Colors.grey.withOpacity(0.3),
-          selectedBorderColor: Colors.blue.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8),
-        );
-      }(),
-    );
-  }
-
   Widget _storagesMainPart(ScrollController controller) {
     const ss = [Storage.single, Storage.multi, Storage.ether];
     const ll = {
@@ -443,6 +392,37 @@ class _AppState extends State<App> {
       ),
     );
     return Stack(children: [bb, tap]);
+  }
+
+  Widget _storagesSubPart() {
+    return Container(
+      padding: EdgeInsets.only(right: 12),
+      alignment: Alignment.center,
+      child: () {
+        const ll = ['AES', 'Base64'];
+        final ss = {
+          'AES': settings.useAES,
+          'Base64': settings.useB64,
+        };
+        final pp = {
+          'AES': settings.flipUseAES,
+          'Base64': settings.flipUseB64,
+        };
+        return ToggleButtons(
+          isSelected: ll.map((l) => ss[l]).toList(),
+          onPressed: (i) => setState(() => pp[ll[i]]()),
+          // onPressed: (i) => null,
+          children: ll.map((l) => Text(l)).toList(),
+          constraints: const BoxConstraints(
+            minWidth: 80.0,
+            minHeight: 32.0,
+          ),
+          borderColor: Colors.grey.withOpacity(0.3),
+          selectedBorderColor: Colors.blue.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(8),
+        );
+      }(),
+    );
   }
 
   List<Widget> _stateSize() {
@@ -487,6 +467,26 @@ class _AppState extends State<App> {
         );
       }()
     ];
+  }
+
+  _goUp(ValueNotifier<List<Result>> results, ScrollController controller) {
+    onPressed() {
+      controller.animateTo(
+        controller.position.maxScrollExtent -
+            controller.position.viewportDimension +
+            5,
+        duration: Duration(milliseconds: 200 + 50 * results.value.length),
+        curve: Curves.easeInOut,
+      );
+    }
+
+    return IconButton(
+      icon: Icon(Icons.keyboard_arrow_up),
+      onPressed:
+          results.value.isEmpty || controller.position.maxScrollExtent <= 0
+              ? null
+              : onPressed,
+    );
   }
 
   Widget _top(BuildContext context, ScrollController controller) {

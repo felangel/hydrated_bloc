@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 enum Mode { wake, read, write, delete }
 enum Storage { single, multi, ether }
+enum Aspect { lock, mode, count, storage, size }
 
 class BenchmarkSettings {
   var uiLock = true;
@@ -57,5 +58,63 @@ class BenchmarkSettings {
     final e = size % 10;
     final p = const ['Bytes', 'KB', 'MB', 'GB'][size ~/ 10];
     return '${pow(2, e)} $p';
+  }
+}
+
+class SettingsModel extends InheritedModel<Aspect> {
+  final BenchmarkSettings settings;
+  const SettingsModel({
+    Widget child,
+    this.settings,
+  }) : super(child: child);
+
+  @override
+  bool updateShouldNotifyDependent(
+    SettingsModel oldWidget,
+    Set<Aspect> dependencies,
+  ) {
+    final oldSettings = oldWidget.settings;
+    if (dependencies.contains(Aspect.lock)) {
+      if (oldSettings.uiLock != settings.uiLock) {
+        return true;
+      }
+    }
+    if (dependencies.contains(Aspect.mode)) {
+      if (oldSettings.modes != settings.modes) {
+        return true;
+      }
+    }
+    if (dependencies.contains(Aspect.storage)) {
+      if (oldSettings.useAES != settings.useAES ||
+          oldSettings.useB64 != settings.useB64 ||
+          oldSettings.storages != settings.storages) {
+        return true;
+      }
+    }
+    if (dependencies.contains(Aspect.count)) {
+      if (oldSettings.blocCount != settings.blocCount ||
+          oldSettings.blocCountRange != settings.blocCountRange ||
+          oldSettings.blocCountDivs != settings.blocCountDivs) {
+        return true;
+      }
+    }
+    if (dependencies.contains(Aspect.size)) {
+      if (oldSettings.stateSize != settings.stateSize ||
+          oldSettings.stateSizeRange != settings.stateSizeRange ||
+          oldSettings.stateSizeDivs != settings.stateSizeDivs) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool updateShouldNotify(InheritedWidget oldWidget) => true;
+
+  static SettingsModel of(BuildContext context, Aspect aspect) {
+    return InheritedModel.inheritFrom<SettingsModel>(
+      context,
+      aspect: aspect,
+    );
   }
 }
