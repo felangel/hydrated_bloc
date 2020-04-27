@@ -44,57 +44,63 @@ class _AppState extends State<App> {
     );
   }
 
-  final settings = BenchmarkSettings();
+  // final settings = BenchmarkSettings();
   Widget _view(BuildContext context) {
     return HookBuilder(
       builder: (context) {
         final controller = useScrollController(initialScrollOffset: 400);
         final results = useState(<Result>[]);
         final running = useState(false);
-        return CustomScrollView(
-          controller: controller,
-          reverse: true,
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
+        final settings = useState(BenchmarkSettings());
+        return SettingsModel(
+          settings: settings.value,
+          child: Builder(
+            builder: (context) => CustomScrollView(
+              controller: controller,
+              reverse: true,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                // BOTTOM
+                SliverAppBar(
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    background: _settings(context, results, controller),
+                    collapseMode: CollapseMode.parallax,
+                  ),
+                  centerTitle: true,
+                  backgroundColor: Colors.transparent,
+                  leading: Icon(Icons.developer_board, color: Colors.black),
+                  actions: [_uiLock()],
+                  expandedHeight: 400,
+                ),
+                // MIDDLE
+                SliverAppBar(
+                  backgroundColor: Colors.transparent,
+                  expandedHeight: 120,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: true,
+                    title: _benchmark(context, results, running),
+                    collapseMode: CollapseMode.none,
+                  ),
+                ),
+                SliverList(
+                  delegate: SliverChildListDelegate(
+                    _results(context, results),
+                  ),
+                ),
+                // TOP
+                SliverFillViewport(
+                  delegate: SliverChildListDelegate([
+                    _top(context, controller),
+                  ]),
+                ),
+              ],
+            ),
           ),
-          slivers: [
-            // BOTTOM
-            SliverAppBar(
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                background: _settings(context, results, controller),
-                collapseMode: CollapseMode.parallax,
-              ),
-              centerTitle: true,
-              backgroundColor: Colors.transparent,
-              leading: Icon(Icons.developer_board, color: Colors.black),
-              actions: [_uiLock()],
-              expandedHeight: 400,
-            ),
-            // MIDDLE
-            SliverAppBar(
-              backgroundColor: Colors.transparent,
-              expandedHeight: 120,
-              elevation: 0,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: true,
-                title: _benchmark(context, results, running),
-                collapseMode: CollapseMode.none,
-              ),
-            ),
-            SliverList(
-              delegate: SliverChildListDelegate(
-                _results(context, results),
-              ),
-            ),
-            // TOP
-            SliverFillViewport(
-              delegate: SliverChildListDelegate([
-                _top(context, controller),
-              ]),
-            ),
-          ],
         );
       },
     );
@@ -163,7 +169,8 @@ class _AppState extends State<App> {
       if (running.value) return;
       results.value = <Result>[];
       running.value = true;
-      print('RUNNING');
+      print('RUNNING'); // TODO mb pass settings to here
+      final settings = SettingsModel.of(context, null).settings;
       final bm = Benchmark(settings);
       final maa = {
         Mode.read: bm.doReads,
@@ -199,6 +206,7 @@ class _AppState extends State<App> {
   }
 
   Widget _uiLock() {
+    final settings = SettingsModel.of(context, Aspect.lock).settings;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -243,6 +251,7 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _benchModes() {
+    final settings = SettingsModel.of(context, Aspect.mode).settings;
     return [
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -298,6 +307,7 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _blocCount() {
+    final settings = SettingsModel.of(context, Aspect.count).settings;
     return [
       RangeSlider(
         min: settings.blocCountRange.start,
@@ -318,6 +328,7 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _storages() {
+    final settings = SettingsModel.of(context, Aspect.storage).settings;
     return [
       () {
         final view = HookBuilder(
@@ -331,10 +342,10 @@ class _AppState extends State<App> {
               ),
               slivers: [
                 SliverFillRemaining(
-                  child: _storagesMainPart(controller),
+                  child: _storagesMainPart(controller, settings),
                 ),
                 SliverToBoxAdapter(
-                  child: _storagesSubPart(),
+                  child: _storagesSubPart(settings),
                 ),
               ],
             );
@@ -353,7 +364,8 @@ class _AppState extends State<App> {
     ];
   }
 
-  Widget _storagesMainPart(ScrollController controller) {
+  Widget _storagesMainPart(
+      ScrollController controller, BenchmarkSettings settings) {
     const ss = [Storage.single, Storage.multi, Storage.ether];
     const ll = {
       Storage.single: 'Single file',
@@ -394,7 +406,7 @@ class _AppState extends State<App> {
     return Stack(children: [bb, tap]);
   }
 
-  Widget _storagesSubPart() {
+  Widget _storagesSubPart(BenchmarkSettings settings) {
     return Container(
       padding: EdgeInsets.only(right: 12),
       alignment: Alignment.center,
@@ -426,6 +438,7 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _stateSize() {
+    final settings = SettingsModel.of(context, Aspect.size).settings;
     return [
       RangeSlider(
         min: settings.stateSizeRange.start,
