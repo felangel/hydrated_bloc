@@ -253,48 +253,50 @@ class _AppState extends State<App> {
   List<Widget> _benchModes(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.mode).settings;
     return [
-      Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: () {
-          const mm = [Mode.wake, Mode.read, Mode.write, Mode.delete];
-          const ll = {
-            Mode.wake: 'WAKE',
-            Mode.read: 'READ',
-            Mode.write: 'WRITE',
-            Mode.delete: 'DELETE',
-          };
-          const oss = {
-            Mode.wake: true,
-            Mode.read: true,
-            Mode.write: true,
-            Mode.delete: false,
-          };
-          final ss = settings.modes;
-          return mm.map((m) => ChoiceChip(
-              onSelected:
-                  oss[m] ? (b) => setState(() => settings.flipMode(m)) : null,
-              selected: ss[m],
-              shape: StadiumBorder(
-                side: BorderSide(
-                  color: ss[m]
-                      ? Colors.blue.withOpacity(0.3)
-                      : Colors.grey.withOpacity(0.3),
-                  width: 1,
+      Builder(
+        builder: (context) => Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: () {
+            const mm = [Mode.wake, Mode.read, Mode.write, Mode.delete];
+            const ll = {
+              Mode.wake: 'WAKE',
+              Mode.read: 'READ',
+              Mode.write: 'WRITE',
+              Mode.delete: 'DELETE',
+            };
+            const oss = {
+              Mode.wake: true,
+              Mode.read: true,
+              Mode.write: true,
+              Mode.delete: false,
+            };
+            final ss = settings.modes;
+            return mm.map((m) => ChoiceChip(
+                onSelected:
+                    oss[m] ? (b) => setState(() => settings.flipMode(m)) : null,
+                selected: ss[m],
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: ss[m]
+                        ? Colors.blue.withOpacity(0.3)
+                        : Colors.grey.withOpacity(0.3),
+                    width: 1,
+                  ),
                 ),
-              ),
-              selectedColor: Colors.blue.withOpacity(0.15),
-              shadowColor: Colors.grey.withOpacity(0.25),
-              selectedShadowColor: Colors.blue.withOpacity(0.25),
-              backgroundColor: Theme.of(context).canvasColor,
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              label: Text(ll[m])));
-        }() // insert gaps between chips
-            .expand((w) sync* {
-              yield const SizedBox(width: 8);
-              yield w;
-            })
-            .skip(1)
-            .toList(),
+                selectedColor: Colors.blue.withOpacity(0.15),
+                shadowColor: Colors.grey.withOpacity(0.25),
+                selectedShadowColor: Colors.blue.withOpacity(0.25),
+                backgroundColor: Theme.of(context).canvasColor,
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                label: Text(ll[m])));
+          }() // insert gaps between chips
+              .expand((w) sync* {
+                yield const SizedBox(width: 8);
+                yield w;
+              })
+              .skip(1)
+              .toList(),
+        ),
       ),
       () {
         final cur = settings.modes.values.where((v) => v).length;
