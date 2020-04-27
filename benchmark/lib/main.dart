@@ -216,6 +216,26 @@ class _AppState extends State<App> {
     ValueNotifier<List<Result>> results,
     ScrollController controller,
   ) {
+    goUp() {
+      onPressed() {
+        controller.animateTo(
+          controller.position.maxScrollExtent -
+              controller.position.viewportDimension +
+              5,
+          duration: Duration(milliseconds: 200 + 50 * results.value.length),
+          curve: Curves.easeInOut,
+        );
+      }
+
+      return IconButton(
+        icon: Icon(Icons.keyboard_arrow_up),
+        onPressed:
+            results.value.isEmpty || controller.position.maxScrollExtent <= 0
+                ? null
+                : onPressed,
+      );
+    }
+
     return Container(
       padding: EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
@@ -228,238 +248,245 @@ class _AppState extends State<App> {
       child: ListView(
         reverse: true,
         physics: const BouncingScrollPhysics(),
-        children: <Widget>[
-          IconButton(
-            icon: Icon(Icons.keyboard_arrow_up),
-            onPressed: results.value.isEmpty ||
-                    controller.position.maxScrollExtent <= 0
-                ? null
-                : () => controller.animateTo(
-                      controller.position.maxScrollExtent -
-                          controller.position.viewportDimension +
-                          5,
-                      duration: Duration(
-                          milliseconds: 200 + 50 * results.value.length),
-                      curve: Curves.easeInOut,
-                    ),
-          ),
-          // SETTINGS TOP
-          RangeSlider(
-            min: settings.stateSizeRange.start,
-            max: settings.stateSizeRange.end,
-            divisions: settings.stateSizeDivs,
-            labels: settings.stateSizeLabels,
-            values: settings.stateSize,
-            onChanged: (rv) => setState(() => settings.stateSize = rv),
-          ),
-          () {
-            const px = '⩾';
-            final cc = settings.stateSizeBytesMax ~/ 4;
-            $(int cc) {
-              if (cc < 1e3) {
-                return '$cc';
-              } else if (cc < 1e5) {
-                cc ~/= 1e3;
-                return '$px${cc}k';
-              } else if (cc < 1e6) {
-                cc ~/= 1e4;
-                cc *= 10;
-                return '$px${cc}k';
-              } else {
-                cc ~/= 1e6;
-                return '$px${cc}M';
-              }
-            }
-
-            final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
-            const title = 'STATE SIZE';
-            return TitleRow(
-              text: text,
-              title: title,
-              decorator: (ww) => [
-                TitleText(text: px, transparent: true),
-                ...ww,
-                TitleText(text: px, transparent: true),
-              ],
-            );
-          }(),
+        children: [
+          goUp(),
+          ..._stateSize(),
           Divider(),
-          () {
-            final view = HookBuilder(
-              builder: (context) {
-                final controller2 = useScrollController();
-
-                return CustomScrollView(
-                  controller: controller2,
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
-                  slivers: [
-                    SliverFillRemaining(
-                      child: () {
-                        const ss = [
-                          Storage.single,
-                          Storage.multi,
-                          Storage.ether
-                        ];
-                        const ll = {
-                          Storage.single: 'Single file',
-                          Storage.multi: 'Isolated files',
-                          Storage.ether: 'Temporal'
-                        };
-                        Widget bb = ToggleButtons(
-                          isSelected:
-                              ss.map((s) => settings.storages[s]).toList(),
-                          onPressed: (i) =>
-                              setState(() => settings.flipStorage(ss[i])),
-                          children: ss.map((s) => Text(ll[s])).toList(),
-                          constraints: const BoxConstraints(
-                            minWidth: 100.0,
-                            minHeight: 32.0,
-                          ),
-                          borderColor: Colors.grey.withOpacity(0.3),
-                          selectedBorderColor: Colors.blue.withOpacity(0.3),
-                          borderRadius: BorderRadius.circular(8),
-                        );
-                        bb = Center(child: bb);
-                        final tap = Align(
-                          alignment: Alignment.centerRight,
-                          child: IconButton(
-                            onPressed: () {
-                              controller2.animateTo(
-                                controller2.position.extentBefore > 0
-                                    ? controller2.position.minScrollExtent
-                                    : controller2.position.maxScrollExtent,
-                                duration: const Duration(milliseconds: 250),
-                                curve: Curves.easeOut,
-                              );
-                            },
-                            icon: Icon(
-                              Icons.keyboard_arrow_left,
-                              color: Colors.blue.withOpacity(0.5),
-                            ),
-                          ),
-                        );
-                        return Stack(children: [bb, tap]);
-                      }(),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Container(
-                        padding: EdgeInsets.only(right: 12),
-                        alignment: Alignment.center,
-                        child: () {
-                          const ll = ['AES', 'Base64'];
-                          final ss = {
-                            'AES': settings.useAES,
-                            'Base64': settings.useB64,
-                          };
-                          final pp = {
-                            'AES': settings.flipUseAES,
-                            'Base64': settings.flipUseB64,
-                          };
-                          return ToggleButtons(
-                            isSelected: ll.map((l) => ss[l]).toList(),
-                            onPressed: (i) => setState(() => pp[ll[i]]()),
-                            // onPressed: (i) => null,
-                            children: ll.map((l) => Text(l)).toList(),
-                            constraints: const BoxConstraints(
-                              minWidth: 80.0,
-                              minHeight: 32.0,
-                            ),
-                            borderColor: Colors.grey.withOpacity(0.3),
-                            selectedBorderColor: Colors.blue.withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(8),
-                          );
-                        }(),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-            return SizedBox(height: 48, child: view);
-          }(),
-          // SizedBox(height: 8),
-          () {
-            final cur = settings.storages.values.where((v) => v).length;
-            final tot = settings.storages.length;
-            final text = '$cur/$tot';
-            const title = 'STORAGES';
-            return TitleRow(text: text, title: title);
-          }(),
+          ..._storages(),
           Divider(),
-
-          RangeSlider(
-            min: settings.blocCountRange.start,
-            max: settings.blocCountRange.end,
-            divisions: settings.blocCountDivs,
-            labels: settings.blocCountLabels,
-            values: settings.blocCount,
-            onChanged: (rv) => setState(() => settings.blocCount = rv),
-          ),
-          () {
-            final start = settings.blocCount.start.toInt();
-            final end = settings.blocCount.end.toInt();
-            final text = start == end ? '$end' : '$start-$end'.padLeft(2);
-            const title = 'BLOC COUNT';
-            return TitleRow(text: text, title: title);
-          }(),
+          ..._blocCount(),
           Divider(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: () {
-              const mm = [Mode.wake, Mode.read, Mode.write, Mode.delete];
-              const ll = {
-                Mode.wake: 'WAKE',
-                Mode.read: 'READ',
-                Mode.write: 'WRITE',
-                Mode.delete: 'DELETE',
-              };
-              const oss = {
-                Mode.wake: true,
-                Mode.read: true,
-                Mode.write: true,
-                Mode.delete: false,
-              };
-              final ss = settings.modes;
-              return mm.map((m) => ChoiceChip(
-                  onSelected: oss[m]
-                      ? (b) => setState(() => settings.flipMode(m))
-                      : null,
-                  selected: ss[m],
-                  shape: StadiumBorder(
-                    side: BorderSide(
-                      color: ss[m]
-                          ? Colors.blue.withOpacity(0.3)
-                          : Colors.grey.withOpacity(0.3),
-                      width: 1,
-                    ),
-                  ),
-                  selectedColor: Colors.blue.withOpacity(0.15),
-                  shadowColor: Colors.grey.withOpacity(0.25),
-                  selectedShadowColor: Colors.blue.withOpacity(0.25),
-                  backgroundColor: Theme.of(context).canvasColor,
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  label: Text(ll[m])));
-            }() // insert gaps between chips
-                .expand((w) sync* {
-                  yield const SizedBox(width: 8);
-                  yield w;
-                })
-                .skip(1)
-                .toList(),
-          ),
-          () {
-            final cur = settings.modes.values.where((v) => v).length;
-            final tot = settings.modes.length;
-            final text = '$cur/$tot';
-            const title = 'BENCH MODES';
-            return TitleRow(text: text, title: title);
-          }()
+          ..._benchModes(),
         ],
       ),
     );
+  }
+
+  List<Widget> _benchModes() {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: () {
+          const mm = [Mode.wake, Mode.read, Mode.write, Mode.delete];
+          const ll = {
+            Mode.wake: 'WAKE',
+            Mode.read: 'READ',
+            Mode.write: 'WRITE',
+            Mode.delete: 'DELETE',
+          };
+          const oss = {
+            Mode.wake: true,
+            Mode.read: true,
+            Mode.write: true,
+            Mode.delete: false,
+          };
+          final ss = settings.modes;
+          return mm.map((m) => ChoiceChip(
+              onSelected:
+                  oss[m] ? (b) => setState(() => settings.flipMode(m)) : null,
+              selected: ss[m],
+              shape: StadiumBorder(
+                side: BorderSide(
+                  color: ss[m]
+                      ? Colors.blue.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              selectedColor: Colors.blue.withOpacity(0.15),
+              shadowColor: Colors.grey.withOpacity(0.25),
+              selectedShadowColor: Colors.blue.withOpacity(0.25),
+              backgroundColor: Theme.of(context).canvasColor,
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              label: Text(ll[m])));
+        }() // insert gaps between chips
+            .expand((w) sync* {
+              yield const SizedBox(width: 8);
+              yield w;
+            })
+            .skip(1)
+            .toList(),
+      ),
+      () {
+        final cur = settings.modes.values.where((v) => v).length;
+        final tot = settings.modes.length;
+        final text = '$cur/$tot';
+        const title = 'BENCH MODES';
+        return TitleRow(text: text, title: title);
+      }()
+    ];
+  }
+
+  List<Widget> _blocCount() {
+    return [
+      RangeSlider(
+        min: settings.blocCountRange.start,
+        max: settings.blocCountRange.end,
+        divisions: settings.blocCountDivs,
+        labels: settings.blocCountLabels,
+        values: settings.blocCount,
+        onChanged: (rv) => setState(() => settings.blocCount = rv),
+      ),
+      () {
+        final start = settings.blocCount.start.toInt();
+        final end = settings.blocCount.end.toInt();
+        final text = start == end ? '$end' : '$start-$end'.padLeft(2);
+        const title = 'BLOC COUNT';
+        return TitleRow(text: text, title: title);
+      }(),
+    ];
+  }
+
+  List<Widget> _storages() {
+    return [
+      () {
+        final view = HookBuilder(
+          builder: (context) {
+            final controller = useScrollController();
+            return CustomScrollView(
+              controller: controller,
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              slivers: [
+                SliverFillRemaining(
+                  child: _storagesMainPart(controller),
+                ),
+                SliverToBoxAdapter(
+                  child: _storagesSubPart(),
+                ),
+              ],
+            );
+          },
+        );
+        return SizedBox(height: 48, child: view);
+      }(),
+      // SizedBox(height: 8),
+      () {
+        final cur = settings.storages.values.where((v) => v).length;
+        final tot = settings.storages.length;
+        final text = '$cur/$tot';
+        const title = 'STORAGES';
+        return TitleRow(text: text, title: title);
+      }(),
+    ];
+  }
+
+  Widget _storagesSubPart() {
+    return Container(
+      padding: EdgeInsets.only(right: 12),
+      alignment: Alignment.center,
+      child: () {
+        const ll = ['AES', 'Base64'];
+        final ss = {
+          'AES': settings.useAES,
+          'Base64': settings.useB64,
+        };
+        final pp = {
+          'AES': settings.flipUseAES,
+          'Base64': settings.flipUseB64,
+        };
+        return ToggleButtons(
+          isSelected: ll.map((l) => ss[l]).toList(),
+          onPressed: (i) => setState(() => pp[ll[i]]()),
+          // onPressed: (i) => null,
+          children: ll.map((l) => Text(l)).toList(),
+          constraints: const BoxConstraints(
+            minWidth: 80.0,
+            minHeight: 32.0,
+          ),
+          borderColor: Colors.grey.withOpacity(0.3),
+          selectedBorderColor: Colors.blue.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(8),
+        );
+      }(),
+    );
+  }
+
+  Widget _storagesMainPart(ScrollController controller) {
+    const ss = [Storage.single, Storage.multi, Storage.ether];
+    const ll = {
+      Storage.single: 'Single file',
+      Storage.multi: 'Isolated files',
+      Storage.ether: 'Temporal'
+    };
+    Widget bb = ToggleButtons(
+      isSelected: ss.map((s) => settings.storages[s]).toList(),
+      onPressed: (i) => setState(() => settings.flipStorage(ss[i])),
+      children: ss.map((s) => Text(ll[s])).toList(),
+      constraints: const BoxConstraints(
+        minWidth: 100.0,
+        minHeight: 32.0,
+      ),
+      borderColor: Colors.grey.withOpacity(0.3),
+      selectedBorderColor: Colors.blue.withOpacity(0.3),
+      borderRadius: BorderRadius.circular(8),
+    );
+    bb = Center(child: bb);
+    final tap = Align(
+      alignment: Alignment.centerRight,
+      child: IconButton(
+        onPressed: () {
+          controller.animateTo(
+            controller.position.extentBefore > 0
+                ? controller.position.minScrollExtent
+                : controller.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOut,
+          );
+        },
+        icon: Icon(
+          Icons.keyboard_arrow_left,
+          color: Colors.blue.withOpacity(0.5),
+        ),
+      ),
+    );
+    return Stack(children: [bb, tap]);
+  }
+
+  List<Widget> _stateSize() {
+    return [
+      RangeSlider(
+        min: settings.stateSizeRange.start,
+        max: settings.stateSizeRange.end,
+        divisions: settings.stateSizeDivs,
+        labels: settings.stateSizeLabels,
+        values: settings.stateSize,
+        onChanged: (rv) => setState(() => settings.stateSize = rv),
+      ),
+      () {
+        const px = '⩾';
+        final cc = settings.stateSizeBytesMax ~/ 4;
+        $(int cc) {
+          if (cc < 1e3) {
+            return '$cc';
+          } else if (cc < 1e5) {
+            cc ~/= 1e3;
+            return '$px${cc}k';
+          } else if (cc < 1e6) {
+            cc ~/= 1e4;
+            cc *= 10;
+            return '$px${cc}k';
+          } else {
+            cc ~/= 1e6;
+            return '$px${cc}M';
+          }
+        }
+
+        final text = '${$(cc)} int64${cc > 1 ? 's' : ''}';
+        const title = 'STATE SIZE';
+        return TitleRow(
+          text: text,
+          title: title,
+          decorator: (ww) => [
+            TitleText(text: px, transparent: true),
+            ...ww,
+            TitleText(text: px, transparent: true),
+          ],
+        );
+      }()
+    ];
   }
 
   Widget _top(BuildContext context, ScrollController controller) {
