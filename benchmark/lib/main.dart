@@ -73,7 +73,7 @@ class _AppState extends State<App> {
                   centerTitle: true,
                   backgroundColor: Colors.transparent,
                   leading: Icon(Icons.developer_board, color: Colors.black),
-                  actions: [_uiLock()],
+                  actions: [_uiLock(context)],
                   expandedHeight: 400,
                 ),
                 // MIDDLE
@@ -205,7 +205,7 @@ class _AppState extends State<App> {
     );
   }
 
-  Widget _uiLock() {
+  Widget _uiLock(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.lock).settings;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -238,19 +238,19 @@ class _AppState extends State<App> {
         physics: const BouncingScrollPhysics(),
         children: [
           _goUp(results, controller),
-          ..._stateSize(),
+          ..._stateSize(context),
           Divider(),
-          ..._storages(),
+          ..._storages(context),
           Divider(),
-          ..._blocCount(),
+          ..._blocCount(context),
           Divider(),
-          ..._benchModes(),
+          ..._benchModes(context),
         ],
       ),
     );
   }
 
-  List<Widget> _benchModes() {
+  List<Widget> _benchModes(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.mode).settings;
     return [
       Row(
@@ -306,7 +306,7 @@ class _AppState extends State<App> {
     ];
   }
 
-  List<Widget> _blocCount() {
+  List<Widget> _blocCount(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.count).settings;
     return [
       RangeSlider(
@@ -327,7 +327,7 @@ class _AppState extends State<App> {
     ];
   }
 
-  List<Widget> _storages() {
+  List<Widget> _storages(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.storage).settings;
     return [
       () {
@@ -437,7 +437,7 @@ class _AppState extends State<App> {
     );
   }
 
-  List<Widget> _stateSize() {
+  List<Widget> _stateSize(BuildContext context) {
     final settings = SettingsModel.of(context, Aspect.size).settings;
     return [
       RangeSlider(
