@@ -12,6 +12,12 @@ T _$identity<T>(T value) => value;
 class _$SettingsEventTearOff {
   const _$SettingsEventTearOff();
 
+  _UiLock setUiLock(bool uiLock) {
+    return _UiLock(
+      uiLock,
+    );
+  }
+
   _FlipUseAES flipUseAES() {
     return const _FlipUseAES();
   }
@@ -32,13 +38,13 @@ class _$SettingsEventTearOff {
     );
   }
 
-  _NewBlocCount newBlocCount(RangeValues count) {
+  _NewBlocCount setBlocCount(RangeValues count) {
     return _NewBlocCount(
       count,
     );
   }
 
-  _NewStateSize newStateSize(RangeValues size) {
+  _NewStateSize setStateSize(RangeValues size) {
     return _NewStateSize(
       size,
     );
@@ -51,40 +57,44 @@ const $SettingsEvent = _$SettingsEventTearOff();
 mixin _$SettingsEvent {
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   });
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   });
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   });
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   });
 }
@@ -102,6 +112,153 @@ class _$SettingsEventCopyWithImpl<$Res>
   final SettingsEvent _value;
   // ignore: unused_field
   final $Res Function(SettingsEvent) _then;
+}
+
+abstract class _$UiLockCopyWith<$Res> {
+  factory _$UiLockCopyWith(_UiLock value, $Res Function(_UiLock) then) =
+      __$UiLockCopyWithImpl<$Res>;
+  $Res call({bool uiLock});
+}
+
+class __$UiLockCopyWithImpl<$Res> extends _$SettingsEventCopyWithImpl<$Res>
+    implements _$UiLockCopyWith<$Res> {
+  __$UiLockCopyWithImpl(_UiLock _value, $Res Function(_UiLock) _then)
+      : super(_value, (v) => _then(v as _UiLock));
+
+  @override
+  _UiLock get _value => super._value as _UiLock;
+
+  @override
+  $Res call({
+    Object uiLock = freezed,
+  }) {
+    return _then(_UiLock(
+      uiLock == freezed ? _value.uiLock : uiLock as bool,
+    ));
+  }
+}
+
+class _$_UiLock with DiagnosticableTreeMixin implements _UiLock {
+  const _$_UiLock(this.uiLock) : assert(uiLock != null);
+
+  @override
+  final bool uiLock;
+
+  @override
+  String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
+    return 'SettingsEvent.setUiLock(uiLock: $uiLock)';
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty('type', 'SettingsEvent.setUiLock'))
+      ..add(DiagnosticsProperty('uiLock', uiLock));
+  }
+
+  @override
+  bool operator ==(dynamic other) {
+    return identical(this, other) ||
+        (other is _UiLock &&
+            (identical(other.uiLock, uiLock) ||
+                const DeepCollectionEquality().equals(other.uiLock, uiLock)));
+  }
+
+  @override
+  int get hashCode =>
+      runtimeType.hashCode ^ const DeepCollectionEquality().hash(uiLock);
+
+  @override
+  _$UiLockCopyWith<_UiLock> get copyWith =>
+      __$UiLockCopyWithImpl<_UiLock>(this, _$identity);
+
+  @override
+  @optionalTypeArgs
+  Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
+    @required Result flipUseAES(),
+    @required Result flipUseB64(),
+    @required Result flipMode(Mode mode),
+    @required Result flipStorage(Storage storage),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
+  }) {
+    assert(setUiLock != null);
+    assert(flipUseAES != null);
+    assert(flipUseB64 != null);
+    assert(flipMode != null);
+    assert(flipStorage != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setUiLock(uiLock);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
+    Result flipUseAES(),
+    Result flipUseB64(),
+    Result flipMode(Mode mode),
+    Result flipStorage(Storage storage),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (setUiLock != null) {
+      return setUiLock(uiLock);
+    }
+    return orElse();
+  }
+
+  @override
+  @optionalTypeArgs
+  Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
+    @required Result flipUseAES(_FlipUseAES value),
+    @required Result flipUseB64(_FlipUseB64 value),
+    @required Result flipMode(_FlipMode value),
+    @required Result flipStorage(_FlipStorage value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
+  }) {
+    assert(setUiLock != null);
+    assert(flipUseAES != null);
+    assert(flipUseB64 != null);
+    assert(flipMode != null);
+    assert(flipStorage != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setUiLock(this);
+  }
+
+  @override
+  @optionalTypeArgs
+  Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
+    Result flipUseAES(_FlipUseAES value),
+    Result flipUseB64(_FlipUseB64 value),
+    Result flipMode(_FlipMode value),
+    Result flipStorage(_FlipStorage value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
+    @required Result orElse(),
+  }) {
+    assert(orElse != null);
+    if (setUiLock != null) {
+      return setUiLock(this);
+    }
+    return orElse();
+  }
+}
+
+abstract class _UiLock implements SettingsEvent {
+  const factory _UiLock(bool uiLock) = _$_UiLock;
+
+  bool get uiLock;
+  _$UiLockCopyWith<_UiLock> get copyWith;
 }
 
 abstract class _$FlipUseAESCopyWith<$Res> {
@@ -145,31 +302,34 @@ class _$_FlipUseAES with DiagnosticableTreeMixin implements _FlipUseAES {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipUseAES();
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -182,31 +342,34 @@ class _$_FlipUseAES with DiagnosticableTreeMixin implements _FlipUseAES {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipUseAES(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -262,31 +425,34 @@ class _$_FlipUseB64 with DiagnosticableTreeMixin implements _FlipUseB64 {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipUseB64();
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -299,31 +465,34 @@ class _$_FlipUseB64 with DiagnosticableTreeMixin implements _FlipUseB64 {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipUseB64(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -400,31 +569,34 @@ class _$_FlipMode with DiagnosticableTreeMixin implements _FlipMode {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipMode(mode);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -437,31 +609,34 @@ class _$_FlipMode with DiagnosticableTreeMixin implements _FlipMode {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipMode(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -543,31 +718,34 @@ class _$_FlipStorage with DiagnosticableTreeMixin implements _FlipStorage {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipStorage(storage);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -580,31 +758,34 @@ class _$_FlipStorage with DiagnosticableTreeMixin implements _FlipStorage {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
     return flipStorage(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
@@ -657,14 +838,14 @@ class _$_NewBlocCount with DiagnosticableTreeMixin implements _NewBlocCount {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SettingsEvent.newBlocCount(count: $count)';
+    return 'SettingsEvent.setBlocCount(count: $count)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'SettingsEvent.newBlocCount'))
+      ..add(DiagnosticsProperty('type', 'SettingsEvent.setBlocCount'))
       ..add(DiagnosticsProperty('count', count));
   }
 
@@ -687,36 +868,39 @@ class _$_NewBlocCount with DiagnosticableTreeMixin implements _NewBlocCount {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
-    return newBlocCount(count);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setBlocCount(count);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (newBlocCount != null) {
-      return newBlocCount(count);
+    if (setBlocCount != null) {
+      return setBlocCount(count);
     }
     return orElse();
   }
@@ -724,36 +908,39 @@ class _$_NewBlocCount with DiagnosticableTreeMixin implements _NewBlocCount {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
-    return newBlocCount(this);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setBlocCount(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (newBlocCount != null) {
-      return newBlocCount(this);
+    if (setBlocCount != null) {
+      return setBlocCount(this);
     }
     return orElse();
   }
@@ -801,14 +988,14 @@ class _$_NewStateSize with DiagnosticableTreeMixin implements _NewStateSize {
 
   @override
   String toString({DiagnosticLevel minLevel = DiagnosticLevel.info}) {
-    return 'SettingsEvent.newStateSize(size: $size)';
+    return 'SettingsEvent.setStateSize(size: $size)';
   }
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(DiagnosticsProperty('type', 'SettingsEvent.newStateSize'))
+      ..add(DiagnosticsProperty('type', 'SettingsEvent.setStateSize'))
       ..add(DiagnosticsProperty('size', size));
   }
 
@@ -831,36 +1018,39 @@ class _$_NewStateSize with DiagnosticableTreeMixin implements _NewStateSize {
   @override
   @optionalTypeArgs
   Result when<Result extends Object>({
+    @required Result setUiLock(bool uiLock),
     @required Result flipUseAES(),
     @required Result flipUseB64(),
     @required Result flipMode(Mode mode),
     @required Result flipStorage(Storage storage),
-    @required Result newBlocCount(RangeValues count),
-    @required Result newStateSize(RangeValues size),
+    @required Result setBlocCount(RangeValues count),
+    @required Result setStateSize(RangeValues size),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
-    return newStateSize(size);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setStateSize(size);
   }
 
   @override
   @optionalTypeArgs
   Result maybeWhen<Result extends Object>({
+    Result setUiLock(bool uiLock),
     Result flipUseAES(),
     Result flipUseB64(),
     Result flipMode(Mode mode),
     Result flipStorage(Storage storage),
-    Result newBlocCount(RangeValues count),
-    Result newStateSize(RangeValues size),
+    Result setBlocCount(RangeValues count),
+    Result setStateSize(RangeValues size),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (newStateSize != null) {
-      return newStateSize(size);
+    if (setStateSize != null) {
+      return setStateSize(size);
     }
     return orElse();
   }
@@ -868,36 +1058,39 @@ class _$_NewStateSize with DiagnosticableTreeMixin implements _NewStateSize {
   @override
   @optionalTypeArgs
   Result map<Result extends Object>({
+    @required Result setUiLock(_UiLock value),
     @required Result flipUseAES(_FlipUseAES value),
     @required Result flipUseB64(_FlipUseB64 value),
     @required Result flipMode(_FlipMode value),
     @required Result flipStorage(_FlipStorage value),
-    @required Result newBlocCount(_NewBlocCount value),
-    @required Result newStateSize(_NewStateSize value),
+    @required Result setBlocCount(_NewBlocCount value),
+    @required Result setStateSize(_NewStateSize value),
   }) {
+    assert(setUiLock != null);
     assert(flipUseAES != null);
     assert(flipUseB64 != null);
     assert(flipMode != null);
     assert(flipStorage != null);
-    assert(newBlocCount != null);
-    assert(newStateSize != null);
-    return newStateSize(this);
+    assert(setBlocCount != null);
+    assert(setStateSize != null);
+    return setStateSize(this);
   }
 
   @override
   @optionalTypeArgs
   Result maybeMap<Result extends Object>({
+    Result setUiLock(_UiLock value),
     Result flipUseAES(_FlipUseAES value),
     Result flipUseB64(_FlipUseB64 value),
     Result flipMode(_FlipMode value),
     Result flipStorage(_FlipStorage value),
-    Result newBlocCount(_NewBlocCount value),
-    Result newStateSize(_NewStateSize value),
+    Result setBlocCount(_NewBlocCount value),
+    Result setStateSize(_NewStateSize value),
     @required Result orElse(),
   }) {
     assert(orElse != null);
-    if (newStateSize != null) {
-      return newStateSize(this);
+    if (setStateSize != null) {
+      return setStateSize(this);
     }
     return orElse();
   }

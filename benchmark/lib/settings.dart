@@ -10,7 +10,6 @@ part 'settings.freezed.dart';
 
 enum Mode { wake, read, write, delete }
 enum Storage { single, multi, ether }
-enum Aspect { lock, mode, count, storage, size }
 
 class BenchmarkSettings with EquatableMixin {
   var uiLock = true;
@@ -67,27 +66,35 @@ class BenchmarkSettings with EquatableMixin {
   }
 
   @override
-  List<Object> get props =>
-      [uiLock, useAES, useB64, modes, storages, blocCount, stateSize];
+  List<Object> get props => [
+        uiLock,
+        useAES,
+        useB64,
+        modes, //.hashCode,
+        storages, //.hashCode,
+        blocCount,
+        stateSize,
+      ];
 
   BenchmarkSettings get copy => BenchmarkSettings()
     ..uiLock = uiLock
     ..useAES = useAES
     ..useB64 = useB64
-    ..modes = modes
-    ..storages = storages
+    ..modes = {...modes}
+    ..storages = {...storages}
     ..blocCount = blocCount
     ..stateSize = stateSize;
 }
 
 @freezed
 abstract class SettingsEvent with _$SettingsEvent {
+  const factory SettingsEvent.setUiLock(bool uiLock) = _UiLock;
   const factory SettingsEvent.flipUseAES() = _FlipUseAES;
   const factory SettingsEvent.flipUseB64() = _FlipUseB64;
   const factory SettingsEvent.flipMode(Mode mode) = _FlipMode;
   const factory SettingsEvent.flipStorage(Storage storage) = _FlipStorage;
-  const factory SettingsEvent.newBlocCount(RangeValues count) = _NewBlocCount;
-  const factory SettingsEvent.newStateSize(RangeValues size) = _NewStateSize;
+  const factory SettingsEvent.setBlocCount(RangeValues count) = _NewBlocCount;
+  const factory SettingsEvent.setStateSize(RangeValues size) = _NewStateSize;
 }
 
 class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
@@ -97,25 +104,27 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
 
   @override
   Stream<BenchmarkSettings> mapEventToState(SettingsEvent event) async* {
+    final copy = state.copy;
     event.when(
-      flipUseAES: () => state.copy.flipUseAES(),
-      flipUseB64: () => state.copy.flipUseB64(),
-      flipMode: (mode) => state.copy.flipMode(mode),
-      flipStorage: (storage) => state.copy.flipStorage(storage),
-      newBlocCount: (count) => state.copy.blocCount = count,
-      newStateSize: (size) => state.copy.stateSize = size,
+      setUiLock: (uiLock) => copy.uiLock = uiLock,
+      flipUseAES: () => copy.flipUseAES(),
+      flipUseB64: () => copy.flipUseB64(),
+      flipMode: (mode) => copy.flipMode(mode),
+      flipStorage: (storage) => copy.flipStorage(storage),
+      setBlocCount: (count) => copy.blocCount = count,
+      setStateSize: (size) => copy.stateSize = size,
     );
-    yield state;
+    yield copy;
   }
 
   @override
   Map<String, dynamic> toJson(BenchmarkSettings settings) {
-    return {
+    final json = {
       'uiLock': settings.uiLock,
       'useAES': settings.useAES,
       'useB64': settings.useB64,
-      'modes': settings.modes,
-      'storages': settings.storages,
+      'modes': settings.modes.map((k, v) => MapEntry('${k.index}', v)),
+      'storages': settings.storages.map((k, v) => MapEntry('${k.index}', v)),
       'blocCount': {
         'start': settings.blocCount.start,
         'end': settings.blocCount.end
@@ -125,6 +134,8 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
         'end': settings.stateSize.end
       },
     };
+
+    return json;
   }
 
   @override
@@ -133,8 +144,12 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
       ..uiLock = json['uiLock']
       ..useAES = json['useAES']
       ..useB64 = json['useB64']
-      ..modes = json['modes']
-      ..storages = json['storages']
+      ..modes = (json['modes'] as Map)
+          .cast<String, bool>()
+          .map((k, v) => MapEntry(Mode.values[int.parse(k)], v))
+      ..storages = (json['storages'] as Map)
+          .cast<String, bool>()
+          .map((k, v) => MapEntry(Storage.values[int.parse(k)], v))
       ..blocCount = RangeValues(
         json['blocCount']['start'],
         json['blocCount']['end'],
@@ -143,6 +158,7 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
         json['stateSize']['start'],
         json['stateSize']['end'],
       );
+
     return settings;
   }
 }

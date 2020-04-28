@@ -1,10 +1,20 @@
 import 'package:benchmark/hooks.dart';
 import 'package:benchmark/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'benchmark.dart';
 
-void main() => runApp(App());
+void main() async {
+  await _hydrate();
+  runApp(App());
+}
+
+Future<void> _hydrate() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  BlocSupervisor.delegate = await HydratedBlocDelegate.build();
+}
 
 class App extends StatefulWidget {
   @override
@@ -16,13 +26,13 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: _theme(),
-      home: Builder(
+      home: _bloc(Builder(
         builder: (context) => Scaffold(
           body: SafeArea(
             child: _view(context),
           ),
         ),
-      ),
+      )),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -44,6 +54,13 @@ class _AppState extends State<App> {
     );
   }
 
+  Widget _bloc(Widget child) {
+    return BlocProvider<SettingsBloc>(
+      create: (_) => SettingsBloc(),
+      child: child,
+    );
+  }
+
   // final settings = BenchmarkSettings();
   Widget _view(BuildContext context) {
     return HookBuilder(
@@ -51,56 +68,50 @@ class _AppState extends State<App> {
         final controller = useScrollController(initialScrollOffset: 400);
         final results = useState(<Result>[]);
         final running = useState(false);
-        final settings = useState(BenchmarkSettings());
-        return SettingsModel(
-          settings: settings.value,
-          child: Builder(
-            builder: (context) => CustomScrollView(
-              controller: controller,
-              reverse: true,
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              slivers: [
-                // BOTTOM
-                SliverAppBar(
-                  elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: true,
-                    background: _settings(context, results, controller),
-                    collapseMode: CollapseMode.parallax,
-                  ),
-                  centerTitle: true,
-                  backgroundColor: Colors.transparent,
-                  leading: Icon(Icons.developer_board, color: Colors.black),
-                  actions: [_uiLock(context)],
-                  expandedHeight: 400,
-                ),
-                // MIDDLE
-                SliverAppBar(
-                  backgroundColor: Colors.transparent,
-                  expandedHeight: 120,
-                  elevation: 0,
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: true,
-                    title: _benchmark(context, results, running),
-                    collapseMode: CollapseMode.none,
-                  ),
-                ),
-                SliverList(
-                  delegate: SliverChildListDelegate(
-                    _results(context, results),
-                  ),
-                ),
-                // TOP
-                SliverFillViewport(
-                  delegate: SliverChildListDelegate([
-                    _top(context, controller),
-                  ]),
-                ),
-              ],
-            ),
+        return CustomScrollView(
+          controller: controller,
+          reverse: true,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
+          slivers: [
+            // BOTTOM
+            SliverAppBar(
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                background: _settings(context, results, controller),
+                collapseMode: CollapseMode.parallax,
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent,
+              leading: Icon(Icons.developer_board, color: Colors.black),
+              actions: [_uiLock(context)],
+              expandedHeight: 400,
+            ),
+            // MIDDLE
+            SliverAppBar(
+              backgroundColor: Colors.transparent,
+              expandedHeight: 120,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: true,
+                title: _benchmark(context, results, running),
+                collapseMode: CollapseMode.none,
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildListDelegate(
+                _results(context, results),
+              ),
+            ),
+            // TOP
+            SliverFillViewport(
+              delegate: SliverChildListDelegate([
+                _top(context, controller),
+              ]),
+            ),
+          ],
         );
       },
     );
@@ -169,8 +180,8 @@ class _AppState extends State<App> {
       if (running.value) return;
       results.value = <Result>[];
       running.value = true;
-      print('RUNNING'); // TODO mb pass settings to here
-      final settings = SettingsModel.of(context, null).settings;
+      print('RUNNING');
+      final settings = context.bloc<SettingsBloc>().state;
       final bm = Benchmark(settings);
       final maa = {
         Mode.read: bm.doReads,
@@ -206,14 +217,19 @@ class _AppState extends State<App> {
   }
 
   Widget _uiLock(BuildContext context) {
-    final settings = SettingsModel.of(context, Aspect.lock).settings;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('UI LOCK', style: Theme.of(context).textTheme.title),
-        Switch(
-          value: settings.uiLock,
-          onChanged: (b) => setState(() => settings.uiLock = b),
+        BlocBuilder<SettingsBloc, BenchmarkSettings>(
+          condition: (oldSettings, settings) =>
+              oldSettings.uiLock != settings.uiLock,
+          builder: (context, settings) => Switch(
+            value: settings.uiLock,
+            onChanged: (b) {
+              context.bloc<SettingsBloc>().add(SettingsEvent.setUiLock(b));
+            },
+          ),
         ),
       ],
     );
@@ -251,9 +267,11 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _benchModes(BuildContext context) {
-    final settings = SettingsModel.of(context, Aspect.mode).settings;
-    return [
-      Row(
+    BlocBuilderCondition<BenchmarkSettings> condition =
+        (oldSettings, settings) => oldSettings.modes != settings.modes;
+    final slider = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) => Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: () {
           const mm = [Mode.wake, Mode.read, Mode.write, Mode.delete];
@@ -271,8 +289,11 @@ class _AppState extends State<App> {
           };
           final ss = settings.modes;
           return mm.map((m) => ChoiceChip(
-              onSelected:
-                  oss[m] ? (b) => setState(() => settings.flipMode(m)) : null,
+              onSelected: oss[m]
+                  ? (b) => context
+                      .bloc<SettingsBloc>()
+                      .add(SettingsEvent.flipMode(m))
+                  : null,
               selected: ss[m],
               shape: StadiumBorder(
                 side: BorderSide(
@@ -296,45 +317,65 @@ class _AppState extends State<App> {
             .skip(1)
             .toList(),
       ),
-      () {
+    );
+
+    final text = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) {
         final cur = settings.modes.values.where((v) => v).length;
         final tot = settings.modes.length;
         final text = '$cur/$tot';
         const title = 'BENCH MODES';
         return TitleRow(text: text, title: title);
-      }()
-    ];
+      },
+    );
+
+    return [slider, text];
   }
 
   List<Widget> _blocCount(BuildContext context) {
-    final settings = SettingsModel.of(context, Aspect.count).settings;
-    return [
-      RangeSlider(
+    BlocBuilderCondition<BenchmarkSettings> condition =
+        (oldSettings, settings) => oldSettings.blocCount != settings.blocCount;
+    final slider = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) => RangeSlider(
         min: settings.blocCountRange.start,
         max: settings.blocCountRange.end,
         divisions: settings.blocCountDivs,
         labels: settings.blocCountLabels,
         values: settings.blocCount,
-        onChanged: (rv) => setState(() => settings.blocCount = rv),
+        onChanged: (bc) {
+          context.bloc<SettingsBloc>().add(SettingsEvent.setBlocCount(bc));
+        },
       ),
-      () {
+    );
+    final text = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) {
         final start = settings.blocCount.start.toInt();
         final end = settings.blocCount.end.toInt();
         final text = start == end ? '$end' : '$start-$end'.padLeft(2);
         const title = 'BLOC COUNT';
         return TitleRow(text: text, title: title);
-      }(),
-    ];
+      },
+    );
+    return [slider, text];
   }
 
   List<Widget> _storages(BuildContext context) {
-    final settings = SettingsModel.of(context, Aspect.storage).settings;
-    return [
-      () {
-        final view = HookBuilder(
-          builder: (context) {
-            final controller = useScrollController();
-            return CustomScrollView(
+    BlocBuilderCondition<BenchmarkSettings> condition =
+        (oldSettings, settings) =>
+            oldSettings.useAES != settings.useAES ||
+            oldSettings.useB64 != settings.useB64 ||
+            oldSettings.storages != settings.storages;
+    final view = SizedBox(
+      height: 48,
+      child: HookBuilder(
+        builder: (context) {
+          final controller = useScrollController();
+          return BlocBuilder<SettingsBloc, BenchmarkSettings>(
+            condition: condition,
+            builder: (context, settings) => CustomScrollView(
               controller: controller,
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(
@@ -342,30 +383,39 @@ class _AppState extends State<App> {
               ),
               slivers: [
                 SliverFillRemaining(
-                  child: _storagesMainPart(controller, settings),
+                  child: _storagesMainPart(context, controller, settings),
                 ),
                 SliverToBoxAdapter(
-                  child: _storagesSubPart(settings),
+                  child: _storagesSubPart(context, settings),
                 ),
               ],
-            );
-          },
-        );
-        return SizedBox(height: 48, child: view);
-      }(),
-      // SizedBox(height: 8),
-      () {
-        final cur = settings.storages.values.where((v) => v).length;
-        final tot = settings.storages.length;
-        final text = '$cur/$tot';
-        const title = 'STORAGES';
-        return TitleRow(text: text, title: title);
-      }(),
+            ),
+          );
+        },
+      ),
+    );
+
+    final text = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+        condition: condition,
+        builder: (context, settings) {
+          final cur = settings.storages.values.where((v) => v).length;
+          final tot = settings.storages.length;
+          final text = '$cur/$tot';
+          const title = 'STORAGES';
+          return TitleRow(text: text, title: title);
+        });
+
+    return [
+      view, // SizedBox(height: 8),
+      text,
     ];
   }
 
   Widget _storagesMainPart(
-      ScrollController controller, BenchmarkSettings settings) {
+    BuildContext context,
+    ScrollController controller,
+    BenchmarkSettings settings,
+  ) {
     const ss = [Storage.single, Storage.multi, Storage.ether];
     const ll = {
       Storage.single: 'Single file',
@@ -374,7 +424,9 @@ class _AppState extends State<App> {
     };
     Widget bb = ToggleButtons(
       isSelected: ss.map((s) => settings.storages[s]).toList(),
-      onPressed: (i) => setState(() => settings.flipStorage(ss[i])),
+      onPressed: (i) {
+        context.bloc<SettingsBloc>().add(SettingsEvent.flipStorage(ss[i]));
+      },
       children: ss.map((s) => Text(ll[s])).toList(),
       constraints: const BoxConstraints(
         minWidth: 100.0,
@@ -406,7 +458,10 @@ class _AppState extends State<App> {
     return Stack(children: [bb, tap]);
   }
 
-  Widget _storagesSubPart(BenchmarkSettings settings) {
+  Widget _storagesSubPart(
+    BuildContext context,
+    BenchmarkSettings settings,
+  ) {
     return Container(
       padding: EdgeInsets.only(right: 12),
       alignment: Alignment.center,
@@ -417,13 +472,12 @@ class _AppState extends State<App> {
           'Base64': settings.useB64,
         };
         final pp = {
-          'AES': settings.flipUseAES,
-          'Base64': settings.flipUseB64,
+          'AES': SettingsEvent.flipUseAES(),
+          'Base64': SettingsEvent.flipUseB64(),
         };
         return ToggleButtons(
           isSelected: ll.map((l) => ss[l]).toList(),
-          onPressed: (i) => setState(() => pp[ll[i]]()),
-          // onPressed: (i) => null,
+          onPressed: (i) => context.bloc<SettingsBloc>().add(pp[ll[i]]),
           children: ll.map((l) => Text(l)).toList(),
           constraints: const BoxConstraints(
             minWidth: 80.0,
@@ -438,17 +492,25 @@ class _AppState extends State<App> {
   }
 
   List<Widget> _stateSize(BuildContext context) {
-    final settings = SettingsModel.of(context, Aspect.size).settings;
-    return [
-      RangeSlider(
+    BlocBuilderCondition<BenchmarkSettings> condition =
+        (oldSettings, settings) => oldSettings.stateSize != settings.stateSize;
+    final slider = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) => RangeSlider(
         min: settings.stateSizeRange.start,
         max: settings.stateSizeRange.end,
         divisions: settings.stateSizeDivs,
         labels: settings.stateSizeLabels,
         values: settings.stateSize,
-        onChanged: (rv) => setState(() => settings.stateSize = rv),
+        onChanged: (ss) {
+          context.bloc<SettingsBloc>().add(SettingsEvent.setStateSize(ss));
+        },
       ),
-      () {
+    );
+
+    final text = BlocBuilder<SettingsBloc, BenchmarkSettings>(
+      condition: condition,
+      builder: (context, settings) {
         const px = '⩾';
         final cc = settings.stateSizeBytesMax ~/ 4;
         $(int cc) {
@@ -478,8 +540,10 @@ class _AppState extends State<App> {
             TitleText(text: px, transparent: true),
           ],
         );
-      }()
-    ];
+      },
+    );
+
+    return [slider, text];
   }
 
   _goUp(ValueNotifier<List<Result>> results, ScrollController controller) {
