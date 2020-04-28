@@ -66,15 +66,8 @@ class BenchmarkSettings with EquatableMixin {
   }
 
   @override
-  List<Object> get props => [
-        uiLock,
-        useAES,
-        useB64,
-        modes, //.hashCode,
-        storages, //.hashCode,
-        blocCount,
-        stateSize,
-      ];
+  List<Object> get props =>
+      [uiLock, useAES, useB64, modes, storages, blocCount, stateSize];
 
   BenchmarkSettings get copy => BenchmarkSettings()
     ..uiLock = uiLock
