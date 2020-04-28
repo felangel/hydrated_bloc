@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:flutter/foundation.dart';
@@ -11,7 +12,7 @@ enum Mode { wake, read, write, delete }
 enum Storage { single, multi, ether }
 enum Aspect { lock, mode, count, storage, size }
 
-class BenchmarkSettings {
+class BenchmarkSettings with EquatableMixin {
   var uiLock = true;
   var useAES = false;
   var useB64 = false;
@@ -64,6 +65,19 @@ class BenchmarkSettings {
     final p = const ['Bytes', 'KB', 'MB', 'GB'][size ~/ 10];
     return '${pow(2, e)} $p';
   }
+
+  @override
+  List<Object> get props =>
+      [uiLock, useAES, useB64, modes, storages, blocCount, stateSize];
+
+  BenchmarkSettings get copy => BenchmarkSettings()
+    ..uiLock = uiLock
+    ..useAES = useAES
+    ..useB64 = useB64
+    ..modes = modes
+    ..storages = storages
+    ..blocCount = blocCount
+    ..stateSize = stateSize;
 }
 
 @freezed
@@ -84,12 +98,12 @@ class SettingsBloc extends HydratedBloc<SettingsEvent, BenchmarkSettings> {
   @override
   Stream<BenchmarkSettings> mapEventToState(SettingsEvent event) async* {
     event.when(
-      flipUseAES: () => state.flipUseAES(),
-      flipUseB64: () => state.flipUseB64(),
-      flipMode: (mode) => state.flipMode(mode),
-      flipStorage: (storage) => state.flipStorage(storage),
-      newBlocCount: (count) => state.blocCount = count,
-      newStateSize: (size) => state.stateSize = size,
+      flipUseAES: () => state.copy.flipUseAES(),
+      flipUseB64: () => state.copy.flipUseB64(),
+      flipMode: (mode) => state.copy.flipMode(mode),
+      flipStorage: (storage) => state.copy.flipStorage(storage),
+      newBlocCount: (count) => state.copy.blocCount = count,
+      newStateSize: (size) => state.copy.stateSize = size,
     );
     yield state;
   }
