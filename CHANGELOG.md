@@ -1,6 +1,14 @@
+# 4.0.0
+
+- Updated to `bloc: ^4.0.0`
+
 # 3.1.0
 
-- Persist `initialState` when initialized.
+- Persist `initialState` when initialized (thanks to [@orsenkucher](https://github.com/orsenkucher)).
+- Fix: add `synchronized` to prevent file corruption (thanks to [@orsenkucher](https://github.com/orsenkucher))
+- Refactor `HydratedBlocStorage.getInstance` to avoid using singleton (thanks to [@orsenkucher](https://github.com/orsenkucher))
+- Upgrade to `path_provider: ^1.6.5`
+- Fix: invoke `onError` and continue emitting states when exceptions occur
 
 # 3.0.0
 

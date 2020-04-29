@@ -16,21 +16,41 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   HydratedBloc() {
     final stateJson = toJson(state);
     if (stateJson != null) {
-      _storage.write(storageToken, stateJson);
+      try {
+        _storage.write(storageToken, stateJson);
+      } on dynamic catch (error, stackTrace) {
+        onError(error, stackTrace);
+      }
     }
   }
 
-  final HydratedStorage _storage =
-      (BlocSupervisor.delegate as HydratedBlocDelegate).storage;
+  static HydratedBlocDelegate get _delegate =>
+      BlocSupervisor.delegate as HydratedBlocDelegate;
+  static HydratedStorage get _storage => _delegate.storage;
 
   @mustCallSuper
   @override
   State get initialState {
     try {
       return fromJson(_storage?.read(storageToken) as Map<String, dynamic>);
-    } on dynamic catch (_) {
+    } on dynamic catch (error, stackTrace) {
+      onError(error, stackTrace);
       return null;
     }
+  }
+
+  @override
+  void onTransition(Transition<Event, State> transition) {
+    final state = transition.nextState;
+    final stateJson = toJson(state);
+    if (stateJson != null) {
+      try {
+        _storage.write(storageToken, stateJson);
+      } on dynamic catch (error, stackTrace) {
+        onError(error, stackTrace);
+      }
+    }
+    super.onTransition(transition);
   }
 
   /// `id` is used to uniquely identify multiple instances
