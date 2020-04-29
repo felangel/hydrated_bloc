@@ -286,6 +286,9 @@ void blocGroup() {
       });
 
       test('calls onError when json decode fails', () async {
+        // TODO encoding is moved to stroage
+        // it will throw error as well,
+        // have to adjust test
         Object lastError;
         StackTrace lastStackTrace;
         when(storage.read(any)).thenReturn('invalid json');

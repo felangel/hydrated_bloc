@@ -597,7 +597,7 @@ class _AppState extends State<App> {
 
     version() {
       return Text(
-        'v3.1.0',
+        'v4.0.0',
         style: Theme.of(context).textTheme.title.copyWith(
               color: Colors.grey.withOpacity(0.4),
             ),
