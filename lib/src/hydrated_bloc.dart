@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 
 import '../hydrated_bloc.dart';
