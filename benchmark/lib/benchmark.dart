@@ -8,34 +8,27 @@ import 'runners.dart';
 
 class Result {
   final BenchmarkRunner runner;
+  final Mode mode;
   Duration intTime;
   Duration stringTime;
-  Mode mode;
 
-  Result(this.runner);
+  Result(this.runner, this.mode);
 }
 
-class Benchmark {
-  Benchmark(this.settings);
-
+class Entries {
   final BenchmarkSettings settings;
-  List<BenchmarkRunner> get _runners {
-    final aes = settings.useAES;
-    final b64 = settings.useB64;
-    final rr = {
-      Storage.single: SinglefileRunner(aes, b64),
-      Storage.multi: MultifileRunner(aes, b64),
-      Storage.ether: EtherealfileRunner(),
-    };
-    return rr.keys
-        .where((s) => settings.storages[s])
-        .map((s) => rr[s])
-        .toList();
+  Entries(this.settings) {
+    final count = settings.blocCount.end.toInt();
+    intEntries = generateIntEntries(count);
+    intKeys = intEntries.keys.toList()..shuffle();
+    stringEntries = generateStringEntries(count);
+    stringKeys = stringEntries.keys.toList()..shuffle();
   }
 
-  List<Result> _createResults() {
-    return _runners.map((r) => Result(r)).toList();
-  }
+  List<String> intKeys;
+  List<String> stringKeys;
+  Map<String, List<int>> intEntries;
+  Map<String, String> stringEntries;
 
   Map<String, List<int>> generateIntEntries(int count) {
     final map = <String, List<int>>{};
@@ -63,97 +56,70 @@ class Benchmark {
     }
     return map;
   }
+}
 
-  Stream<Result> doReads() async* {
-    final count = settings.blocCount.end.toInt();
-    final results = _createResults();
-
-    final intEntries = generateIntEntries(count);
-    final intKeys = intEntries.keys.toList()..shuffle();
-
-    final stringEntries = generateStringEntries(count);
-    final stringKeys = stringEntries.keys.toList()..shuffle();
-
-    for (var result in results) {
-      result.mode = Mode.read;
-      await result.runner.setUp();
-
-      await result.runner.batchWrite(intEntries);
-      result.intTime = await result.runner.batchRead(intKeys);
-
-      await result.runner.batchWrite(stringEntries);
-      result.stringTime = await result.runner.batchRead(stringKeys);
-
-      await result.runner.tearDown();
-      yield result;
-    }
+class Benchmark {
+  final BenchmarkSettings settings;
+  Benchmark(this.settings) {
+    final aes = settings.useAES;
+    final b64 = settings.useB64;
+    final rr = {
+      Storage.single: SinglefileRunner(aes, b64),
+      Storage.multi: MultifileRunner(aes, b64),
+      Storage.ether: EtherealfileRunner(),
+    };
+    _runners =
+        rr.keys.where((s) => settings.storages[s]).map((s) => rr[s]).toList();
   }
 
-  Stream<Result> doWakes() async* {
-    final count = settings.blocCount.end.toInt();
-    final results = _createResults();
+  List<BenchmarkRunner> _runners;
 
-    final intEntries = generateIntEntries(count);
-    final stringEntries = generateStringEntries(count);
+  Stream<Result> run() async* {
+    final modes = settings.modes;
+    if (!modes.values.any((x) => x)) return;
 
-    for (var result in results) {
-      result.mode = Mode.wake;
-      await result.runner.setUp();
-      await result.runner.batchWrite(intEntries);
-      result.intTime = await result.runner.batchWake();
-      await result.runner.tearDown();
+    final entries = Entries(settings);
+    final writes = <Result>[];
+    final reads = <Result>[];
 
-      await result.runner.setUp();
-      await result.runner.batchWrite(stringEntries);
-      result.stringTime = await result.runner.batchWake();
-      await result.runner.tearDown();
+    for (var runner in _runners) {
+      final wake = Result(runner, Mode.wake);
+      final write = Result(runner, Mode.write);
+      final read = Result(runner, Mode.read);
 
-      yield result;
-    }
-  }
+      await runner.setUp();
+      write.intTime = await runner.batchWrite(entries.intEntries);
+      if (modes[Mode.wake]) {
+        wake.intTime = await runner.batchWake();
+      }
+      if (modes[Mode.read]) {
+        read.intTime = await runner.batchRead(entries.intKeys);
+      }
 
-  Stream<Result> doWrites() async* {
-    final count = settings.blocCount.end.toInt();
-    final results = _createResults();
-    final intEntries = generateIntEntries(count);
-    final stringEntries = generateStringEntries(count);
+      await runner.tearDown();
+      write.stringTime = await runner.batchWrite(entries.stringEntries);
+      if (modes[Mode.wake]) {
+        wake.stringTime = await runner.batchWake();
+      }
+      if (modes[Mode.read]) {
+        read.stringTime = await runner.batchRead(entries.stringKeys);
+      }
+      // result.stringTime = await result.runner.batchDelete(keys);
 
-    for (var result in results) {
-      result.mode = Mode.write;
-      await result.runner.setUp();
+      if (modes[Mode.wake]) yield wake;
+      if (modes[Mode.write]) {
+        if (modes[Mode.wake]) {
+          writes.add(write);
+        } else {
+          yield write;
+        }
+      }
+      if (modes[Mode.read]) reads.add(read);
 
-      result.intTime = await result.runner.batchWrite(intEntries);
-      result.stringTime = await result.runner.batchWrite(stringEntries);
-
-      await result.runner.tearDown();
-      yield result;
-    }
-  }
-
-  Future<List<Result>> doDeletes() async {
-    final count = settings.blocCount.end.toInt();
-    final results = _createResults();
-
-    final intEntries = generateIntEntries(count);
-    final intKeys = intEntries.keys.toList()..shuffle();
-    for (var result in results) {
-      result.mode = Mode.delete;
-      await result.runner.setUp();
-      await result.runner.batchWrite(intEntries);
-      result.intTime = await result.runner.batchDelete(intKeys);
+      await runner.tearDown();
     }
 
-    final stringEntries = generateStringEntries(count);
-    final stringKeys = stringEntries.keys.toList()..shuffle();
-    for (var result in results) {
-      await result.runner.batchWrite(stringEntries);
-      result.stringTime = await result.runner.batchDelete(stringKeys);
-    }
-
-    for (var result in results) {
-      await result.runner.tearDown();
-    }
-
-    return results;
+    if (modes[Mode.wake]) yield* Stream.fromIterable(writes);
+    yield* Stream.fromIterable(reads);
   }
 }

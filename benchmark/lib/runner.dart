@@ -14,7 +14,7 @@ abstract class BenchmarkRunner {
   }
 
   Future<void> tearDown() async {
-    storage.clear();
+    await storage.clear();
   }
 
   Future<Duration> batchWake() async {

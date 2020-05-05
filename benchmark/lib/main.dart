@@ -6,6 +6,17 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'benchmark.dart';
 
+// TODO(1) Optimize
+// 1. run order: Write -> Wake -> Read
+
+// TODO(2) Science
+// 1. produce enough data
+// 2. calc error
+
+// TODO(3) UI
+// 1. aes/b64 label
+// 2. lock ui screen
+
 void main() async {
   await _hydrate();
   runApp(App());
@@ -61,7 +72,6 @@ class _AppState extends State<App> {
     );
   }
 
-  // final settings = BenchmarkSettings();
   Widget _view(BuildContext context) {
     return HookBuilder(
       builder: (context) {
@@ -183,16 +193,8 @@ class _AppState extends State<App> {
       print('RUNNING');
       final settings = context.bloc<SettingsBloc>().state;
       final bm = Benchmark(settings);
-      final maa = {
-        Mode.read: bm.doReads,
-        Mode.write: bm.doWrites,
-        Mode.wake: bm.doWakes,
-        // Mode.delete: bm.doDeletes,
-      };
-
-      final mm = settings.modes;
-      await Stream.fromIterable(mm.keys.where((m) => mm[m]))
-          .asyncExpand((m) => maa[m]())
+      await bm
+          .run()
           .act((r) => results.value = [...results.value, r])
           .map((r) sync* {
             yield '${r.runner.storageType}: int64 : ${r.intTime}ms';
