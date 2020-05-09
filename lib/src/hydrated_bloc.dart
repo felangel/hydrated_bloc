@@ -67,7 +67,7 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
 
   /// `storageToken` is used as registration token for hydrated storage.
   @nonVirtual
-  String get storageToken => '${runtimeType.toString()}$id';
+  String get storageToken => '${runtimeType.toString()}${id ?? ''}';
 
   /// `clear` is used to wipe or invalidate the cache of a `HydratedBloc`.
   /// Calling `clear` will delete the cached state of the bloc
