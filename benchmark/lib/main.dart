@@ -57,7 +57,7 @@ class _AppState extends State<App> {
       ),
       textTheme: TextTheme(
         button: TextStyle(fontSize: 18),
-        title: TextStyle(
+        headline6: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
         ),
@@ -157,7 +157,7 @@ class _AppState extends State<App> {
         ),
         title: Text(
           '${r.runner.storageType}: ${r.mode}',
-          style: Theme.of(context).textTheme.title,
+          style: Theme.of(context).textTheme.headline6,
         ),
       );
     }
@@ -222,7 +222,7 @@ class _AppState extends State<App> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('UI LOCK', style: Theme.of(context).textTheme.title),
+        Text('UI LOCK', style: Theme.of(context).textTheme.headline6),
         BlocBuilder<SettingsBloc, BenchmarkSettings>(
           condition: (oldSettings, settings) =>
               oldSettings.uiLock != settings.uiLock,
@@ -575,7 +575,7 @@ class _AppState extends State<App> {
         textAlign: TextAlign.center,
         style: Theme.of(context)
             .textTheme
-            .title
+            .headline6
             .copyWith(color: Colors.grey.withOpacity(0.4)),
       );
     }
@@ -600,7 +600,7 @@ class _AppState extends State<App> {
     version() {
       return Text(
         'v4.0.0',
-        style: Theme.of(context).textTheme.title.copyWith(
+        style: Theme.of(context).textTheme.headline6.copyWith(
               color: Colors.grey.withOpacity(0.4),
             ),
       );
