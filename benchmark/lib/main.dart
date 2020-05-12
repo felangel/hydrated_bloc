@@ -6,9 +6,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'benchmark.dart';
 
-// TODO(1) Optimize
-// 1. run order: Write -> Wake -> Read
-
 // TODO(2) Science
 // 1. produce enough data
 // 2. calc error
@@ -16,6 +13,9 @@ import 'benchmark.dart';
 // TODO(3) UI
 // 1. aes/b64 label
 // 2. lock ui screen
+
+// TODO(4) UI
+// 1. upgrade to v4.1.0
 
 void main() async {
   await _hydrate();
@@ -143,7 +143,14 @@ class _AppState extends State<App> {
                   : '${d.inMicroseconds}μs';
           final it = format(r.intTime);
           final st = format(r.stringTime);
-          return Text('i64 $it, str $st');
+          err(Duration de) {
+            if (de == null) return '';
+            return ' ± ${format(de)}';
+          }
+
+          final ite = err(r.intTimeErr);
+          final ste = err(r.intTimeErr);
+          return Text('i64 $it$ite, str $st$ste');
         }(),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 12.0,
@@ -152,7 +159,18 @@ class _AppState extends State<App> {
         leading: Container(
           child: () {
             final icon = r.runner.aes ? Icons.fingerprint : Icons.blur_on;
-            return Icon(icon, color: Colors.black, size: 30);
+            final compl = r.complete;
+            return Stack(alignment: Alignment.center, children: [
+              if (compl < 1)
+                CircularProgressIndicator(
+                  value: compl,
+                  strokeWidth: 1,
+                  valueColor: AlwaysStoppedAnimation(
+                    Colors.blue.withOpacity(.8),
+                  ),
+                ),
+              Icon(icon, color: Colors.black, size: 30),
+            ]);
           }(),
         ),
         title: Text(
@@ -195,7 +213,21 @@ class _AppState extends State<App> {
       final bm = Benchmark(settings);
       await bm
           .run()
-          .act((r) => results.value = [...results.value, r])
+          .act((r) {
+            final res = [...results.value];
+
+            var flag = false;
+            for (var i = 0; i < res.length; i++) {
+              if (res[i].compare(r)) {
+                res[i] = r;
+                flag = true;
+                break;
+              }
+            }
+            if (!flag) res.add(r);
+
+            return results.value = res;
+          })
           .map((r) sync* {
             yield '${r.runner.storageType}: int64 : ${r.intTime}ms';
             yield '${r.runner.storageType}: string: ${r.stringTime}ms';
@@ -669,7 +701,7 @@ class TitleText extends StatelessWidget {
 }
 
 extension Stream$<T> on Stream<T> {
-  Stream<T> act(void action(T)) {
+  Stream<T> act(void action(T item)) {
     return this.map((item) {
       action(item);
       return item;

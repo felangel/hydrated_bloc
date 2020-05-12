@@ -1,4 +1,4 @@
-import 'dart:math' show Random;
+import 'dart:math' show Random, pow, sqrt;
 import 'package:benchmark/settings.dart';
 import 'package:random_string/random_string.dart';
 import 'package:uuid/uuid.dart';
@@ -10,9 +10,23 @@ class Result {
   final BenchmarkRunner runner;
   final Mode mode;
   Duration intTime;
+  Duration intTimeErr;
   Duration stringTime;
+  Duration stringTimeErr;
+  double complete;
 
   Result(this.runner, this.mode);
+
+  bool compare(Result other) {
+    return runner.storage == other.runner.storage && mode == other.mode;
+  }
+
+  Result copy() {
+    return Result(runner, mode)
+      ..intTime = intTime
+      ..stringTime = stringTime
+      ..complete = complete;
+  }
 }
 
 class Entries {
@@ -72,9 +86,48 @@ class Benchmark {
         rr.keys.where((s) => settings.storages[s]).map((s) => rr[s]).toList();
   }
 
+  int get totalIter => 10;
   List<BenchmarkRunner> _runners;
 
   Stream<Result> run() async* {
+    final res = <Result>[];
+    for (var i = 1; i <= totalIter; i++) {
+      yield* _run(i).map((r) {
+        res.add(r);
+        r = r.copy();
+        final sample = res.where((x) => r.compare(x));
+        final ints = sample.map((x) => x.intTime);
+        final strs = sample.map((x) => x.stringTime);
+        r.intTime = mean(ints);
+        r.stringTime = mean(strs);
+        r.intTimeErr = stdErr(ints);
+        r.stringTimeErr = stdErr(strs);
+        return r;
+      });
+    }
+  }
+
+  Duration mean(Iterable<Duration> sample) {
+    final sum = sample.reduce((val, x) => val + x);
+    final count = sample.length;
+    final mean = Duration(microseconds: sum.inMicroseconds ~/ count);
+    return mean;
+  }
+
+  Duration stdErr(Iterable<Duration> sample) {
+    if (sample.length < 2) return null;
+    final av = mean(sample).inMicroseconds;
+    final dispersion = sample
+            .map((x) => x.inMicroseconds)
+            .map((x) => x - av)
+            .map((x) => pow(x, 2))
+            .reduce((val, x) => val + x) /
+        (sample.length - 1);
+    final sd = sqrt(dispersion) / sqrt(sample.length);
+    return Duration(microseconds: sd.toInt());
+  } // standard deviation
+
+  Stream<Result> _run(int iter) async* {
     final modes = settings.modes;
     if (!modes.values.any((x) => x)) return;
 
@@ -105,6 +158,11 @@ class Benchmark {
         read.stringTime = await runner.batchRead(entries.stringKeys);
       }
       // result.stringTime = await result.runner.batchDelete(keys);
+
+      final curIter = iter / totalIter;
+      wake.complete = curIter;
+      write.complete = curIter;
+      read.complete = curIter;
 
       if (modes[Mode.wake]) yield wake;
       if (modes[Mode.write]) {
