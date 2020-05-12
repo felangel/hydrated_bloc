@@ -14,7 +14,7 @@ import 'benchmark.dart';
 // 1. aes/b64 label
 // 2. lock ui screen
 
-// TODO(4) UI
+// TODO(4) Pkg
 // 1. upgrade to v4.1.0
 
 void main() async {
@@ -149,7 +149,7 @@ class _AppState extends State<App> {
           }
 
           final ite = err(r.intTimeErr);
-          final ste = err(r.intTimeErr);
+          final ste = err(r.stringTimeErr);
           return Text('i64 $it$ite, str $st$ste');
         }(),
         contentPadding: EdgeInsets.symmetric(
