@@ -52,7 +52,8 @@ class MultifileRunner extends BenchmarkRunner {
 }
 
 class HiveRunner extends BenchmarkRunner {
-  final bool aes = false;
+  final pass = 'I should benchmark benchmark. Meta benchmarking bro';
+  final bool aes = true;
   final bool b64 = false;
 
   @override
@@ -61,7 +62,9 @@ class HiveRunner extends BenchmarkRunner {
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    // Hive.generateSecureKey();
-    return Water.getInstance(storageDirectory: dir);
+    return Water.getInstance(
+      storageDirectory: dir,
+      pass: pass,
+    );
   }
 }
