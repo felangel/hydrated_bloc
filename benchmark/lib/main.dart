@@ -6,12 +6,7 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'benchmark.dart';
 
-// TODO(2) Science
-// 1. produce enough data
-// 2. calc error
-
 // TODO(3) UI
-// 1. aes/b64 label
 // 2. lock ui screen
 
 // TODO(4) Pkg
@@ -434,7 +429,9 @@ class _AppState extends State<App> {
         builder: (context, settings) {
           final cur = settings.storages.values.where((v) => v).length;
           final tot = settings.storages.length;
-          final text = '$cur/$tot';
+          final text = '$cur/$tot'
+              '${settings.useAES ? " + aes" : ""}'
+              '${settings.useAES && settings.useB64 ? "(b64)" : ""}';
           const title = 'STORAGES';
           return TitleRow(text: text, title: title);
         });
@@ -479,8 +476,8 @@ class _AppState extends State<App> {
             controller.position.extentBefore > 0
                 ? controller.position.minScrollExtent
                 : controller.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCirc,
           );
         },
         icon: Icon(
