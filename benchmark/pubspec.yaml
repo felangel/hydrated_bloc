@@ -16,6 +16,8 @@ dependencies:
   flutter_bloc: ^4.0.0
   hydrated_bloc:
     path: ../
+  water:
+    path: ../water
 
   flutter:
     sdk: flutter
