@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:benchmark/hooks.dart';
 import 'package:benchmark/settings.dart';
 import 'package:flutter/material.dart';
@@ -233,6 +235,18 @@ class _AppState extends State<App> {
       print('DONE');
       Future.delayed(const Duration(milliseconds: 100))
           .then((_) => setState(() {})); //controller.position.extentAfter
+
+      print("====== SETTINGS ======");
+      final settingsJson = BenchmarkSettings.toJson(settings);
+      print(json.encode(settingsJson));
+      print("=== RESULTS ===");
+      final resultsJson = results.value.map((x) => x.toJson()).toList();
+      print(json.encode(resultsJson));
+      print('TITLE');
+      final titleJson = '${settingsJson["blocCount"]} blocs'
+          '|${settings.stateSizeLabels.end}'
+          '|${settingsJson["aes"] ? "AES" : "No AES"}';
+      print(titleJson);
     }
 
     return OutlineButton(

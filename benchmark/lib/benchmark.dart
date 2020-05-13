@@ -27,6 +27,18 @@ class Result {
       ..stringTime = stringTime
       ..complete = complete;
   }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'storage': runner.storageType.toString(),
+      'mode': mode.toString(),
+      'aes': runner.aes,
+      'intMeanMicroseconds': intTime.inMicroseconds,
+      'intSDMicroseconds': intTimeErr.inMicroseconds,
+      'stringMeanMicroseconds': stringTime.inMicroseconds,
+      'stringSDMicroseconds': stringTimeErr.inMicroseconds,
+    };
+  }
 }
 
 class Entries {

@@ -77,6 +77,18 @@ class BenchmarkSettings with EquatableMixin {
     ..storages = {...storages}
     ..blocCount = blocCount
     ..stateSize = stateSize;
+
+  static Map<String, dynamic> toJson(BenchmarkSettings settings) {
+    final json = {
+      'aes': settings.useAES,
+      'modes': settings.modes.map((k, v) => MapEntry('${k.toString()}', v)),
+      'storages':
+          settings.storages.map((k, v) => MapEntry('${k.toString()}', v)),
+      'blocCount': settings.blocCount.end.toInt(),
+      'stateSize': settings.stateSizeBytesMax,
+    };
+    return json;
+  }
 }
 
 @freezed
