@@ -1,6 +1,7 @@
 import 'package:benchmark/settings.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:water/water.dart';
 
 import 'runner.dart';
 
@@ -50,19 +51,16 @@ class MultifileRunner extends BenchmarkRunner {
   }
 }
 
-class EtherealfileRunner extends BenchmarkRunner {
+class HiveRunner extends BenchmarkRunner {
   final bool aes = false;
   final bool b64 = false;
 
   @override
-  Storage get storageType => Storage.ether;
+  Storage get storageType => Storage.hive;
 
   @override
   Future<HydratedStorage> get storageFactory async {
     final dir = await getTemporaryDirectory();
-    return HydratedBlocStorage.getInstance(
-      storageDirectory: dir,
-      mode: StorageMode.temporal,
-    );
+    return Water.getInstance(storageDirectory: dir);
   }
 }

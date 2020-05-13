@@ -11,5 +11,7 @@ class WaterDelegate extends HydratedBlocDelegate {
   /// Builds a [WaterDelegate] with an instance of [Water],
   /// optionally using the [storageDirectory] parameter
   static Future<WaterDelegate> build({Directory storageDirectory}) async =>
-      WaterDelegate(await Water.getInstance(storageDirectory: storageDirectory));
+      WaterDelegate(
+        await Water.getInstance(storageDirectory: storageDirectory),
+      );
 }

@@ -8,7 +8,6 @@ import 'package:path_provider/path_provider.dart';
 /// Implementation of [HydratedStorage] which uses `PathProvider` and `Hive`
 /// to persist and retrieve state changes from the local device.
 class Water implements HydratedStorage {
-  static Water _instance;
   final Box _box;
 
   /// Returns an instance of [Water].
@@ -17,9 +16,6 @@ class Water implements HydratedStorage {
   static Future<Water> getInstance({
     Directory storageDirectory,
   }) async {
-    if (_instance != null) {
-      return _instance;
-    }
     if (!kIsWeb) {
       final directory = storageDirectory ?? await getTemporaryDirectory();
       Hive.init(directory.path);
@@ -27,8 +23,8 @@ class Water implements HydratedStorage {
 
     final box = await Hive.openBox('water');
 
-    _instance = Water._(box);
-    return _instance;
+    final instance = Water._(box);
+    return instance;
   }
 
   Water._(this._box);
@@ -36,7 +32,6 @@ class Water implements HydratedStorage {
   @override
   Future<void> clear() async {
     if (_box.isOpen) {
-      _instance = null;
       return await _box.deleteFromDisk();
     } else {
       return null;

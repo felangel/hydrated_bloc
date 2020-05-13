@@ -80,7 +80,7 @@ class Benchmark {
     final rr = {
       Storage.single: SinglefileRunner(aes, b64),
       Storage.multi: MultifileRunner(aes, b64),
-      Storage.ether: EtherealfileRunner(),
+      Storage.hive: HiveRunner(),
     };
     _runners =
         rr.keys.where((s) => settings.storages[s]).map((s) => rr[s]).toList();

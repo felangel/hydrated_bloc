@@ -9,7 +9,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'settings.freezed.dart';
 
 enum Mode { wake, read, write, delete }
-enum Storage { single, multi, ether }
+enum Storage { single, multi, hive }
 
 class BenchmarkSettings with EquatableMixin {
   var uiLock = true;
@@ -31,7 +31,7 @@ class BenchmarkSettings with EquatableMixin {
   var storages = <Storage, bool>{
     Storage.single: true,
     Storage.multi: true,
-    Storage.ether: true,
+    Storage.hive: true,
   }; //where to benchmark
   void addStorage(Storage storage) => storages[storage] = true;
   void delStorage(Storage storage) => storages[storage] = false;

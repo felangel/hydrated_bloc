@@ -447,11 +447,11 @@ class _AppState extends State<App> {
     ScrollController controller,
     BenchmarkSettings settings,
   ) {
-    const ss = [Storage.single, Storage.multi, Storage.ether];
+    const ss = [Storage.single, Storage.multi, Storage.hive];
     const ll = {
       Storage.single: 'Single file',
       Storage.multi: 'Isolated files',
-      Storage.ether: 'Temporal'
+      Storage.hive: 'Hive water'
     };
     Widget bb = ToggleButtons(
       isSelected: ss.map((s) => settings.storages[s]).toList(),
