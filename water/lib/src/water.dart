@@ -24,9 +24,13 @@ class Water implements HydratedStorage {
       Hive.init(directory.path);
     }
 
+    List<int> key;
+    if (pass != null) {
+      key = sha256.convert(utf8.encode(pass)).bytes;
+    }
     final box = await Hive.openBox(
       'water',
-      encryptionKey: sha256.convert(utf8.encode(pass)).bytes,
+      encryptionKey: key,
     );
 
     final instance = Water._(box);
