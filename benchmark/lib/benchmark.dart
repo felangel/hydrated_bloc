@@ -86,7 +86,7 @@ class Benchmark {
         rr.keys.where((s) => settings.storages[s]).map((s) => rr[s]).toList();
   }
 
-  int get totalIter => 10;
+  int get totalIter => 16;
   List<BenchmarkRunner> _runners;
 
   Stream<Result> run() async* {

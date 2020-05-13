@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -15,13 +17,17 @@ class Water implements HydratedStorage {
   /// By default, [Directory.current] is used.
   static Future<Water> getInstance({
     Directory storageDirectory,
+    String pass,
   }) async {
     if (!kIsWeb) {
       final directory = storageDirectory ?? await getTemporaryDirectory();
       Hive.init(directory.path);
     }
 
-    final box = await Hive.openBox('water');
+    final box = await Hive.openBox(
+      'water',
+      encryptionKey: sha256.convert(utf8.encode(pass)).bytes,
+    );
 
     final instance = Water._(box);
     return instance;
