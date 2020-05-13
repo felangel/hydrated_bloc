@@ -5,6 +5,7 @@ import 'package:benchmark/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:http/http.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'benchmark.dart';
 
@@ -236,6 +237,7 @@ class _AppState extends State<App> {
       Future.delayed(const Duration(milliseconds: 100))
           .then((_) => setState(() {})); //controller.position.extentAfter
 
+      // Dumping JSON
       print("====== SETTINGS ======");
       final settingsJson = BenchmarkSettings.toJson(settings);
       print(json.encode(settingsJson));
@@ -243,10 +245,34 @@ class _AppState extends State<App> {
       final resultsJson = results.value.map((x) => x.toJson()).toList();
       print(json.encode(resultsJson));
       print('TITLE');
-      final titleJson = '${settingsJson["blocCount"]} blocs'
-          '|${settings.stateSizeLabels.end}'
-          '|${settingsJson["aes"] ? "AES" : "No AES"}';
+      // 35_blocs 256_Bytes NoAES
+      final titleJson = '${settingsJson["blocCount"]}_blocs'
+          ' ${settings.stateSizeLabels.end.replaceAll(' ', '_')}'
+          ' ${settingsJson["aes"] ? "AES" : "NoAES"}';
       print(titleJson);
+      print('\n\nSENDING JSON');
+
+      final composedJson = <String, dynamic>{
+        'title': titleJson,
+        'settings': settingsJson,
+        'results': resultsJson
+      };
+
+      final composed = json.encode(composedJson);
+      try {
+        print('Sending composed');
+        var resp = await post(
+          'http://10.0.1.9:9091/dump',
+          body: composed,
+        );
+        if (resp.statusCode == 200) {
+          print('Done!');
+          return;
+        }
+        throw null;
+      } on dynamic catch (_) {
+        throw Exception("Could not send json");
+      }
     }
 
     return OutlineButton(
