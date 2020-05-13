@@ -1,0 +1,48 @@
+{
+  "title": "30_blocs 1_MB AES",
+  "settings": {
+    "aes": true,
+    "modes": {
+      "Mode.wake": true,
+      "Mode.read": true,
+      "Mode.write": true,
+      "Mode.delete": false
+    },
+    "storages": {
+      "Storage.single": false,
+      "Storage.multi": false,
+      "Storage.hive": true
+    },
+    "blocCount": 30,
+    "stateSize": 1048576
+  },
+  "results": [
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.wake",
+      "aes": true,
+      "intMeanMicroseconds": 6236747,
+      "intSDMicroseconds": 526312,
+      "stringMeanMicroseconds": 3655,
+      "stringSDMicroseconds": 414
+    },
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.write",
+      "aes": true,
+      "intMeanMicroseconds": 11453569,
+      "intSDMicroseconds": 921493,
+      "stringMeanMicroseconds": 54,
+      "stringSDMicroseconds": 4
+    },
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.read",
+      "aes": true,
+      "intMeanMicroseconds": 59,
+      "intSDMicroseconds": 5,
+      "stringMeanMicroseconds": 6,
+      "stringSDMicroseconds": 1
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "title": "75_blocs 256_Bytes AES",
+  "settings": {
+    "aes": true,
+    "modes": {
+      "Mode.wake": true,
+      "Mode.read": true,
+      "Mode.write": true,
+      "Mode.delete": false
+    },
+    "storages": {
+      "Storage.single": true,
+      "Storage.multi": true,
+      "Storage.hive": true
+    },
+    "blocCount": 75,
+    "stateSize": 256
+  },
+  "results": [
+    {
+      "storage": "Storage.single",
+      "mode": "Mode.wake",
+      "aes": true,
+      "intMeanMicroseconds": 10880,
+      "intSDMicroseconds": 254,
+      "stringMeanMicroseconds": 3144,
+      "stringSDMicroseconds": 25
+    },
+    {
+      "storage": "Storage.multi",
+      "mode": "Mode.wake",
+      "aes": true,
+      "intMeanMicroseconds": 77424,
+      "intSDMicroseconds": 6338,
+      "stringMeanMicroseconds": 63534,
+      "stringSDMicroseconds": 8995
+    },
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.wake",
+      "aes": true,
+      "intMeanMicroseconds": 11267,
+      "intSDMicroseconds": 1350,
+      "stringMeanMicroseconds": 6606,
+      "stringSDMicroseconds": 1204
+    },
+    {
+      "storage": "Storage.single",
+      "mode": "Mode.write",
+      "aes": true,
+      "intMeanMicroseconds": 442124,
+      "intSDMicroseconds": 17352,
+      "stringMeanMicroseconds": 83877,
+      "stringSDMicroseconds": 1500
+    },
+    {
+      "storage": "Storage.multi",
+      "mode": "Mode.write",
+      "aes": true,
+      "intMeanMicroseconds": 99787,
+      "intSDMicroseconds": 4983,
+      "stringMeanMicroseconds": 65299,
+      "stringSDMicroseconds": 11414
+    },
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.write",
+      "aes": true,
+      "intMeanMicroseconds": 51783,
+      "intSDMicroseconds": 6161,
+      "stringMeanMicroseconds": 121,
+      "stringSDMicroseconds": 13
+    },
+    {
+      "storage": "Storage.single",
+      "mode": "Mode.read",
+      "aes": true,
+      "intMeanMicroseconds": 13,
+      "intSDMicroseconds": 0,
+      "stringMeanMicroseconds": 11,
+      "stringSDMicroseconds": 0
+    },
+    {
+      "storage": "Storage.multi",
+      "mode": "Mode.read",
+      "aes": true,
+      "intMeanMicroseconds": 19,
+      "intSDMicroseconds": 1,
+      "stringMeanMicroseconds": 26,
+      "stringSDMicroseconds": 10
+    },
+    {
+      "storage": "Storage.hive",
+      "mode": "Mode.read",
+      "aes": true,
+      "intMeanMicroseconds": 152,
+      "intSDMicroseconds": 15,
+      "stringMeanMicroseconds": 9,
+      "stringSDMicroseconds": 1
+    }
+  ]
+}

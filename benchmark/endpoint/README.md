@@ -8,11 +8,14 @@ I.e for state of 1KB, list of 256 ints will be saved. Strings are saved as strin
 AES is AES
 
 ## Index table
+### AES-ON
 
-| Blocs 	| 4Bytes 	| 64Bytes 	| 256Bytes 	| 1KB 	| 4KB 	| 16KB 	| 1MB       	| 4MB 	|
-|-------	|--------	|---------	|----------	|-----	|-----	|------	|-----------	|-----	|
-| 1     	| +      	| +       	| +        	| +   	| +   	| +    	| +         	| +   	|
-| 15    	| +      	| +       	| +        	| +   	| +   	| +    	| no single 	| -   	|
-| 30    	| +      	| +       	| +        	| +   	| +   	| +    	| only hive 	| -   	|
-| 75    	|        	|         	|          	| +   	|     	|      	|           	|     	|
-| 150   	| +      	|         	| +        	|     	|     	|      	|           	|     	|
+| Blocs | 4Bytes | 64Bytes | 256Bytes | 1KB | 4KB | 16KB       | 64KB       | 1MB        | 4MB |
+|-------|--------|---------|----------|-----|-----|------------|------------|------------|-----|
+| 1     | +      | +       | +        | +   | +   | +          | +          | +          | +   |
+| 15    | +      | +       | +        | +   | +   | +          | +          | multi+hive | -   |
+| 30    | +      | +       | +        | +   | +   | +          | multi+hive | only hive  | -   |
+| 75    | +      | +       | +        | +   | +   | -          | -          | -          | -   |
+| 150   | +      | +       | +        | +   | +   | multi+hive | multi+hive | -          | -   |
+
+### AES-OFF
