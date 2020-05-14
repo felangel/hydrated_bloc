@@ -27,3 +27,7 @@ AES is AES
 | 30    | +      | +       | +        | +   | +   | +    | +    | multi+hive | multi+hive |
 | 75    | +      | +       | +        | +   | +   | +    | +    | multi+hive | -          |
 | 150   | +      | +       | +        | +   | +   | +    | +    | multi+hive | -          |
+
+## Generalized graphs
+
+<img src="./general.svg">
