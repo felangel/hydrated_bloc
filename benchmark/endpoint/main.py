@@ -27,8 +27,10 @@ def draw(rr, aes, mode, storage, count):
 
     # xx = [x['count'] for x in data]
     xx = [x['size']*x['count'] for x in data]
-    yy = [x['intMeanMicroseconds'] for x in data]
-    ee = [x['intSDMicroseconds'] for x in data]
+    # intMeanMicroseconds intSDMicroseconds
+    # stringMeanMicroseconds stringSDMicroseconds
+    yy = [x['stringMeanMicroseconds'] for x in data]
+    ee = [x['stringSDMicroseconds'] for x in data]
 
     # {count}
     # {'aes' if aes else 'non-aes'}
@@ -57,8 +59,9 @@ def plot(rr):
             index = i*2 + j + 1
             plt.style.use('ggplot')
             plt.subplot(3, 2, index)
-            # .capitalize()
-            plt.title(f'{"Encrypted" if aes else "Plain"} {mode}')
+            # Int64 String
+            plt.title(
+                f'{"Encrypted" if aes else "Plain"} String {mode.capitalize()}')
             # plt.title(f'all bloc counts,' +
             #           f' {"aes" if aes else "no aes"}')
             # plt.legend(loc='lower right')
