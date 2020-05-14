@@ -17,51 +17,59 @@ def draw(rr, aes, mode, storage, count):
     ff = [
         aesFilter(aes),
         # sizeFilter(2**2),
-        countFilter(count),
+        # countFilter(count),
         modeFilter(mode),
         storageFilter(storage),
     ]
     data = applyFilters(ff, rr)
     # data = sorted(data, key=lambda r: r['count'])
-    data = sorted(data, key=lambda r: r['size'])
+    data = sorted(data, key=lambda r: r['size']*r['count'])
 
-    xx = [x['count'] for x in data]
-    yy = [x['size'] for x in data]
-    zz = [x['intMeanMicroseconds'] for x in data]
+    # xx = [x['count'] for x in data]
+    xx = [x['size']*x['count'] for x in data]
+    yy = [x['intMeanMicroseconds'] for x in data]
     ee = [x['intSDMicroseconds'] for x in data]
 
     # {count}
     # {'aes' if aes else 'non-aes'}
     label = f"{mode} {storage}"
     # ecolor='b', color='b'
-    plt.errorbar(yy, zz, yerr=ee, linestyle='-',
+    plt.errorbar(xx, yy, yerr=ee, linestyle='-',
+                 linewidth=1, markersize=3,
                  marker='.', capsize=3, label=label)
 
 
 # fig, axs = plt.subplots(nrows=2, ncols=2, constrained_layout=True)
 def plot(rr):
-    for aes in [True, False]:  # [True, False]
-        for mode in ['write']:  # ['read', 'write', 'wake']
-            i = 0
-            fig = plt.figure()
-            for count in [1, 30, 150]:
-                i += 1  # [1, 15, 30, 75, 150]
-                # plt.subplot(2, 1, 1)
-                # plt.plot(x1, y1, 'o-')
-                # plt.ylabel('Damped oscillation')
-                plt.style.use('ggplot')
-                # plt.title(f'One bloc. 1:AES. 2:NO AES')
-                plt.subplot(3, 1, i)
-                plt.title(f'{count} bloc{"s" if count > 1 else ""},' +
-                          f' {"aes" if aes else "no aes"}')
-                # plt.legend(loc='lower right')
-                for storage in ['single', 'multi', 'hive']:
-                    draw(rr, aes, mode, storage, count)
-                plt.xlabel('Size, bytes')
-                plt.ylabel('Time, μs')
-                plt.yscale('log')
-                plt.xscale('log')
-                plt.legend(loc='lower right')
+    j = -1
+    fig = plt.figure(figsize=(30, 30))
+    plt.subplots_adjust(wspace=0.3, hspace=0.6)
+    # fig.tight_layout()
+    for aes in [False, True]:  # [True, False]
+        j += 1
+        i = -1
+        # for count in [1]:
+        for mode in ['read', 'write', 'wake']:  # ['read', 'write', 'wake']
+            i += 1  # [1, 15, 30, 75, 150]
+            # plt.subplot(2, 1, 1)
+            # plt.plot(x1, y1, 'o-')
+            # plt.ylabel('Damped oscillation')
+            index = i*2 + j + 1
+            plt.style.use('ggplot')
+            plt.subplot(3, 2, index)
+            # .capitalize()
+            plt.title(f'{"Encrypted" if aes else "Plain"} {mode}')
+            # plt.title(f'all bloc counts,' +
+            #           f' {"aes" if aes else "no aes"}')
+            # plt.legend(loc='lower right')
+            for storage in ['single', 'multi', 'hive']:
+                draw(rr, aes, mode, storage, 0)
+            plt.xlabel('Total size, bytes')
+            plt.ylabel('Time, μs')
+            plt.yscale('log')
+            plt.xscale('log')
+            plt.legend(loc='lower right')
+    # plt.savefig('temp.png', dpi=1200)
     plt.show()
 
 
