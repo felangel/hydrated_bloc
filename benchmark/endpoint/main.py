@@ -17,16 +17,16 @@ def draw(rr, aes, mode, storage, count):
     ff = [
         aesFilter(aes),
         # sizeFilter(2**2),
-        countFilter(1),
+        # countFilter(count),
         modeFilter(mode),
         storageFilter(storage),
     ]
     data = applyFilters(ff, rr)
     # data = sorted(data, key=lambda r: r['count'])
-    data = sorted(data, key=lambda r: r['size'])
+    data = sorted(data, key=lambda r: r['size']*r['count'])
 
     # xx = [x['count'] for x in data]
-    xx = [x['size'] for x in data]
+    xx = [x['size']*x['count'] for x in data]
     yy = [x['intMeanMicroseconds'] for x in data]
     ee = [x['intSDMicroseconds'] for x in data]
 
@@ -58,13 +58,13 @@ def plot(rr):
             plt.style.use('ggplot')
             plt.subplot(3, 2, index)
             # .capitalize()
-            plt.title(f'One bloc {"encrypted" if aes else "plain"} {mode}')
+            plt.title(f'{"Encrypted" if aes else "Plain"} {mode}')
             # plt.title(f'all bloc counts,' +
             #           f' {"aes" if aes else "no aes"}')
             # plt.legend(loc='lower right')
             for storage in ['single', 'multi', 'hive']:
                 draw(rr, aes, mode, storage, 0)
-            plt.xlabel('Size, bytes')
+            plt.xlabel('Total size, bytes')
             plt.ylabel('Time, μs')
             plt.yscale('log')
             plt.xscale('log')
