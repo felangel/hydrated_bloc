@@ -17,20 +17,20 @@ def draw(rr, aes, mode, storage, count):
     ff = [
         aesFilter(aes),
         # sizeFilter(2**2),
-        # countFilter(count),
+        countFilter(1),
         modeFilter(mode),
         storageFilter(storage),
     ]
     data = applyFilters(ff, rr)
     # data = sorted(data, key=lambda r: r['count'])
-    data = sorted(data, key=lambda r: r['size']*r['count'])
+    data = sorted(data, key=lambda r: r['size'])
 
     # xx = [x['count'] for x in data]
-    xx = [x['size']*x['count'] for x in data]
+    xx = [x['size'] for x in data]
     # intMeanMicroseconds intSDMicroseconds
     # stringMeanMicroseconds stringSDMicroseconds
-    yy = [x['stringMeanMicroseconds'] for x in data]
-    ee = [x['stringSDMicroseconds'] for x in data]
+    yy = [x['intMeanMicroseconds'] for x in data]
+    ee = [x['intSDMicroseconds'] for x in data]
 
     # {count}
     # {'aes' if aes else 'non-aes'}
@@ -61,13 +61,13 @@ def plot(rr):
             plt.subplot(3, 2, index)
             # Int64 String
             plt.title(
-                f'{"Encrypted" if aes else "Plain"} String {mode.capitalize()}')
+                f'1 bloc, {"Encrypted" if aes else "Plain"} Int64 {mode.capitalize()}')
             # plt.title(f'all bloc counts,' +
             #           f' {"aes" if aes else "no aes"}')
             # plt.legend(loc='lower right')
             for storage in ['single', 'multi', 'hive']:
                 draw(rr, aes, mode, storage, 0)
-            plt.xlabel('Total size, bytes')
+            plt.xlabel('Size, bytes')
             plt.ylabel('Time, μs')
             plt.yscale('log')
             plt.xscale('log')
