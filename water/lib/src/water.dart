@@ -30,7 +30,7 @@ class Water implements HydratedStorage {
     }
     final box = await Hive.openBox(
       'water',
-      encryptionKey: key,
+      encryptionCipher: HiveAesCipher(key),
     );
 
     final instance = Water._(box);
@@ -40,9 +40,18 @@ class Water implements HydratedStorage {
   Water._(this._box);
 
   @override
-  Future<void> clear() async {
+  dynamic read(String key) {
     if (_box.isOpen) {
-      return await _box.deleteFromDisk();
+      return _box.get(key);
+    } else {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> write(String key, dynamic value) {
+    if (_box.isOpen) {
+      return _box.put(key, value);
     } else {
       return null;
     }
@@ -58,18 +67,9 @@ class Water implements HydratedStorage {
   }
 
   @override
-  dynamic read(String key) {
+  Future<void> clear() async {
     if (_box.isOpen) {
-      return _box.get(key);
-    } else {
-      return null;
-    }
-  }
-
-  @override
-  Future<void> write(String key, dynamic value) {
-    if (_box.isOpen) {
-      return _box.put(key, value);
+      return await _box.deleteFromDisk();
     } else {
       return null;
     }
