@@ -37,6 +37,7 @@ func main() {
 	}
 }
 
+// DataDump is an endpoint for bench data
 func DataDump(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
