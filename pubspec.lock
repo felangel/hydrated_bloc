@@ -129,21 +129,21 @@ packages:
       name: path_provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.6.7"
+    version: "1.6.8"
   path_provider_macos:
     dependency: transitive
     description:
       name: path_provider_macos
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.4+1"
+    version: "0.0.4+2"
   path_provider_platform_interface:
     dependency: transitive
     description:
       name: path_provider_platform_interface
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.0.2"
   petitparser:
     dependency: transitive
     description:
