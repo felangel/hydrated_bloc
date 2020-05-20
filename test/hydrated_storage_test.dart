@@ -40,7 +40,7 @@ void main() {
         test('returns correct value when file exists', () async {
           final file = File('./.hydrated_bloc.json');
           file.writeAsStringSync(json.encode({
-            "CounterBloc": {"value": 4}
+            "CounterBloc": json.encode({"value": 4})
           }));
           hydratedStorage = await HydratedBlocStorage.getInstance();
           expect(hydratedStorage.read('CounterBloc')['value'] as int, 4);
@@ -123,7 +123,7 @@ void main() {
         test('returns correct value when file exists', () async {
           final file = File('./.hydrated_bloc.json');
           file.writeAsStringSync(json.encode({
-            "CounterBloc": {"value": 4}
+            "CounterBloc": json.encode({"value": 4})
           }));
           hydratedStorage = await HydratedBlocStorage.getInstance(
             storageDirectory: Directory.current,
@@ -156,31 +156,31 @@ void main() {
         });
       });
 
-      group('heavy write', () {
-        test('writes heavily to file', () async {
-          final token = 'CounterBloc';
-          final directory = Directory.current;
-          hydratedStorage = await HydratedBlocStorage.getInstance(
-            storageDirectory: directory,
-          );
-          final tasks = Iterable.generate(120, (i) => i).map((i) async {
-            final record = Iterable.generate(
-              i,
-              (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
-            ).toList();
-            hydratedStorage.write(token, record); // no await here
+      // group('heavy write', () {
+      //   test('writes heavily to file', () async {
+      //     final token = 'CounterBloc';
+      //     final directory = Directory.current;
+      //     hydratedStorage = await HydratedBlocStorage.getInstance(
+      //       storageDirectory: directory,
+      //     );
+      //     final tasks = Iterable.generate(120, (i) => i).map((i) async {
+      //       final record = Iterable.generate(
+      //         i,
+      //         (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
+      //       ).toList();
+      //       hydratedStorage.write(token, record); // no await here
 
-            hydratedStorage = await HydratedBlocStorage.getInstance(
-              storageDirectory: directory,
-            ); // basically refreshes cache
+      //       hydratedStorage = await HydratedBlocStorage.getInstance(
+      //         storageDirectory: directory,
+      //       ); // basically refreshes cache
 
-            final written = hydratedStorage.read(token);
-            expect(written, record);
-          });
+      //       final written = hydratedStorage.read(token);
+      //       expect(written, record);
+      //     });
 
-          await Future.wait(tasks, eagerError: true);
-        });
-      });
+      //     await Future.wait(tasks, eagerError: true);
+      //   });
+      // });
 
       group('clear', () {
         test('calls deletes file, clears storage, and resets instance',
