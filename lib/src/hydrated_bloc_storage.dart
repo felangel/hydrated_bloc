@@ -42,15 +42,15 @@ class HydratedBlocStorage extends HydratedStorage {
     Directory storageDirectory,
     HiveCipher encryptionCipher,
   }) async {
+    final directory = storageDirectory ?? await getTemporaryDirectory();
     if (!kIsWeb) {
-      final directory = storageDirectory ?? await getTemporaryDirectory();
       Hive.init(directory.path);
     }
 
     final box = await Hive.openBox('water', encryptionCipher: encryptionCipher);
 
     final singlet = await CellSinglet.instance(
-      storageDirectory,
+      directory,
       (file) => StringCell(file),
     );
 
