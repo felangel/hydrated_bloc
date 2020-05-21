@@ -106,7 +106,7 @@ void main() {
       HydratedBlocStorage hydratedStorage;
 
       tearDown(() async {
-        await hydratedStorage.clear();
+        await hydratedStorage?.clear();
       });
 
       group('read', () {
@@ -156,31 +156,33 @@ void main() {
         });
       });
 
-      // group('heavy write', () {
-      //   test('writes heavily to file', () async {
-      //     final token = 'CounterBloc';
-      //     final directory = Directory.current;
-      //     hydratedStorage = await HydratedBlocStorage.getInstance(
-      //       storageDirectory: directory,
-      //     );
-      //     final tasks = Iterable.generate(120, (i) => i).map((i) async {
-      //       final record = Iterable.generate(
-      //         i,
-      //         (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
-      //       ).toList();
-      //       hydratedStorage.write(token, record); // no await here
+      group('heavy write', () {
+        test('writes heavily to file', () async {
+          final token = 'CounterBloc';
+          final directory = Directory.current;
+          hydratedStorage = await HydratedBlocStorage.getInstance(
+            storageDirectory: directory,
+          );
+          await Stream.fromIterable(
+            Iterable.generate(120, (i) => i),
+          ).asyncMap((i) async {
+            final record = Iterable.generate(
+              i,
+              (i) => Iterable.generate(i, (j) => 'Point($i,$j);').toList(),
+            ).toList();
 
-      //       hydratedStorage = await HydratedBlocStorage.getInstance(
-      //         storageDirectory: directory,
-      //       ); // basically refreshes cache
+            hydratedStorage.write(token, record); // no await here
 
-      //       final written = hydratedStorage.read(token);
-      //       expect(written, record);
-      //     });
+            hydratedStorage = await HydratedBlocStorage.getInstance(
+              storageDirectory: directory,
+            ); // basically does nothing now
 
-      //     await Future.wait(tasks, eagerError: true);
-      //   });
-      // });
+            final written = hydratedStorage.read(token) as List<List<String>>;
+            expect(written, isNotNull);
+            expect(written, record);
+          }).drain();
+        });
+      });
 
       group('clear', () {
         test('calls deletes file, clears storage, and resets instance',

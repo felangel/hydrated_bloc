@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:synchronized/synchronized.dart';
 
 /// Interface which `HydratedBlocDelegate` uses to persist and retrieve
 /// state changes from the local device.
@@ -41,33 +42,45 @@ class HydratedBlocStorage extends HydratedStorage {
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
     HiveCipher encryptionCipher,
-  }) async {
-    final directory = storageDirectory ?? await getTemporaryDirectory();
-    if (!kIsWeb) {
-      Hive.init(directory.path);
-    }
-
-    final box = await Hive.openBox('water', encryptionCipher: encryptionCipher);
-
-    final singlet = await CellSinglet.instance(
-      directory,
-      (file) => StringCell(file),
-    );
-
-    final tokens = singlet.tokens;
-    if (tokens.isNotEmpty) {
-      for (final token in tokens) {
-        try {
-          final string = await singlet.read(token);
-          final object = json.decode(string);
-          await box.put(token, object);
-        } on dynamic catch (_) {}
+  }) {
+    return _lock.synchronized(() async {
+      if (_instance != null) {
+        return _instance;
       }
-      await singlet.clear();
-    }
 
-    return HydratedBlocStorage._(box);
+      final directory = storageDirectory ?? await getTemporaryDirectory();
+      if (!kIsWeb) {
+        Hive.init(directory.path);
+      }
+
+      final box = await Hive.openBox(
+        'niagara+',
+        encryptionCipher: encryptionCipher,
+      );
+
+      final singlet = await CellSinglet.instance(
+        directory,
+        (file) => StringCell(file),
+      );
+
+      final tokens = singlet.tokens;
+      if (tokens.isNotEmpty) {
+        for (final token in tokens) {
+          try {
+            final string = await singlet.read(token);
+            final object = json.decode(string);
+            await box.put(token, object);
+          } on dynamic catch (_) {}
+        }
+        await singlet.clear();
+      }
+
+      return _instance = HydratedBlocStorage._(box);
+    });
   }
+
+  static final _lock = Lock();
+  static HydratedStorage _instance;
 
   HydratedBlocStorage._(this._box);
   final Box _box;
@@ -84,7 +97,7 @@ class HydratedBlocStorage extends HydratedStorage {
   @override
   Future<void> write(String key, dynamic value) {
     if (_box.isOpen) {
-      return _box.put(key, value);
+      return _lock.synchronized(() => _box.put(key, value));
     } else {
       return null;
     }
@@ -93,16 +106,17 @@ class HydratedBlocStorage extends HydratedStorage {
   @override
   Future<void> delete(String key) {
     if (_box.isOpen) {
-      return _box.delete(key);
+      return _lock.synchronized(() => _box.delete(key));
     } else {
       return null;
     }
   }
 
   @override
-  Future<void> clear() async {
+  Future<void> clear() {
     if (_box.isOpen) {
-      return await _box.deleteFromDisk();
+      _instance = null;
+      return _lock.synchronized(_box.deleteFromDisk);
     } else {
       return null;
     }
