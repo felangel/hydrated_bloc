@@ -31,7 +31,7 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   @override
   State get initialState {
     try {
-      final stateJson = _storage.read(storageToken) as Map<String, dynamic>;
+      final stateJson = Map<String, dynamic>.from(_storage.read(storageToken));
       if (stateJson == null) return null;
       return fromJson(stateJson);
     } on dynamic catch (error, stackTrace) {
