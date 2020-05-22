@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
-import 'package:hive/hive.dart';
 
 import '../hydrated_bloc.dart';
 
@@ -26,7 +25,7 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// You can provide default one using following snippet:
   /// ```dart
   /// import 'package:crypto/crypto.dart';
-  /// import 'package:hive/hive.dart';
+  /// import 'package:hydrated_bloc/hydrated_bloc.dart';
   ///
   /// const password = 'hydration';
   /// final byteskey = sha256.convert(utf8.encode(pass)).bytes;
