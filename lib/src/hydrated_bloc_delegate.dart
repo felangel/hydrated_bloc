@@ -30,11 +30,11 @@ class HydratedBlocDelegate extends BlocDelegate {
   ///
   /// const password = 'hydration';
   /// final byteskey = sha256.convert(utf8.encode(pass)).bytes;
-  /// return HiveAesCipher(byteskey);
+  /// return HydratedAesCipher(byteskey);
   /// ```
   static Future<HydratedBlocDelegate> build({
     Directory storageDirectory,
-    HiveCipher encryptionCipher,
+    HydratedCipher encryptionCipher,
   }) async {
     return HydratedBlocDelegate(
       await HydratedBlocStorage.getInstance(

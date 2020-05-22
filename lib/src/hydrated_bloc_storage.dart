@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
@@ -22,6 +23,29 @@ abstract class HydratedStorage {
   Future<void> clear();
 }
 
+/// Abstract cipher can be implemented to customize encryption.
+abstract class HydratedCipher implements HiveCipher {
+  /// Calculate a hash of the key. Make sure to use a secure hash.
+  int calculateKeyCrc();
+
+  /// The maximum size the input can have after it has been encrypted.
+  int maxEncryptedSize(Uint8List inp);
+
+  /// Encrypt the given bytes.
+  int encrypt(
+      Uint8List inp, int inpOff, int inpLength, Uint8List out, int outOff);
+
+  /// Decrypt the given bytes.
+  int decrypt(
+      Uint8List inp, int inpOff, int inpLength, Uint8List out, int outOff);
+}
+
+/// Default encryption algorithm. Uses AES256 CBC with PKCS7 padding.
+class HydratedAesCipher extends HiveAesCipher implements HydratedCipher {
+  /// Create a cipher with the given [key].
+  HydratedAesCipher(List<int> key) : super(key);
+}
+
 /// Implementation of [HydratedStorage] which uses `PathProvider` and `dart.io`
 /// to persist and retrieve state changes from the local device.
 class HydratedBlocStorage extends HydratedStorage {
@@ -37,11 +61,11 @@ class HydratedBlocStorage extends HydratedStorage {
   ///
   /// const password = 'hydration';
   /// final byteskey = sha256.convert(utf8.encode(pass)).bytes;
-  /// return HiveAesCipher(byteskey);
+  /// return HydratedAesCipher(byteskey);
   /// ```
   static Future<HydratedBlocStorage> getInstance({
     Directory storageDirectory,
-    HiveCipher encryptionCipher,
+    HydratedCipher encryptionCipher,
   }) {
     return _lock.synchronized(() async {
       if (_instance != null) {
@@ -54,7 +78,7 @@ class HydratedBlocStorage extends HydratedStorage {
       }
 
       final box = await Hive.openBox(
-        'niagara+',
+        'hydrated_box',
         encryptionCipher: encryptionCipher,
       );
 
