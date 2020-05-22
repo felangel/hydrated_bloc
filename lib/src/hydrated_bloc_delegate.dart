@@ -21,8 +21,8 @@ class HydratedBlocDelegate extends BlocDelegate {
   /// If you want to customize `HydratedBlocDelegate`
   /// you can extend `HydratedBlocDelegate` and perform the necessary overrides.
   ///
-  /// [encryptionCipher] is Hive's `HiveCipher`,
-  /// You can provide default one using following snippet:
+  /// With [encryptionCipher] you can provide custom encryption.
+  /// Following snippet shows how to make default one:
   /// ```dart
   /// import 'package:crypto/crypto.dart';
   /// import 'package:hydrated_bloc/hydrated_bloc.dart';
