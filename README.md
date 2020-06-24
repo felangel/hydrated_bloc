@@ -22,7 +22,7 @@
 
 An extension to the [bloc state management library](https://github.com/felangel/bloc) which automatically persists and restores bloc states.
 
-# Overview
+## Overview
 
 `hydrated_bloc` exports a `HydratedStorage` interface which means it can work with any storage provider. Out of the box, it comes with its own implementation: `HydratedBlocStorage`.
 
@@ -30,7 +30,7 @@ An extension to the [bloc state management library](https://github.com/felangel/
 
 In addition, while the `HydratedBlocStorage` client doesn't automatically encrypt/decrypt the data, it is fairly straightforward to implement a custom `HydratedStorage` client which does support encryption.
 
-# Usage
+## Usage
 
 ### 1. Use `HydratedBlocDelegate`
 
