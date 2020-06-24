@@ -12,8 +12,8 @@
   <a href="https://codecov.io/gh/felangel/hydrated_bloc">
     <img src="https://codecov.io/gh/felangel/hydrated_bloc/branch/master/graph/badge.svg" alt="Code Coverage">
   </a>
-  <a href="https://github.com/tenhobi/effective_dart">
-    <img src="https://img.shields.io/badge/style-effective_dart-40c4ff.svg" alt="Effective Dart">
+  <a href="https://pub.dev/packages/effective_dart">
+    <img src="https://img.shields.io/badge/style-effective_dart-40c4ff.svg" alt="style: effective dart">
   </a>
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
