@@ -324,10 +324,9 @@ void main() {
       test('calls onError when json decode fails', () async {
         Object lastError;
         StackTrace lastStackTrace;
-        MyErrorThrowingBloc bloc;
         runZoned(() async {
           when(storage.read(any)).thenReturn('invalid json');
-          bloc = MyErrorThrowingBloc(
+          MyErrorThrowingBloc(
             onErrorCallback: (error, stackTrace) {
               lastError = error;
               lastStackTrace = stackTrace;
