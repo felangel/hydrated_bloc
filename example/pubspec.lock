@@ -58,9 +58,9 @@ packages:
   flutter_bloc:
     dependency: "direct main"
     description:
-      path: "../../bloc/packages/flutter_bloc"
-      relative: true
-    source: path
+      name: flutter_bloc
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "5.0.0-dev.3"
   flutter_cubit:
     dependency: transitive
