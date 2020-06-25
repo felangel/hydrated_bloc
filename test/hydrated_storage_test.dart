@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -37,7 +38,9 @@ void main() {
         });
 
         test('returns correct value when file exists', () async {
-          final file = File('./.hydrated_bloc.json');
+          final file = File(
+            p.join(Directory.current.path, '.hydrated_bloc.json'),
+          );
           file.writeAsStringSync(json.encode({
             "CounterBloc": json.encode({"value": 4})
           }));
@@ -49,7 +52,9 @@ void main() {
             'returns null value '
             'when file exists but contains corrupt json and deletes the file',
             () async {
-          final file = File('./.hydrated_bloc.json');
+          final file = File(
+            p.join(Directory.current.path, '.hydrated_bloc.json'),
+          );
           file.writeAsStringSync("invalid-json");
           hydratedStorage = await HydratedBlocStorage.getInstance();
           expect(hydratedStorage.read('CounterBloc'), isNull);
