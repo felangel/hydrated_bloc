@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License">
   </a>
   <a href="https://github.com/zepfietje/starware">
-    <img src="https://img.shields.io/badge/Starware-%E2%AD%90-black?labelColor=%23f9b00d" alt="Starware">
+    <img src="https://img.shields.io/badge/Starware-⭐-black?labelColor=f9b00d" alt="Starware">
   </a>
 </p>
 
