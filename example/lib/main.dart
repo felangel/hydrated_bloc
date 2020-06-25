@@ -95,8 +95,7 @@ class CounterState {
 }
 
 class CounterBloc extends HydratedBloc<CounterEvent, CounterState> {
-  @override
-  CounterState get initialState => super.initialState ?? CounterState(0);
+  CounterBloc() : super(CounterState(0));
 
   @override
   Stream<CounterState> mapEventToState(CounterEvent event) async* {

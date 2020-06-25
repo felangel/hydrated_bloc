@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/felangel/hydrated_bloc/raw/master/doc/assets/hydrated_bloc_logo.png" height="240" alt="Hydrated Bloc">
+  <img src="https://github.com/felangel/hydrated_bloc/raw/master/doc/assets/hydrated_bloc_logo_new.png" height="100" alt="Hydrated Bloc">
 </p>
 
 <p align="center">
@@ -45,26 +45,16 @@ void main() async {
 }
 ```
 
-### 2. Extend `HydratedBloc` and override initialState, fromJson and toJson methods
+### 2. Extend `HydratedBloc` and override fromJson and toJson methods
 
 ```dart
 class CounterBloc extends HydratedBloc<CounterEvent, CounterState> {
-  // Use previously cached initialState if it's available
-  @override
-  CounterState get initialState {
-    return super.initialState ?? CounterState(0);
-  }
+  CounterBloc() : super(CounterState(0));
 
   // Called when trying to read cached state from storage.
-  // Be sure to handle any exceptions that can occur and return null
-  // to indicate that there is no cached data.
   @override
   CounterState fromJson(Map<String, dynamic> source) {
-    try {
-      return CounterState(source['value'] as int);
-    } catch (_) {
-      return null;
-    }
+    return CounterState(source['value'] as int);
   }
 
   // Called on each state change (transition)
@@ -72,11 +62,7 @@ class CounterBloc extends HydratedBloc<CounterEvent, CounterState> {
   // Otherwise, the returned value will be cached.
   @override
   Map<String, int> toJson(CounterState state) {
-    try {
-      return { 'value': state.value };
-    } catch (_) {
-      return null;
-    }
+    return { 'value': state.value };
   }
 
   @override

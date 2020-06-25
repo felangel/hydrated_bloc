@@ -12,8 +12,8 @@ import '../hydrated_bloc.dart';
 /// {@endtemplate}
 abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   /// {@macro hydrated_bloc}
-  HydratedBloc() {
-    final stateJson = toJson(state);
+  HydratedBloc(State state) : super(state) {
+    final stateJson = toJson(this.state);
     if (stateJson != null) {
       try {
         _storage.write(storageToken, stateJson);
@@ -26,17 +26,18 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
   static HydratedBlocDelegate get _delegate =>
       BlocSupervisor.delegate as HydratedBlocDelegate;
   static HydratedStorage get _storage => _delegate.storage;
+  State _state;
 
-  @mustCallSuper
   @override
-  State get initialState {
+  State get state {
+    if (_state != null) return _state;
     try {
       final stateJson = _storage.read(storageToken);
-      if (stateJson == null) return null;
+      if (stateJson == null) return super.state;
       return fromJson(Map<String, dynamic>.from(stateJson));
     } on dynamic catch (error, stackTrace) {
       onError(error, stackTrace);
-      return null;
+      return super.state;
     }
   }
 
@@ -51,6 +52,7 @@ abstract class HydratedBloc<Event, State> extends Bloc<Event, State> {
         onError(error, stackTrace);
       }
     }
+    _state = state;
     super.onTransition(transition);
   }
 

@@ -1,3 +1,8 @@
+# 5.0.0-dev.1
+
+- **BREAKING**: update to `bloc ^5.0.0-dev.7`
+- **BREAKING**: `super.initialState` is no longer required
+
 # 4.1.1
 
 - Remove unnecessary `print` statement
