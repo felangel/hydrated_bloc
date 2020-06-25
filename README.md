@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://pub.dev/packages/hydrated_bloc">
-    <img src="https://img.shields.io/pub/v/hydrated_bloc.svg" alt="Pub">
+    <img src="https://img.shields.io/pub/v/hydrated_bloc.svg" alt="Pub Version">
   </a>
   <a href="https://circleci.com/gh/felangel/hydrated_bloc">
     <img src="https://circleci.com/gh/felangel/hydrated_bloc.svg?style=shield" alt="Build Status">
