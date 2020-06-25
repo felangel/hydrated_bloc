@@ -1,12 +1,11 @@
 import 'dart:io';
 
-import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedDelegate', () {
     HydratedBlocDelegate delegate;
     var getTemporaryDirectoryCallCount = 0;
@@ -33,14 +32,14 @@ void main() {
     });
 
     group('Default Storage Directory', () {
-    //   test('creates functional storage instance using getTemporaryDirectory',
-    //       () async {
-    //     delegate = await HydratedBlocDelegate.build();
-    //     expect(getTemporaryDirectoryCallCount, 1);
-    //     await delegate.storage.write('MockBloc', {"nextState": "json"});
-    //     expect(delegate.storage.read('MockBloc'), {'nextState': 'json'});
-    //   });
-    // });
+      test('creates functional storage instance using getTemporaryDirectory',
+          () async {
+        delegate = await HydratedBlocDelegate.build();
+        expect(getTemporaryDirectoryCallCount, 1);
+        await delegate.storage.write('MockBloc', {"nextState": "json"});
+        expect(delegate.storage.read('MockBloc'), {'nextState': 'json'});
+      });
+    });
 
     group('Custom Storage Directory', () {
       test('creates functional storage instance using custom directory',
