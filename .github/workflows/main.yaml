@@ -25,7 +25,5 @@ jobs:
         run: flutter test -j 1 --no-pub --coverage
       - name: Check Code Coverage
         uses: ChicagoFlutter/lcov-cop@v1.0.0
-        with:
-          path: packages/flutter_cubit/coverage/lcov.info
       - name: Upload Coverage
         run: bash <(curl -s https://codecov.io/bash)
