@@ -38,6 +38,9 @@ void main() {
         });
 
         test('returns correct value when file exists', () async {
+          print(
+            'Path: ${p.join(Directory.current.path, '.hydrated_bloc.json')}',
+          );
           final file = File(
             p.join(Directory.current.path, '.hydrated_bloc.json'),
           );
