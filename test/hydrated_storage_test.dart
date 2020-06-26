@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +38,8 @@ void main() {
         // });
 
         test('returns correct value when file exists', () async {
-          final file = File('$response/.hydrated_bloc.json');
+          final directory = await getTemporaryDirectory();
+          final file = File('${directory.path}/.hydrated_bloc.json');
           print('writing to ${file.path}');
           file.writeAsStringSync(json.encode({
             "CounterBloc": json.encode({"value": 4})
