@@ -51,10 +51,7 @@ class HydratedBlocStorage extends HydratedStorage {
       }
 
       final directory = storageDirectory ?? await getTemporaryDirectory();
-      print('directory.path ${directory.path}');
-      print('directory.absolute.path ${directory.absolute.path}');
       if (!kIsWeb) {
-        print('Hive.init(${directory.path})');
         Hive.init(directory.path);
       }
 
@@ -71,9 +68,7 @@ class HydratedBlocStorage extends HydratedStorage {
 
   static Future _migrate(Directory directory, Box box) async {
     final file = File('${directory.path}/.hydrated_bloc.json');
-    print('file target ${file.path}');
     if (await file.exists()) {
-      print('file exists');
       try {
         final storageJson = json.decode(await file.readAsString());
         final cache = (storageJson as Map).cast<String, String>();
@@ -85,9 +80,7 @@ class HydratedBlocStorage extends HydratedStorage {
           } on dynamic catch (_) {}
         }
       } on dynamic catch (_) {} finally {
-        print('deleting file');
         await file.delete();
-        print('deleted file');
       }
     }
   }
