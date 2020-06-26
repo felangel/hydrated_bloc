@@ -9,7 +9,7 @@ void main() {
   group('HydratedDelegate', () {
     HydratedBlocDelegate delegate;
     var getTemporaryDirectoryCallCount = 0;
-    final response = '.';
+    final response = Directory.current.absolute.path;
     const channel = MethodChannel('plugins.flutter.io/path_provider');
     channel.setMockMethodCallHandler((methodCall) async {
       if (methodCall.method == 'getTemporaryDirectory') {
