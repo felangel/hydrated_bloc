@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/felangel/hydrated_bloc/raw/master/doc/assets/hydrated_bloc_logo_new.png" height="100" alt="Hydrated Bloc">
+  <img src="https://github.com/felangel/hydrated_bloc/raw/v5.0.0/doc/assets/hydrated_bloc_logo_new.png" height="100" alt="Hydrated Bloc">
 </p>
 
 <p align="center">
@@ -145,6 +145,14 @@ class MyHydratedBlocDelegate extends HydratedBlocDelegate {
 
 BlocSupervisor.delegate = MyHydratedBlocDelegate();
 ```
+
+## Maintainers
+
+- [Felix Angelov](https://github.com/felangel)
+
+## Supporters
+
+[<img src="https://raw.githubusercontent.com/felangel/bloc/master/docs/assets/vgv_logo.png" width="120" />](https://verygood.ventures)
 
 ## Starware
 
