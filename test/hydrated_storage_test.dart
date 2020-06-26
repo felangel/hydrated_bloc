@@ -9,7 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedStorage', () {
     group('Default Storage Directory', () {
-      final response = Directory.current.path;
+      final response = Directory.current.absolute.path;
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       channel.setMockMethodCallHandler((methodCall) async {
         if (methodCall.method == 'getTemporaryDirectory') {
@@ -37,7 +37,7 @@ void main() {
         // });
 
         test('returns correct value when file exists', () async {
-          final file = File('${Directory.current.path}/.hydrated_bloc.json');
+          final file = File('$response/.hydrated_bloc.json');
           print('writing to ${file.path}');
           file.writeAsStringSync(json.encode({
             "CounterBloc": json.encode({"value": 4})
