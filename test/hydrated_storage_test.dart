@@ -37,7 +37,8 @@ void main() {
         // });
 
         test('returns correct value when file exists', () async {
-          final file = File('./.hydrated_bloc.json');
+          final file = File('${Directory('.').path}/.hydrated_bloc.json');
+          print('writing to ${file.path}');
           file.writeAsStringSync(json.encode({
             "CounterBloc": json.encode({"value": 4})
           }));

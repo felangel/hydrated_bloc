@@ -69,8 +69,7 @@ class HydratedBlocStorage extends HydratedStorage {
   }
 
   static Future _migrate(Directory directory, Box box) async {
-    print('_migrate()');
-    final file = File(p.join(directory.path, '.hydrated_bloc.json'));
+    final file = File('${directory.path}/.hydrated_bloc.json');
     print('file target ${file.path}');
     if (await file.exists()) {
       print('file exists');
