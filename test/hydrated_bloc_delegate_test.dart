@@ -8,19 +8,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedDelegate', () {
     HydratedBlocDelegate delegate;
-    var getTemporaryDirectoryCallCount = 0;
     final response = Directory.current.absolute.path;
     const channel = MethodChannel('plugins.flutter.io/path_provider');
     channel.setMockMethodCallHandler((methodCall) async {
       if (methodCall.method == 'getTemporaryDirectory') {
-        getTemporaryDirectoryCallCount++;
         return response;
       }
       throw UnimplementedError();
-    });
-
-    setUp(() {
-      getTemporaryDirectoryCallCount = 0;
     });
 
     tearDown(() async {
@@ -31,7 +25,6 @@ void main() {
       test('creates functional storage instance using getTemporaryDirectory',
           () async {
         delegate = await HydratedBlocDelegate.build();
-        expect(getTemporaryDirectoryCallCount, 1);
         await delegate.storage.write('MockBloc', {"nextState": "json"});
         expect(delegate.storage.read('MockBloc'), {'nextState': 'json'});
       });
