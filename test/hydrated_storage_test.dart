@@ -10,7 +10,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedStorage', () {
     group('Default Storage Directory', () {
-      final response = '.';
+      final response = Directory.current.path;
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       channel.setMockMethodCallHandler((methodCall) async {
         if (methodCall.method == 'getTemporaryDirectory') {
