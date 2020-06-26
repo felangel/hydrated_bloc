@@ -50,7 +50,7 @@ class HydratedBlocStorage extends HydratedStorage {
       if (_instance != null) {
         return _instance;
       }
-
+      print('storageDirectory == null ${storageDirectory == null}');
       final directory = storageDirectory ?? await getTemporaryDirectory();
       if (!kIsWeb) {
         print('Hive.init(${directory.path})');

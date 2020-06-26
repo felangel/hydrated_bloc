@@ -21,9 +21,6 @@ void main() {
 
     setUpAll(() async {
       await (await HydratedBlocStorage.getInstance()).clear();
-    });
-
-    setUp(() {
       getTemporaryDirectoryCallCount = 0;
     });
 
