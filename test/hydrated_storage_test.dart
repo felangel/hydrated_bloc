@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -10,7 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedStorage', () {
     group('Default Storage Directory', () {
-      final response = Directory.current.path;
+      final response = '.';
       const channel = MethodChannel('plugins.flutter.io/path_provider');
       channel.setMockMethodCallHandler((methodCall) async {
         if (methodCall.method == 'getTemporaryDirectory') {
@@ -38,12 +37,7 @@ void main() {
         // });
 
         test('returns correct value when file exists', () async {
-          print(
-            'Path: ${p.join(Directory.current.path, '.hydrated_bloc.json')}',
-          );
-          final file = File(
-            p.join(Directory.current.path, '.hydrated_bloc.json'),
-          );
+          final file = File('./.hydrated_bloc.json');
           file.writeAsStringSync(json.encode({
             "CounterBloc": json.encode({"value": 4})
           }));
