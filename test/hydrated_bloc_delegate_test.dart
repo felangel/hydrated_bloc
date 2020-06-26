@@ -34,6 +34,7 @@ void main() {
     group('Default Storage Directory', () {
       test('creates functional storage instance using getTemporaryDirectory',
           () async {
+        print('START!');
         delegate = await HydratedBlocDelegate.build();
         expect(getTemporaryDirectoryCallCount, 1);
         await delegate.storage.write('MockBloc', {"nextState": "json"});

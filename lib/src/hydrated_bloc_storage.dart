@@ -45,6 +45,7 @@ class HydratedBlocStorage extends HydratedStorage {
     Directory storageDirectory,
     HydratedCipher encryptionCipher,
   }) {
+    print('getInstance');
     return _lock.synchronized(() async {
       if (_instance != null) {
         return _instance;
@@ -52,6 +53,7 @@ class HydratedBlocStorage extends HydratedStorage {
 
       final directory = storageDirectory ?? await getTemporaryDirectory();
       if (!kIsWeb) {
+        print('Hive.init(${directory.path})');
         Hive.init(directory.path);
       }
 
