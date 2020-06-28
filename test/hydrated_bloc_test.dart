@@ -1,13 +1,12 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:hydrated_cubit/hydrated_cubit.dart';
 import 'package:mockito/mockito.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:bloc/bloc.dart';
 import 'package:uuid/uuid.dart';
 
-class MockStorage extends Mock implements HydratedBlocStorage {}
-
-class MockHydratedBlocDelegate extends Mock implements HydratedBlocDelegate {}
+class MockStorage extends Mock implements HydratedStorage {}
 
 class MockBloc extends Mock implements HydratedBloc<dynamic, dynamic> {
   String get storageToken => '${runtimeType.toString()}$id';
@@ -121,37 +120,14 @@ class MyErrorThrowingBloc extends HydratedBloc<Object, int> {
   }
 }
 
-class MyHydratedBlocDelegate extends HydratedBlocDelegate {
-  final Function(
-    Bloc bloc,
-    Object error,
-    StackTrace stackTrace,
-  ) onErrorCallback;
-
-  MyHydratedBlocDelegate(
-    HydratedStorage storage, {
-    this.onErrorCallback,
-  }) : super(storage);
-
-  @override
-  void onError(Bloc bloc, Object error, StackTrace stackTrace) {
-    super.onError(bloc, error, stackTrace);
-    onErrorCallback?.call(bloc, error, stackTrace);
-  }
-}
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   group('HydratedBloc', () {
-    MockHydratedBlocDelegate delegate;
     MockStorage storage;
 
     setUp(() {
-      delegate = MockHydratedBlocDelegate();
-      BlocSupervisor.delegate = delegate;
       storage = MockStorage();
-
-      when(delegate.storage).thenReturn(storage);
+      HydratedBloc.storage = storage;
     });
 
     group('SingleHydratedBloc', () {
@@ -333,7 +309,6 @@ void main() {
             },
           );
         }, onError: (_) {
-          verify(delegate.onError(any, lastError, lastStackTrace)).called(1);
           expect(lastStackTrace, isNotNull);
           expect(
             '$lastError',
@@ -387,7 +362,6 @@ void main() {
             'Converting object to an encodable object failed: Object',
           );
           expect(lastStackTrace, isNotNull);
-          verify(delegate.onError(bloc, lastError, lastStackTrace)).called(1);
         }, onError: (_) {});
       });
     });

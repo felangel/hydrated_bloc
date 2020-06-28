@@ -7,7 +7,7 @@ packages:
       name: bloc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0-dev.7"
+    version: "5.0.0-dev.10"
   charcode:
     dependency: transitive
     description:
@@ -61,7 +61,7 @@ packages:
       name: flutter_bloc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0-dev.3"
+    version: "5.0.0-dev.4"
   flutter_cubit:
     dependency: transitive
     description:
@@ -82,7 +82,14 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "5.0.0-dev.1"
+    version: "5.0.0-dev.2"
+  hydrated_cubit:
+    dependency: transitive
+    description:
+      name: hydrated_cubit
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.3"
   intl:
     dependency: transitive
     description:

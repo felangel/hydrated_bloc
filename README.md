@@ -27,65 +27,48 @@ An extension to the [bloc state management library](https://github.com/felangel/
 
 ## Overview
 
-`hydrated_bloc` exports a `HydratedStorage` interface which means it can work with any storage provider. Out of the box, it comes with its own implementation: `HydratedBlocStorage`.
+`hydrated_bloc` exports a `Storage` interface which means it can work with any storage provider. Out of the box, it comes with its own implementation: `HydratedStorage`.
 
-`HydratedBlocStorage` is built on top of [path_provider](https://pub.dev/packages/path_provider) for a platform-agnostic storage layer. The out-of-the-box storage implementation reads/writes to file using the `toJson`/`fromJson` methods on `HydratedBloc` and should perform very well for most use-cases (performance reports coming soon). `HydratedBlocStorage` is supported for desktop ([example](https://github.com/felangel/hydrated_bloc/tree/master/example)).
-
-In addition, while the `HydratedBlocStorage` client doesn't automatically encrypt/decrypt the data, it is fairly straightforward to implement a custom `HydratedStorage` client which does support encryption.
+`HydratedStorage` is built on top of [path_provider](https://pub.dev/packages/path_provider) for a platform-agnostic storage layer. The out-of-the-box storage implementation reads/writes to file using the `toJson`/`fromJson` methods on `HydratedBloc` and should perform very well for most use-cases (performance reports coming soon). `HydratedStorage` is supported for desktop ([example](https://github.com/felangel/hydrated_bloc/tree/master/example)).
 
 ## Usage
 
-### 1. Use `HydratedBlocDelegate`
+### 1. Use `HydratedStorage`
 
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  BlocSupervisor.delegate = await HydratedBlocDelegate.build();
+  HydratedBloc.storage = await HydratedStorage.build();
   runApp(App());
 }
 ```
 
-### 2. Extend `HydratedBloc` and override fromJson and toJson methods
+### 2. Extend `HydratedBloc` and override `fromJson`/`toJson`
 
 ```dart
-class CounterBloc extends HydratedBloc<CounterEvent, CounterState> {
-  CounterBloc() : super(CounterState(0));
+enum CounterEvent { increment, decrement }
 
-  // Called when trying to read cached state from storage.
-  @override
-  CounterState fromJson(Map<String, dynamic> source) {
-    return CounterState(source['value'] as int);
-  }
-
-  // Called on each state change (transition)
-  // If it returns null, then no cache updates will occur.
-  // Otherwise, the returned value will be cached.
-  @override
-  Map<String, int> toJson(CounterState state) {
-    return { 'value': state.value };
-  }
+class CounterBloc extends HydratedBloc<CounterEvent, int> {
+  CounterBloc() : super(0);
 
   @override
-  Stream<CounterState> mapEventToState(CounterEvent event) async* {
+  int fromJson(Map<String, dynamic> json) => json['value'] as int;
+
+  @override
+  Map<String, int> toJson(int state) => { 'value': state };
+
+  @override
+  Stream<int> mapEventToState(CounterEvent event) async* {
     switch (event) {
       case CounterEvent.decrement:
-        yield CounterState(state.value - 1);
+        yield state - 1;
         break;
       case CounterEvent.increment:
-        yield CounterState(state.value + 1);
+        yield state + 1;
         break;
     }
   }
 }
-
-enum CounterEvent { increment, decrement }
-
-class CounterState {
-  int value;
-
-  CounterState(this.value);
-}
-
 ```
 
 Now our `CounterBloc` is a `HydratedBloc` and will automatically persist its state. We can increment the counter value, hot restart, kill the app, etc... and our `CounterBloc` will always retain its state.
@@ -97,19 +80,19 @@ By default, all data is written to [temporary storage](https://github.com/flutte
 An optional `storageDirectory` can be provided to override the default temporary storage directory:
 
 ```dart
-BlocSupervisor.delegate = await HydratedBlocDelegate.build(
+HydratedBloc.storage = await HydratedStorage.build(
   storageDirectory: await getApplicationDocumentsDirectory(),
 );
 ```
 
 ## Custom Hydrated Storage
 
-If the default `HydratedBlocStorage` doesn't meet your needs, you can always implement a custom `HydratedStorage` by simply implementing the `HydratedStorage` interface and initializing `HydratedBlocDelegate` with the custom `HydratedStorage`.
+If the default `HydratedStorage` doesn't meet your needs, you can always implement a custom `Storage` by simply implementing the `Storage` interface and initializing `HydratedBloc` with the custom `Storage`.
 
 ```dart
 // my_hydrated_storage.dart
 
-class MyHydratedStorage implements HydratedStorage {
+class MyHydratedStorage implements Storage {
   @override
   dynamic read(String key) {
     // TODO: implement read
@@ -133,17 +116,9 @@ class MyHydratedStorage implements HydratedStorage {
 ```
 
 ```dart
-// my_hydrated_bloc_delegate.dart
-
-class MyHydratedBlocDelegate extends HydratedBlocDelegate {
- MyHydratedBlocDelegate() : super(MyHydratedBlocStorage());
-}
-```
-
-```dart
 // main.dart
 
-BlocSupervisor.delegate = MyHydratedBlocDelegate();
+HydratedBloc.storage = MyHydratedStorage();
 ```
 
 ## Maintainers

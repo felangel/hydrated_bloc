@@ -1,3 +1,8 @@
+# 5.0.0-dev.2
+
+- **BREAKING**: update to `bloc ^5.0.0-dev.10`
+- **BREAKING**: extend `hydrated_cubit ^0.0.3`
+
 # 5.0.0-dev.1
 
 - **BREAKING**: update to `bloc ^5.0.0-dev.7`
