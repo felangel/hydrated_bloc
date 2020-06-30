@@ -175,6 +175,7 @@ void main() {
           );
           when(storage.write(any, any)).thenThrow(expectedError);
           bloc.onTransition(transition);
+          // ignore: invalid_use_of_protected_member
           verify(bloc.onError(expectedError, any)).called(2);
         }, onError: (error) {
           expect(
