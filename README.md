@@ -21,9 +21,12 @@
   <a href="https://github.com/zepfietje/starware">
     <img src="https://img.shields.io/badge/Starware-⭐-black?labelColor=f9b00d" alt="Starware">
   </a>
+  <a href="https://github.com/felangel/bloc">
+    <img src="https://tinyurl.com/bloc-library" alt="Bloc Library">
+  </a>
 </p>
 
-An extension to the [bloc state management library](https://github.com/felangel/bloc) which automatically persists and restores bloc states.
+An extension to the [bloc state management library](https://github.com/felangel/bloc) which automatically persists and restores bloc states and is built on top of [hydrated_cubit](https://pub.dev/packages/hydrated_cubit).
 
 ## Overview
 
@@ -52,12 +55,6 @@ class CounterBloc extends HydratedBloc<CounterEvent, int> {
   CounterBloc() : super(0);
 
   @override
-  int fromJson(Map<String, dynamic> json) => json['value'] as int;
-
-  @override
-  Map<String, int> toJson(int state) => { 'value': state };
-
-  @override
   Stream<int> mapEventToState(CounterEvent event) async* {
     switch (event) {
       case CounterEvent.decrement:
@@ -68,6 +65,12 @@ class CounterBloc extends HydratedBloc<CounterEvent, int> {
         break;
     }
   }
+
+  @override
+  int fromJson(Map<String, dynamic> json) => json['value'] as int;
+
+  @override
+  Map<String, int> toJson(int state) => { 'value': state };
 }
 ```
 

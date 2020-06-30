@@ -1,3 +1,8 @@
+# 5.0.0-dev.3
+
+- feat: update to `bloc ^5.0.0-dev.11`
+- docs: minor updates to README
+
 # 5.0.0-dev.2
 
 - **BREAKING**: update to `bloc ^5.0.0-dev.10`
