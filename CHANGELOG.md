@@ -1,3 +1,11 @@
+# 5.0.0
+
+- **BREAKING**: update to `bloc ^5.0.0`
+- **BREAKING**: extend `hydrated_cubit ^0.1.0`
+- **BREAKING**: `super.initialState` is no longer required
+- docs: minor updates to README
+- docs: logo updates
+
 # 5.0.0-dev.3
 
 - feat: update to `bloc ^5.0.0-dev.11`

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/felangel/hydrated_bloc/raw/v5.0.0/doc/assets/hydrated_bloc_logo.png" height="100" alt="Hydrated Bloc">
+  <img src="https://github.com/felangel/hydrated_bloc/raw/master/doc/assets/hydrated_bloc_logo.png" height="100" alt="Hydrated Bloc">
 </p>
 
 <p align="center">
