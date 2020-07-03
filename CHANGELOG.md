@@ -1,6 +1,7 @@
 # 5.0.1
 
 - fix: export `Storage` interface
+- fix: use `Storage` interface to enable custom `Storage`
 
 # 5.0.0
 
