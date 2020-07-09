@@ -1,4 +1,7 @@
 <p align="center">
+  <b>⚠️ Attention: This repository has been moved to https://github.com/felangel/bloc and is now read-only!</b>
+</p>
+<p align="center">
   <img src="https://github.com/felangel/hydrated_bloc/raw/master/doc/assets/hydrated_bloc_logo.png" height="100" alt="Hydrated Bloc">
 </p>
 
